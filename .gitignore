@@ -1,0 +1,14 @@
+# Godot
+.godot/
+/android/
+*.tmp
+
+# Exports
+/build/
+*.apk
+*.aab
+*.idsig
+
+# Système
+.DS_Store
+Thumbs.db

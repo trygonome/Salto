@@ -1,0 +1,15 @@
+# Fins de ligne normalisées (convention Godot)
+* text=auto eol=lf
+
+# Binaires
+*.png binary
+*.jpg binary
+*.webp binary
+*.glb binary
+*.fbx binary
+*.ogg binary
+*.wav binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.keystore binary
