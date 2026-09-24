@@ -27,15 +27,27 @@ Tout le contexte est dans `docs/` :
 - Git : petits commits clairs, en français.
 
 ## Commandes
-À compléter au jalon 0 (lancer le jeu, lancer les tests, exporter l'APK Android).
+Godot **4.7.2**. Les scripts de `tools/` tournent sous Linux (sessions cloud, CI) et téléchargent au besoin
+Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (dossier réglable par `SALTO_TOOLS_DIR`).
+- **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
+  (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
+- **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
+  sans fenêtre ; code de sortie non nul si un test échoue.
+- **Exporter l'APK de test** : `tools/export_android.sh` → `build/android/salto-debug.apk`.
+  Signée avec `tools/android/debug.keystore` (alias `androiddebugkey`, mot de passe `android`) :
+  toutes les APK de test ont la même signature et s'installent par-dessus la précédente.
+  Depuis l'éditeur sur PC, régler *Paramètres de l'éditeur > Export > Android > Debug Keystore* sur ce fichier
+  pour garder la même signature.
 
 ## Structure
 ```
 res://
   scenes/   player/  enemies/  levels/  ui/  fx/
-  scripts/  autoload/ (Tuning, Rhythm, Game, Save)  components/
+  scripts/  autoload/ (Tuning, Rhythm, Game, Save)  components/  camera/  ui/  tuning_data.gd
   data/     tuning.tres  items/  talents/
   assets/   models/  animations/  audio/  fonts/  LICENCES.md
+  addons/   gut/ (tests, exclu de l'export)
   tests/
 docs/
+tools/      tests, export Android, keystore de debug (ignoré par Godot)
 ```
