@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="TuningData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tuning_data.gd" id="1_tuning"]
+
+[resource]
+script = ExtResource("1_tuning")
+hero_height = 1.8
+hero_radius = 0.3
+run_speed = 4.0
+ground_accel_rate = 11.0
+ground_brake_rate = 14.0
+air_control_rate = 5.0
+turn_rate_ground = 16.0
+turn_rate_air = 7.0
+step_height = 0.12
+joystick_radius_px = 46.0
+joystick_dead_zone = 0.12
+joystick_full_speed = 0.57
+gravity_rise_held = 9.8
+gravity_rise_released = 18.0
+gravity_fall = 11.8
+jump_speed = 3.9
+double_jump_speed = 4.0
+salto_duration = 0.5
+mushroom_bounce_speed = 6.2
+coyote_time = 0.1
+input_buffer_time = 0.2
+roll_duration = 0.38
+roll_distance = 1.55
+roll_tail_fraction = 0.2
+roll_tail_speed_factor = 0.5
+roll_invuln_start = 0.05
+roll_invuln_end = 0.79
+roll_cooldown = 0.08
+roll_chain_from = 0.8
+roll_jump_from = 0.35
+roll_jump_carry_speed = 3.6
+air_dash_speed = 6.7
+air_dash_duration = 0.22
+air_dash_invuln = 0.16
+air_dashes_per_jump = 1
+camera_tilt_deg = 57.0
+camera_target_height = 0.9
+camera_distance_portrait = 11.8
+camera_distance_landscape = 9.5
+camera_fov_portrait_deg = 50.0
+camera_fov_landscape_deg = 42.0
+camera_follow_rate = 3.5
+camera_lookahead = 0.9
+camera_combat_pullback = 0.13
+camera_combat_radius = 4.6
