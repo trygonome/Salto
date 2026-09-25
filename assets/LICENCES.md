@@ -10,6 +10,8 @@ Chaque pack ou fichier externe est noté ici **avant** d'être importé, avec l'
 | KayKit Character Animations 1.1 (gratuit) : clips Rig_Medium, mannequin | Kay Lousberg | https://kaylousberg.itch.io/kaykit-character-animations | CC0 — `animations/kaykit/LICENSE_KayKit_Character_Animations.txt` | `assets/animations/kaykit`, `assets/models/kaykit` | mannequin mis à 1,1 m (taille des plus grands Muets) |
 | Pictogrammes des boutons tactiles (`ui/icons/*.svg`) | Salto | créés pour le projet | propriété du projet | `assets/ui/icons` | sans objet (interface) |
 | Étincelle d'impact (`fx/spark.svg`) | Salto | créée pour le projet | propriété du projet | `assets/fx` | sans objet (effet) |
+| Musique de la nuit (4 couches) et bruitages (`audio/`) | Salto | synthétisés par `tools/audio/generate_audio.py` | propriété du projet | `assets/audio` | sans objet (son) |
+| Anneaux de la jauge de groove (`ui/icons/groove_ring*.svg`) | Salto | créés pour le projet | propriété du projet | `assets/ui/icons` | sans objet (interface) |
 
 ## Outils (non inclus dans le jeu exporté)
 
