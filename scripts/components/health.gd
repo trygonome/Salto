@@ -24,6 +24,11 @@ func take(amount: float) -> void:
 		depleted.emit()
 
 
+## Rend `amount` points de vie (sans dépasser le maximum).
+func heal(amount: float) -> void:
+	current = minf(current + amount, maximum)
+
+
 ## Rend tous les points de vie.
 func restore() -> void:
 	current = maximum

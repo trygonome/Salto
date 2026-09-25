@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/props/drum_stand.gd" id="1_stand"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="2_model"]
+[ext_resource type="PackedScene" path="res://scenes/fx/shockwave.tscn" id="3_burst"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="4_sound"]
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.45, 0.28, 0.16, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="Mesh_stage"]
+material = SubResource("Material_wood")
+top_radius = 1.6
+bottom_radius = 1.7
+height = 0.3
+
+[sub_resource type="CylinderShape3D" id="Shape_stage"]
+height = 0.3
+radius = 1.65
+
+[sub_resource type="CylinderShape3D" id="Shape_zone"]
+height = 2.0
+radius = 2.4
+
+[node name="DrumStand" type="Node3D" node_paths=PackedStringArray("slots")]
+script = ExtResource("1_stand")
+slots = [NodePath("Slot1"), NodePath("Slot2"), NodePath("Slot3")]
+burst_scene = ExtResource("3_burst")
+burst_duration = 0.6
+burst_size = 2.4
+
+[node name="Stage" type="StaticBody3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Stage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("Mesh_stage")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("Shape_stage")
+
+[node name="Slot1" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0, 0.3, -0.7)
+
+[node name="Slot2" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -0.65, 0.3, 0.4)
+
+[node name="Slot3" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0.65, 0.3, 0.4)
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("Shape_zone")
+
+[node name="ReturnSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_sound")

@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/kaykit/forest/Rock_1_E_Color1.gltf" id="1_model"]
+
+[sub_resource type="BoxShape3D" id="Shape_rock"]
+size = Vector3(0.9, 1.13, 0.977)
+
+[node name="Rock_1_E" type="StaticBody3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Box" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.565, -0.11)
+shape = SubResource("Shape_rock")

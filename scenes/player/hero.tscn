@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://scripts/player/states/hurt_state.gd" id="25_hurt"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hurt.wav" id="26_hurt_sound"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/dodge.wav" id="27_dodge_sound"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="28_drum"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
@@ -78,6 +79,9 @@ libraries = {
 &"melee": ExtResource("15_melee")
 }
 script = ExtResource("11_animator")
+
+[node name="CarriedDrum" parent="Visual" instance=ExtResource("28_drum")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 1.05, 0.42)
 
 [node name="Trail" type="MeshInstance3D" parent="Visual"]
 material_override = SubResource("Material_trail")

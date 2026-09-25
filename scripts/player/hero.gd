@@ -8,6 +8,8 @@ extends CharacterBody3D
 signal hit_landed(hit: HitData)
 ## Un appui sur Frappe vient d'être jugé par rapport au temps.
 signal judged(judgement: RhythmMath.Judgement)
+## Le héros vient d'être ramené au village.
+signal respawned
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 
@@ -80,6 +82,7 @@ var _spawn: Transform3D
 @onready var _chime: AudioStreamPlayer = $ChimeSound
 @onready var _hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var _dodge_sound: AudioStreamPlayer = $DodgeSound
+@onready var _carried_drum: Node3D = $Visual/CarriedDrum
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 
@@ -114,6 +117,10 @@ func _ready() -> void:
 	hurtbox.dodged.connect(_on_dodged)
 	add_to_group(&"debug_info")
 	add_to_group(&"hero")
+	_carried_drum.visible = false
+	Game.drum_picked.connect(func() -> void: _carried_drum.visible = true)
+	Game.drum_dropped.connect(func() -> void: _carried_drum.visible = false)
+	Game.drum_returned.connect(func(_count: int) -> void: _carried_drum.visible = false)
 	state_machine.start()
 
 
@@ -302,14 +309,27 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 		wave.play(tuning.shockwave_time, radius * (i + 1) / colors.size())
 
 
-## Ramène le héros au point de départ, avec tous ses points de vie.
+## Rebond d'un champignon-trampoline : le héros repart vers le haut à `speed` ; comme après un
+## saut, le salto reste possible.
+func bounce(speed: float) -> void:
+	velocity.y = speed
+	jumps_used = 1
+	coyote_left = 0.0
+	visual.stop_spin()
+	state_machine.transition_to(&"Air")
+
+
+## Ramène le héros au village (point de départ), avec tous ses points de vie ; le tambour
+## qu'il portait est perdu (il retourne à son sanctuaire).
 func respawn() -> void:
 	global_transform = _spawn
 	velocity = Vector3.ZERO
 	_buffer.clear()
 	health.restore()
+	Game.drop_drum()
 	reset_physics_interpolation()
 	state_machine.transition_to(&"Air")
+	respawned.emit()
 
 
 ## Un Muet vient d'être libéré (appelé par le Muet sur le groupe « hero »).
@@ -324,15 +344,23 @@ func on_wave_jumped() -> void:
 
 ## Lignes affichées par l'overlay de mise au point.
 func debug_text() -> String:
-	var text: String = "%s · sauts %d/%d · élans %d/%d%s" % [
+	var text: String = "%s · sauts %d/%d · élans %d/%d%s%s" % [
 		state_machine.current.name,
 		jumps_used,
 		tuning.max_jumps,
 		air_dashes_used,
 		tuning.air_dashes_per_jump,
 		" · invulnérable" if invulnerable else "",
+		" · tambour" if Game.progress.carrying_drum else "",
 	]
 	text += "\nPV %.0f/%.0f · combo %d · groove %.1f/%.0f" % [health.current, health.maximum, combo.hits, groove.value, groove.maximum]
+	text += "\ntambours %d/%d · pages %d · objets %d%s" % [
+		Game.progress.drums_returned,
+		Game.progress.drums_required,
+		Game.progress.pages.size(),
+		Game.progress.items.size(),
+		" · nuit accomplie" if Game.progress.is_complete() else "",
+	]
 	if last_hit:
 		text += " · %s %.1f%s" % [last_hit.move, last_hit.damage, " critique" if last_hit.critical else ""]
 	return text

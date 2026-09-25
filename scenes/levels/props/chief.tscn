@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/props/chief.gd" id="1_chief"]
+[ext_resource type="PackedScene" path="res://assets/models/kaykit/Barbarian.glb" id="2_model"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_General.glb" id="3_general"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_Simulation.glb" id="4_simulation"]
+
+[sub_resource type="CylinderShape3D" id="Shape_body"]
+height = 1.9
+radius = 0.45
+
+[node name="ChiefTaroum" type="StaticBody3D"]
+script = ExtResource("1_chief")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Model"]
+libraries = {
+&"general": ExtResource("3_general"),
+&"simulation": ExtResource("4_simulation")
+}
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+shape = SubResource("Shape_body")

@@ -66,13 +66,17 @@ func _wait_for_state(state_name: StringName) -> void:
 	fail_test("le héros n'est jamais passé dans l'état %s" % state_name)
 
 
-## Attend la fin du saut en cours et renvoie la hauteur maximale atteinte.
+## Attend la fin du saut en cours (au plus MAX_FRAMES images) et renvoie la hauteur maximale
+## atteinte.
 func _measure_apex() -> float:
 	var apex: float = hero.global_position.y
 	await _step(1)
-	while _state() != &"Ground":
+	for i: int in MAX_FRAMES:
+		if _state() == &"Ground":
+			return apex
 		apex = maxf(apex, hero.global_position.y)
 		await _step(1)
+	fail_test("le héros n'est jamais retombé au sol")
 	return apex
 
 

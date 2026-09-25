@@ -1,0 +1,86 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/props/gong.gd" id="1_gong"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="2_hurtbox"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/gong.wav" id="3_sound"]
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.38, 0.24, 0.14, 1)
+roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+material = SubResource("Material_wood")
+top_radius = 0.07
+bottom_radius = 0.08
+height = 2.0
+
+[sub_resource type="BoxMesh" id="Mesh_bar"]
+material = SubResource("Material_wood")
+size = Vector3(1.5, 0.14, 0.14)
+
+[sub_resource type="StandardMaterial3D" id="Material_bronze"]
+albedo_color = Color(0.8, 0.58, 0.25, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="Mesh_disc"]
+material = SubResource("Material_bronze")
+top_radius = 0.55
+bottom_radius = 0.55
+height = 0.07
+
+[sub_resource type="CylinderShape3D" id="Shape_frame"]
+height = 2.0
+radius = 0.1
+
+[sub_resource type="SphereShape3D" id="Shape_hit"]
+radius = 0.6
+
+[node name="Gong" type="Node3D"]
+script = ExtResource("1_gong")
+glow_color = Color(1, 0.8, 0.35, 1)
+error_color = Color(0.5, 0.45, 0.85, 1)
+glow_energy = 3.0
+glow_time = 0.6
+swing_deg = 18.0
+
+[node name="Frame" type="StaticBody3D" parent="."]
+
+[node name="PostLeft" type="MeshInstance3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 1, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="PostRight" type="MeshInstance3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Bar" type="MeshInstance3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.95, 0)
+mesh = SubResource("Mesh_bar")
+
+[node name="Disc" type="MeshInstance3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1.2, 0)
+mesh = SubResource("Mesh_disc")
+
+[node name="PostLeftShape" type="CollisionShape3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 1, 0)
+shape = SubResource("Shape_frame")
+
+[node name="PostRightShape" type="CollisionShape3D" parent="Frame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1, 0)
+shape = SubResource("Shape_frame")
+
+[node name="Hurtbox" type="Area3D" parent="." groups=["enemy_hurtbox"]]
+collision_layer = 16
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_hurtbox")
+radius = 0.55
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("Shape_hit")
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+stream = ExtResource("3_sound")

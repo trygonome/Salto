@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/kaykit/forest/Tree_3_A_Color1.gltf" id="1_model"]
+
+[sub_resource type="CylinderShape3D" id="Shape_trunk"]
+height = 1.929
+radius = 0.2
+
+[node name="Tree_3_A" type="StaticBody3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Trunk" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.964, 0)
+shape = SubResource("Shape_trunk")
