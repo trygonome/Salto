@@ -10,6 +10,8 @@ roughness = 0.7
 material = SubResource("Material_body")
 radius = 0.5
 height = 1.0
+radial_segments = 24
+rings = 12
 
 [sub_resource type="StandardMaterial3D" id="Material_eye"]
 albedo_color = Color(0.96, 0.96, 0.98, 1)
@@ -19,6 +21,8 @@ roughness = 0.3
 material = SubResource("Material_eye")
 radius = 0.15
 height = 0.3
+radial_segments = 10
+rings = 5
 
 [sub_resource type="StandardMaterial3D" id="Material_pupil"]
 albedo_color = Color(0.06, 0.05, 0.1, 1)
@@ -27,6 +31,8 @@ albedo_color = Color(0.06, 0.05, 0.1, 1)
 material = SubResource("Material_pupil")
 radius = 0.07
 height = 0.14
+radial_segments = 10
+rings = 5
 
 [sub_resource type="BoxMesh" id="BoxMesh_mouth"]
 material = SubResource("Material_pupil")
@@ -44,6 +50,8 @@ material = SubResource("Material_stalk")
 top_radius = 0.018
 bottom_radius = 0.025
 height = 0.36
+radial_segments = 10
+rings = 0
 
 [sub_resource type="StandardMaterial3D" id="Material_tip_left"]
 albedo_color = Color(1, 0.55, 0.2, 1)
@@ -55,6 +63,8 @@ emission_energy_multiplier = 1.5
 material = SubResource("Material_tip_left")
 radius = 0.07
 height = 0.14
+radial_segments = 10
+rings = 5
 
 [sub_resource type="StandardMaterial3D" id="Material_tip_right"]
 albedo_color = Color(0.3, 0.85, 1, 1)
@@ -66,6 +76,8 @@ emission_energy_multiplier = 1.5
 material = SubResource("Material_tip_right")
 radius = 0.07
 height = 0.14
+radial_segments = 10
+rings = 5
 
 [sub_resource type="StandardMaterial3D" id="Material_star"]
 albedo_color = Color(1, 0.9, 0.35, 1)
@@ -77,6 +89,8 @@ emission_energy_multiplier = 2.0
 material = SubResource("Material_star")
 radius = 0.06
 height = 0.12
+radial_segments = 10
+rings = 5
 
 [node name="Body" type="Node3D"]
 script = ExtResource("1_body")

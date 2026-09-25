@@ -13,6 +13,8 @@ material = SubResource("Material_wood")
 top_radius = 0.07
 bottom_radius = 0.08
 height = 2.0
+radial_segments = 10
+rings = 0
 
 [sub_resource type="BoxMesh" id="Mesh_bar"]
 material = SubResource("Material_wood")
@@ -28,6 +30,8 @@ material = SubResource("Material_bronze")
 top_radius = 0.55
 bottom_radius = 0.55
 height = 0.07
+radial_segments = 16
+rings = 0
 
 [sub_resource type="CylinderShape3D" id="Shape_frame"]
 height = 2.0

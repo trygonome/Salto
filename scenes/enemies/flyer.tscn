@@ -30,6 +30,8 @@ transparency = 1
 material = SubResource("Material_wing")
 radius = 0.28
 height = 0.08
+radial_segments = 16
+rings = 8
 
 [node name="Flyer" type="CharacterBody3D"]
 collision_layer = 4

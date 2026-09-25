@@ -12,6 +12,8 @@ material = SubResource("Material_stem")
 top_radius = 0.25
 bottom_radius = 0.35
 height = 0.9
+radial_segments = 16
+rings = 0
 
 [sub_resource type="StandardMaterial3D" id="Material_cap"]
 albedo_color = Color(0.85, 0.25, 0.55, 1)
@@ -25,6 +27,8 @@ material = SubResource("Material_cap")
 radius = 0.9
 height = 0.9
 is_hemisphere = true
+radial_segments = 24
+rings = 12
 
 [sub_resource type="StandardMaterial3D" id="Material_spot"]
 albedo_color = Color(1, 0.95, 0.85, 1)
@@ -36,6 +40,8 @@ emission_energy_multiplier = 0.8
 material = SubResource("Material_spot")
 radius = 0.12
 height = 0.12
+radial_segments = 10
+rings = 5
 
 [sub_resource type="CylinderShape3D" id="Shape_stem"]
 height = 0.9

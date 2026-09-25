@@ -12,6 +12,8 @@ material = SubResource("Material_stone")
 top_radius = 0.6
 bottom_radius = 0.75
 height = 0.6
+radial_segments = 16
+rings = 0
 
 [sub_resource type="StandardMaterial3D" id="Material_bubble"]
 transparency = 1
@@ -25,6 +27,8 @@ emission_energy_multiplier = 0.8
 material = SubResource("Material_bubble")
 radius = 0.75
 height = 1.5
+radial_segments = 24
+rings = 12
 
 [sub_resource type="SphereShape3D" id="Shape_pickup"]
 radius = 0.9

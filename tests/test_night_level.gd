@@ -8,6 +8,8 @@ const Notebook: NotebookData = preload("res://data/notebook.tres")
 const CLIMB_MARGIN := 0.8
 ## Écart maximal entre les bords de deux perchoirs voisins (m).
 const MAX_PERCH_GAP := 1.5
+## Pas de physique attendus au plus pour qu'une zone voie le héros.
+const MAX_OVERLAP_FRAMES := 30
 
 var tuning: TuningData = Tuning.data
 var level: Node3D
@@ -26,8 +28,11 @@ func test_la_nuit_commence_au_village_avec_la_musique_de_base() -> void:
 	assert_eq(Game.progress.drums_returned, 0)
 	assert_eq(Rhythm.audible_layers(), 1)
 	var village: Area3D = level.get_node("Village/VillageZone") as Area3D
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	# Les recouvrements de zones ne sont connus qu'après quelques pas de physique.
+	for i: int in MAX_OVERLAP_FRAMES:
+		if village.overlaps_body(hero):
+			break
+		await get_tree().physics_frame
 	assert_true(village.overlaps_body(hero), "le héros part du village")
 
 

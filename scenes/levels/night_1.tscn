@@ -60,6 +60,7 @@
 [ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="91_hint"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="92_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="93_end"]
+[ext_resource type="Script" path="res://scripts/levels/nature_batcher.gd" id="94_batcher"]
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
 background_color = Color(0.05, 0.06, 0.15, 1)
@@ -119,6 +120,8 @@ material = SubResource("Material_pole")
 top_radius = 0.04
 bottom_radius = 0.05
 height = 1.6
+radial_segments = 10
+rings = 0
 
 [sub_resource type="StandardMaterial3D" id="Material_lantern"]
 albedo_color = Color(1, 0.62, 0.25, 1)
@@ -151,6 +154,8 @@ material = SubResource("Material_wood")
 top_radius = 0.08
 bottom_radius = 0.1
 height = 1.0
+radial_segments = 10
+rings = 0
 
 [sub_resource type="BoxShape3D" id="Shape_village"]
 size = Vector3(22, 4, 22)
@@ -191,7 +196,7 @@ light_color = Color(0.72, 0.8, 1, 1)
 light_energy = 0.7
 shadow_enabled = true
 directional_shadow_mode = 1
-directional_shadow_max_distance = 35.0
+directional_shadow_max_distance = 25.0
 
 [node name="Terrain" type="CSGCombiner3D" parent="."]
 use_collision = true
@@ -924,6 +929,9 @@ position = Vector3(8.738, 0, -3.466)
 rotation_degrees = Vector3(0, 18.106, 0)
 
 [node name="Nature" type="Node3D" parent="."]
+script = ExtResource("94_batcher")
+cell_size = 16.0
+no_shadow_prefixes = PackedStringArray("Grass", "Bush")
 
 [node name="BorderWest1" parent="Nature" instance=ExtResource("28_tree_2_e")]
 position = Vector3(-24.856, 0, 0.624)
