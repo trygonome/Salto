@@ -89,6 +89,7 @@ func test_un_assemblage_articule_tient_en_un_seul_maillage() -> void:
 	assert_eq(vertices.size(), 3 * 24, "trois cubes de 24 sommets")
 	var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
 	assert_eq(bones[bones.size() - 4], rig.bone(&"arm"), "le dernier cube suit le bras")
+	assert_eq(rig.mesh_instance.get_node_or_null(rig.mesh_instance.skeleton), rig.skeleton, "le maillage suit le squelette")
 
 
 func test_chaque_muet_a_sa_forme() -> void:

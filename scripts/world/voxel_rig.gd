@@ -54,6 +54,8 @@ func build(material: Material, key: String = "") -> void:
 	mesh_instance.material_override = material
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.extra_cull_margin = Tuning.data.voxel_rig_cull_margin
+	# Le maillage suit le squelette dont il est l'enfant.
+	mesh_instance.skeleton = NodePath("..")
 	skeleton.add_child(mesh_instance)
 
 
