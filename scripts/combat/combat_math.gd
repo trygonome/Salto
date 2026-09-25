@@ -10,6 +10,11 @@ static func hero_attack(level: int, tuning: TuningData) -> float:
 	return tuning.hero_attack_base + tuning.hero_attack_per_level * (level - 1)
 
 
+## Points de vie du héros au niveau `level`.
+static func hero_max_health(level: int, tuning: TuningData) -> float:
+	return tuning.hero_health_base + tuning.hero_health_per_level * (level - 1)
+
+
 ## Multiplicateur de combo quand `hits` coups ont déjà touché sans interruption.
 static func combo_multiplier(hits: int, tuning: TuningData) -> float:
 	return 1.0 + minf(tuning.combo_bonus_max, tuning.combo_bonus_per_hit * hits)

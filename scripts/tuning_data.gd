@@ -124,6 +124,8 @@ extends Resource
 @export var combo_attacks: Array[AttackData]
 ## Coup roulé : Frappe pendant ou juste après une roulade.
 @export var rolling_kick: AttackData
+## Coup de pied au début d'un plongeon : touche ce qui est à hauteur du héros en l'air (volants).
+@export var air_kick: AttackData
 ## Délai après la fin d'une roulade pendant lequel Frappe donne encore le coup roulé (s).
 @export var rolling_kick_grace: float
 ## Délai après la fin d'un coup pendant lequel Frappe continue l'enchaînement (s).
@@ -278,3 +280,132 @@ extends Resource
 @export var rainbow_multiplier: float
 ## Durée d'étourdissement des cibles touchées (s).
 @export var rainbow_stun: float
+
+@export_group("Héros touché")
+## Points de vie au niveau 1.
+@export var hero_health_base: float
+## Points de vie gagnés par niveau.
+@export var hero_health_per_level: float
+## Invulnérabilité après un coup reçu (s).
+@export var hero_hurt_invuln: float
+## Durée pendant laquelle le héros encaisse un coup, sans commandes (s).
+@export var hero_hurt_time: float
+## Vitesse du recul reçu (m/s).
+@export var hero_recoil_speed: float
+## Vitesse du recul reçu pour les gros coups (m/s).
+@export var hero_recoil_big_speed: float
+## Arrêt sur image quand le héros est touché (s).
+@export var hit_stop_hero: float
+## Secousse de caméra quand le héros est touché (0 à 1).
+@export var shake_trauma_hurt: float
+## Clignotement pendant l'invulnérabilité : durée d'un cycle (s).
+@export var hurt_blink_period: float
+## Ralenti de l'esquive parfaite : durée en temps réel (s).
+@export var perfect_dodge_slow_time: float
+## Vitesse du temps pendant ce ralenti (fraction).
+@export var perfect_dodge_time_scale: float
+## Groove gagné par une esquive parfaite.
+@export var groove_perfect_dodge: float
+## Groove gagné quand un Muet est libéré.
+@export var groove_enemy_freed: float
+## Groove gagné en sautant par-dessus une onde de choc.
+@export var groove_wave_jumped: float
+## Écart de hauteur maximal entre le centre d'un coup et celui de sa cible (m).
+@export var attack_vertical_reach: float
+
+@export_group("Muets")
+## Distance à laquelle un Muet repère le héros (m).
+@export var muet_detection_range: float
+## Distance à son poste au-delà de laquelle un gardien y retourne (m).
+@export var muet_leash_guard: float
+## Même distance pour un Muet errant (m).
+@export var muet_leash_wander: float
+## Décalage maximal de chaque Muet par rapport au temps, pour éviter l'effet mécanique (s).
+@export var muet_beat_jitter_max: float
+## Vitesse de marche des Muets au sol (m/s).
+@export var muet_walk_speed: float
+## Recul d'un Muet touché (m/s) et sa durée (s).
+@export var muet_knockback_speed: float
+@export var muet_knockback_time: float
+## Éclat blanc d'un Muet touché (s).
+@export var muet_hit_flash_time: float
+## Durée de la libération d'un Muet avant qu'il disparaisse (s).
+@export var muet_freed_time: float
+## Gravité appliquée aux Muets au sol (m/s²).
+@export var muet_gravity: float
+
+@export_group("Sautillant")
+@export var hopper_health: float
+@export var hopper_damage: float
+## Rayon du corps (m).
+@export var hopper_radius: float
+## Hauteur du corps (m).
+@export var hopper_height: float
+## Longueur d'un bond, à chaque temps (m).
+@export var hopper_hop_distance: float
+## Hauteur d'un bond (m) ; sa durée découle de la gravité des Muets.
+@export var hopper_hop_height: float
+
+@export_group("Volant")
+@export var flyer_health: float
+@export var flyer_damage: float
+@export var flyer_radius: float
+@export var flyer_height: float
+## Altitude de vol (m).
+@export var flyer_altitude: float
+## Distance au héros à laquelle il tourne (m).
+@export var flyer_orbit_radius: float
+## Vitesse angulaire autour du héros (rad/s).
+@export var flyer_orbit_speed: float
+## Vitesse à laquelle il rejoint sa place en vol (/s).
+@export var flyer_follow_rate: float
+## Un piqué tous les combien de temps.
+@export var flyer_dive_every_beats: int
+## Temps d'annonce (ligne rouge) avant le piqué.
+@export var flyer_telegraph_beats: int
+## Durée du piqué (s).
+@export var flyer_dive_time: float
+## Largeur de la ligne d'annonce (m).
+@export var flyer_line_width: float
+
+@export_group("Cornu")
+@export var charger_health: float
+@export var charger_damage: float
+## Part des dégâts infligée par simple contact (hors charge).
+@export var charger_contact_fraction: float
+@export var charger_radius: float
+@export var charger_height: float
+## Temps d'annonce avant la charge ; il suit le héros pendant le premier.
+@export var charger_telegraph_beats: int
+@export var charger_track_beats: int
+## Vitesse et longueur de la charge (m/s, m).
+@export var charger_speed: float
+@export var charger_distance: float
+## Assommé contre un obstacle (s), et dégâts reçus pendant ce temps (multiplicateur).
+@export var charger_stun_time: float
+@export var charger_stunned_damage_multiplier: float
+## Temps de repos entre deux charges.
+@export var charger_rest_beats: int
+## Largeur de la ligne d'annonce (m).
+@export var charger_line_width: float
+
+@export_group("Grand Muet")
+@export var boss_health: float
+## Dégâts de la frappe au sol et de l'onde.
+@export var boss_slam_damage: float
+@export var boss_wave_damage: float
+@export var boss_radius: float
+@export var boss_height: float
+## Une frappe au sol tous les combien de temps.
+@export var boss_attack_every_beats: int
+## Temps d'annonce (cercle rouge) avant la frappe.
+@export var boss_telegraph_beats: int
+## Rayon de la frappe au sol (m).
+@export var boss_slam_radius: float
+## Part des PV sous laquelle il enrage (phase 2).
+@export var boss_phase2_fraction: float
+## Onde de choc de la phase 2 : vitesse (m/s) et portée (m).
+@export var boss_wave_speed: float
+@export var boss_wave_range: float
+## Hauteur des pieds au-dessus du sol à partir de laquelle l'onde passe sous le héros (m).
+@export var boss_wave_clearance: float

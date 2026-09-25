@@ -18,3 +18,5 @@ var move: StringName = &""
 var judgement: RhythmMath.Judgement = RhythmMath.Judgement.MISS
 ## Durée pendant laquelle la cible est étourdie (s ; 0 = pas d'étourdissement).
 var stun_time: float = 0.0
+## Vrai pour un gros coup (recul plus fort).
+var big: bool = false

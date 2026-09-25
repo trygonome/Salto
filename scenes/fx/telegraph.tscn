@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/telegraph.gd" id="1_telegraph"]
+[ext_resource type="Shader" path="res://scenes/fx/telegraph.gdshader" id="2_shader"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/telegraph.wav" id="3_sound"]
+
+[sub_resource type="ShaderMaterial" id="Material_telegraph"]
+render_priority = 1
+shader = ExtResource("2_shader")
+shader_parameter/color = Color(1, 0.18, 0.2, 0.85)
+shader_parameter/progress = 0.0
+shader_parameter/is_line = false
+shader_parameter/rim_width = 0.08
+shader_parameter/fill_opacity = 0.45
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_unit"]
+size = Vector2(1, 1)
+
+[node name="Telegraph" type="MeshInstance3D"]
+material_override = SubResource("Material_telegraph")
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_unit")
+script = ExtResource("1_telegraph")
+ground_offset = 0.04
+
+[node name="Sound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_sound")

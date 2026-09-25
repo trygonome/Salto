@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TuningData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="TuningData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/tuning_data.gd" id="1_tuning"]
 [ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="2_attack"]
@@ -63,6 +63,21 @@ lunge = 1.0
 hop_speed = 0.0
 spin_keys = PackedVector2Array()
 
+[sub_resource type="Resource" id="Attack_air_kick"]
+script = ExtResource("2_attack")
+id = &"air_kick"
+animation = &"melee/Melee_Unarmed_Attack_Kick"
+animation_impact = 0.43
+duration = 0.2
+impact = 0.05
+chain_from = 0.1
+reach = 0.8
+arc_deg = 360.0
+damage_multiplier = 1.0
+lunge = 0.0
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+
 [resource]
 script = ExtResource("1_tuning")
 hero_height = 1.8
@@ -117,6 +132,7 @@ hero_attack_base = 12.0
 hero_attack_per_level = 2.0
 combo_attacks = Array[ExtResource("2_attack")]([SubResource("Attack_martelo"), SubResource("Attack_meia_lua"), SubResource("Attack_armada")])
 rolling_kick = SubResource("Attack_rolling_kick")
+air_kick = SubResource("Attack_air_kick")
 rolling_kick_grace = 0.15
 combo_chain_window = 0.45
 move_cancel_threshold = 0.5
@@ -188,3 +204,71 @@ rainbow_hop_speed = 4.4
 rainbow_radius = 2.4
 rainbow_multiplier = 2.5
 rainbow_stun = 1.5
+hero_health_base = 100.0
+hero_health_per_level = 10.0
+hero_hurt_invuln = 0.7
+hero_hurt_time = 0.3
+hero_recoil_speed = 3.1
+hero_recoil_big_speed = 6.0
+hit_stop_hero = 0.06
+shake_trauma_hurt = 0.5
+hurt_blink_period = 0.1
+perfect_dodge_slow_time = 0.45
+perfect_dodge_time_scale = 0.3
+groove_perfect_dodge = 2.0
+groove_enemy_freed = 1.0
+groove_wave_jumped = 1.0
+attack_vertical_reach = 1.0
+muet_detection_range = 3.9
+muet_leash_guard = 5.72
+muet_leash_wander = 8.84
+muet_beat_jitter_max = 0.06
+muet_walk_speed = 1.2
+muet_knockback_speed = 2.5
+muet_knockback_time = 0.12
+muet_hit_flash_time = 0.12
+muet_freed_time = 1.0
+muet_gravity = 11.8
+hopper_health = 30.0
+hopper_damage = 9.0
+hopper_radius = 0.39
+hopper_height = 0.7
+hopper_hop_distance = 0.57
+hopper_hop_height = 0.35
+flyer_health = 20.0
+flyer_damage = 8.0
+flyer_radius = 0.31
+flyer_height = 0.6
+flyer_altitude = 1.87
+flyer_orbit_radius = 1.69
+flyer_orbit_speed = 0.9
+flyer_follow_rate = 2.5
+flyer_dive_every_beats = 5
+flyer_telegraph_beats = 1
+flyer_dive_time = 0.85
+flyer_line_width = 0.7
+charger_health = 62.0
+charger_damage = 22.0
+charger_contact_fraction = 0.45
+charger_radius = 0.52
+charger_height = 1.1
+charger_telegraph_beats = 2
+charger_track_beats = 1
+charger_speed = 5.46
+charger_distance = 5.72
+charger_stun_time = 2.2
+charger_stunned_damage_multiplier = 1.5
+charger_rest_beats = 2
+charger_line_width = 1.0
+boss_health = 170.0
+boss_slam_damage = 20.0
+boss_wave_damage = 12.0
+boss_radius = 0.9
+boss_height = 2.4
+boss_attack_every_beats = 4
+boss_telegraph_beats = 2
+boss_slam_radius = 2.08
+boss_phase2_fraction = 0.5
+boss_wave_speed = 3.12
+boss_wave_range = 5.2
+boss_wave_clearance = 0.3
