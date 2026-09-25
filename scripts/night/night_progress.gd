@@ -55,11 +55,6 @@ func music_layers(layer_count: int) -> int:
 	return mini(1 + drums_returned, layer_count)
 
 
-## Saturation des couleurs du monde : il commence terne et reprend ses couleurs à chaque tambour.
-func world_saturation(start: float, full: float) -> float:
-	return lerpf(start, full, float(drums_returned) / drums_required)
-
-
 ## Ajoute une page ; renvoie faux si elle était déjà trouvée.
 func add_page(page: int) -> bool:
 	if pages.has(page):

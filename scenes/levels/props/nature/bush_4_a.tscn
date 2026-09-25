@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="PackedScene" path="res://assets/models/kaykit/forest/Bush_4_A_Color1.gltf" id="1_model"]
-
-[node name="Bush_4_A" type="Node3D"]
-
-[node name="Model" parent="." instance=ExtResource("1_model")]

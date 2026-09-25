@@ -42,15 +42,6 @@ func test_chaque_tambour_ajoute_une_couche_de_musique() -> void:
 	assert_eq(night.music_layers(4), 4, "pas plus de couches qu'il n'y en a")
 
 
-func test_le_monde_reprend_ses_couleurs() -> void:
-	var night := NightProgress.new(2)
-	assert_eq(night.world_saturation(0.3, 1.0), 0.3)
-	night.drums_returned = 1
-	assert_almost_eq(night.world_saturation(0.3, 1.0), 0.65, 0.0001)
-	night.drums_returned = 2
-	assert_eq(night.world_saturation(0.3, 1.0), 1.0)
-
-
 func test_une_page_ne_compte_qu_une_fois() -> void:
 	var night := NightProgress.new(1)
 	assert_true(night.add_page(5))

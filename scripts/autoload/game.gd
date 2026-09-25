@@ -121,8 +121,3 @@ func save() -> void:
 
 func music_layers() -> int:
 	return progress.music_layers(Rhythm.NIGHT_LAYERS.size())
-
-
-func world_saturation() -> float:
-	var tuning: TuningData = Tuning.data
-	return progress.world_saturation(tuning.night_saturation_start, tuning.night_saturation_full)

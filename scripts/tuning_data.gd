@@ -413,20 +413,10 @@ extends Resource
 @export_group("Nuit")
 ## Tambours à rapporter pour accomplir la nuit (un par sanctuaire).
 @export var night_drums_required: int
-## Saturation des couleurs au début de la nuit, et une fois tous les tambours rapportés.
-@export var night_saturation_start: float
-@export var night_saturation_full: float
-## Durée du retour des couleurs après un tambour rapporté (s).
-@export var night_saturation_fade_time: float
 ## Soin au village (PV/s).
 @export var village_heal_rate: float
-## Durée de la danse du Chef quand un tambour revient (s), et accélération par tambour.
-@export var chief_cheer_time: float
-@export var chief_cheer_speed_per_drum: float
 ## Rayon du village (m) : on y reprend des forces et les Muets n'y entrent pas.
 @export var village_radius: float
-## Rayon de la zone où poser les tambours, autour du Chef (m).
-@export var village_drum_radius: float
 ## Marge que les Muets gardent au bord du village (m).
 @export var muet_village_margin: float
 
