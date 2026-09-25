@@ -1,12 +1,23 @@
+class_name DebugOverlay
 extends Label
-## Infos de mise au point, visibles seulement dans les versions de test (éditeur, ou export
-## marqué « test_build », en débogage comme en version optimisée) :
+## Infos de mise au point, pour les versions de test (éditeur, ou export marqué « test_build »,
+## en débogage comme en version optimisée), quand le réglage « Infos techniques » est coché :
 ## images par seconde, moteur de rendu, taille de l'écran, orientation, puis la ligne
 ## `debug_text()` du premier nœud du groupe « debug_info » (le héros).
 
 
 func _ready() -> void:
-	visible = OS.is_debug_build() or OS.has_feature("test_build")
+	Game.settings_changed.connect(_refresh)
+	_refresh()
+
+
+## Vrai si les infos de mise au point peuvent être affichées (versions de test seulement).
+static func available() -> bool:
+	return OS.is_debug_build() or OS.has_feature("test_build")
+
+
+func _refresh() -> void:
+	visible = available() and Game.profile.debug_info
 	set_process(visible)
 
 

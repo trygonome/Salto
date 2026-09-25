@@ -56,6 +56,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/nature/grass_1_c.tscn" id="54_grass_1_c"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/nature/grass_1_a.tscn" id="55_grass_1_a"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="90_hud"]
+[ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="91_hint"]
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
 background_color = Color(0.05, 0.06, 0.15, 1)
@@ -166,6 +168,12 @@ size = Vector3(50, 40, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_bound4"]
 size = Vector3(50, 40, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_hint_start"]
+size = Vector3(5, 3, 5)
+
+[sub_resource type="BoxShape3D" id="Shape_hint_wide"]
+size = Vector3(12, 3, 5)
 
 [node name="Night1" type="Node3D"]
 script = ExtResource("5_night_level")
@@ -570,43 +578,35 @@ shape = SubResource("Shape_village")
 position = Vector3(0, 0, -1.5)
 
 [node name="Chief" parent="Village" instance=ExtResource("16_chief")]
-position = Vector3(3, 0, -3.9)
+position = Vector3(2.2, 0, -0.3)
+rotation_degrees = Vector3(0, -22.5, 0)
+
+[node name="Hut1" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(-8.693, 0, 1.329)
+rotation_degrees = Vector3(0, 105, 0)
+
+[node name="Hut2" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(8.693, 0, 1.329)
+rotation_degrees = Vector3(0, -105, 0)
+
+[node name="Hut3" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(8.157, 0, -4.804)
+rotation_degrees = Vector3(0, -65, 0)
+
+[node name="Hut4" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(4.5, 0, -8.794)
 rotation_degrees = Vector3(0, -30, 0)
+
+[node name="Hut5" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(-4.5, 0, -8.794)
+rotation_degrees = Vector3(0, 30, 0)
+
+[node name="Hut6" parent="Village" instance=ExtResource("17_hut")]
+position = Vector3(-8.157, 0, -4.804)
+rotation_degrees = Vector3(0, 65, 0)
 
 [node name="FirePit" parent="Village" instance=ExtResource("18_fire_pit")]
 position = Vector3(-4.8, 0, 2.4)
-
-[node name="Hut1" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(-7.361, 0, 3.25)
-rotation_degrees = Vector3(0, 120, 0)
-
-[node name="Hut2" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(-3.592, 0, 6.704)
-rotation_degrees = Vector3(0, 155, 0)
-
-[node name="Hut3" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(3.592, 0, 6.704)
-rotation_degrees = Vector3(0, -155, 0)
-
-[node name="Hut4" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(7.361, 0, 3.25)
-rotation_degrees = Vector3(0, -120, 0)
-
-[node name="Hut5" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(7.361, 0, -5.25)
-rotation_degrees = Vector3(0, -60, 0)
-
-[node name="Hut6" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(3.592, 0, -8.704)
-rotation_degrees = Vector3(0, -25, 0)
-
-[node name="Hut7" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(-3.592, 0, -8.704)
-rotation_degrees = Vector3(0, 25, 0)
-
-[node name="Hut8" parent="Village" instance=ExtResource("17_hut")]
-position = Vector3(-7.361, 0, -5.25)
-rotation_degrees = Vector3(0, 60, 0)
 
 [node name="Lantern1" type="Node3D" parent="Village"]
 position = Vector3(-1.9, 0, -9.5)
@@ -2585,3 +2585,55 @@ far = 70.0
 [node name="TouchControls" parent="." instance=ExtResource("3_touch_contro")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("4_debug_overla")]
+
+[node name="Hints" type="Node3D" parent="."]
+
+[node name="HintMove" type="Area3D" parent="Hints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("91_hint")
+hint = &"move"
+action = &"move"
+text = "Glisse pour courir"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintMove"]
+shape = SubResource("Shape_hint_start")
+
+[node name="HintSalto" type="Area3D" parent="Hints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -14.5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("91_hint")
+hint = &"salto"
+action = &"jump"
+text = "Deux sauts : salto"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintSalto"]
+shape = SubResource("Shape_hint_wide")
+
+[node name="HintAttack" type="Area3D" parent="Hints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -20.5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("91_hint")
+hint = &"attack_rhythm"
+action = &"attack"
+text = "Frappe sur le temps"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintAttack"]
+shape = SubResource("Shape_hint_wide")
+
+[node name="HintDodge" type="Area3D" parent="Hints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -59.5)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("91_hint")
+hint = &"dodge_charge"
+action = &"dodge"
+text = "Esquive au dernier moment"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintDodge"]
+shape = SubResource("Shape_hint_wide")
+
+[node name="HUD" parent="." instance=ExtResource("90_hud")]

@@ -4,6 +4,8 @@ extends RefCounted
 
 ## Nœud qui porte le coup.
 var attacker: Node3D
+## Hurtbox visée (chiffres de dégâts : seulement sur ce qui a des PV).
+var target: Hurtbox
 ## Dégâts à retirer.
 var damage: float = 0.0
 ## Vrai pour un coup critique.

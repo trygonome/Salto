@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/damage_number.gd" id="1_number"]
+
+[node name="DamageNumber" type="Label3D"]
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+fixed_size = false
+render_priority = 10
+outline_render_priority = 9
+modulate = Color(1, 1, 1, 1)
+outline_modulate = Color(0.05, 0.04, 0.12, 1)
+font_size = 30
+outline_size = 8
+script = ExtResource("1_number")
+normal_color = Color(1, 1, 1, 0.9)
+critical_color = Color(1, 0.8, 0.35, 1)
+critical_scale = 1.35

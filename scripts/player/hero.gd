@@ -10,6 +10,8 @@ signal hit_landed(hit: HitData)
 signal judged(judgement: RhythmMath.Judgement)
 ## Le héros vient d'être ramené au village.
 signal respawned
+## Un appui sur Saut, Esquive ou Frappe (aides contextuelles).
+signal action_pressed(action: StringName)
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 
@@ -145,6 +147,7 @@ func _physics_process(delta: float) -> void:
 ## Frappe est jugée tout de suite par rapport au temps (au moment de l'appui, pas du coup).
 func press(action: StringName) -> void:
 	_buffer.press(action, _clock)
+	action_pressed.emit(action)
 	if action == &"attack":
 		var judgement: RhythmMath.Judgement = judge.call()
 		_judgements[action] = judgement
@@ -369,6 +372,7 @@ func debug_text() -> String:
 func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float) -> HitData:
 	var hit := HitData.new()
 	hit.attacker = self
+	hit.target = hurtbox
 	hit.move = move
 	hit.judgement = judgement
 	hit.stun_time = stun_time

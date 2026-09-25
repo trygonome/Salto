@@ -51,9 +51,9 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 res://
   scenes/   player/  enemies/  levels/  ui/  fx/
   scripts/  autoload/ (Tuning, Feedback, Rhythm, Game, Save)  components/  player/  combat/  enemies/
-            camera/  fx/  ui/  utils/  night/  items/  levels/ (props/)  tuning_data.gd
+            camera/  fx/  ui/  utils/  night/  items/  save/  levels/ (props/)  tuning_data.gd
   data/     tuning.tres  notebook.tres  items/  talents/
-  assets/   models/  animations/  audio/  fonts/  fx/  ui/  LICENCES.md
+  assets/   models/  animations/  audio/  fonts/  fx/  ui/ (theme.tres : thème unique)  LICENCES.md
   addons/   gut/ (tests, exclu de l'export)
   tests/
 docs/

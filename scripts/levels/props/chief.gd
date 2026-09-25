@@ -1,6 +1,6 @@
 extends Node3D
-## Chef Taroum. Il salue le héros, et danse quand un tambour revient — un peu plus fort à chaque
-## tambour (il sait tout, et n'en parle jamais).
+## Chef Taroum. Il salue le héros quand il lui parle (début de la nuit), et danse quand un
+## tambour revient — un peu plus fort à chaque tambour (il sait tout, et n'en parle jamais).
 
 const IDLE := &"general/Idle_A"
 const WAVE := &"simulation/Waving"
@@ -15,9 +15,15 @@ func _ready() -> void:
 	_model.scale = Vector3.ONE * tuning.chief_height / _model_height()
 	for clip: StringName in [IDLE, CHEER]:
 		_animations.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
-	_animations.play(WAVE)
-	_animations.queue(IDLE)
+	_animations.play(IDLE)
+	add_to_group(&"chief")
 	Game.drum_returned.connect(_on_drum_returned)
+
+
+## Salue de la main, puis attend.
+func greet() -> void:
+	_animations.play(WAVE, Tuning.data.anim_blend_time)
+	_animations.queue(IDLE)
 
 
 func _on_drum_returned(count: int) -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/floating_joystick.gd" id="1_joystick"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/attack.svg" id="2_attack"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/ui/groove_meter.gd" id="8_groove"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring.svg" id="9_ring"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring_under.svg" id="10_ring_under"]
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="11_controls"]
 
 [sub_resource type="CircleShape2D" id="CircleShape_big"]
 radius = 120.0
@@ -20,6 +21,12 @@ radius = 90.0
 
 [node name="TouchControls" type="CanvasLayer"]
 layer = 10
+script = ExtResource("11_controls")
+halo_color = Color(1, 0.86, 0.5, 0.95)
+halo_width = 3.0
+halo_margin = 6.0
+halo_pulse = 0.12
+hint_gap = 14.0
 
 [node name="Joystick" type="Control" parent="."]
 layout_mode = 3

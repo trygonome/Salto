@@ -442,3 +442,31 @@ extends Resource
 @export var item_forge_bonus: float
 ## Chances de rareté du butin du Grand Muet et des coffres (commun, rare, épique, légendaire).
 @export var loot_guaranteed_weights: PackedFloat32Array
+
+@export_group("Interface")
+## Durée d'un message éphémère (s) et de ses fondus (s).
+@export var message_time: float
+@export var message_fade_time: float
+## Durée d'une réplique près de sa source (s) et écart au-dessus de sa tête (m).
+@export var reply_time: float
+@export var reply_gap: float
+## Durée de la réplique du Chef au début de la nuit (s).
+@export var chief_line_time: float
+## Grands titres : apparition, maintien, disparition (s).
+@export var title_fade_in_time: float
+@export var title_hold_time: float
+@export var title_fade_out_time: float
+## Durée de la carte d'un objet trouvé (s).
+@export var loot_card_time: float
+## Battement du halo d'une aide (s par cycle).
+@export var hint_pulse_period: float
+## Vitesse au-delà de laquelle l'aide « courir » est suivie (m/s).
+@export var hint_move_speed: float
+## Chiffres de dégâts : durée (s) et montée (m).
+@export var damage_number_time: float
+@export var damage_number_rise: float
+## Barre de PV : vitesse de rattrapage de l'affichage (1/s) ; seuil de PV bas (fraction).
+@export var health_bar_follow_rate: float
+@export var health_low_fraction: float
+## Attente entre « Nuit accomplie » et l'écran de fin (s).
+@export var end_screen_delay: float

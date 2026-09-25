@@ -1,0 +1,180 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
+[ext_resource type="Script" path="res://scripts/ui/health_bar.gd" id="3_health"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/pause.svg" id="4_pause"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/drum.svg" id="5_drum"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/drum_empty.svg" id="6_drum_empty"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="7_anklets"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="8_mask"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="9_talisman"]
+[ext_resource type="PackedScene" path="res://scenes/fx/damage_number.tscn" id="10_number"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+rarity_colors = Array[Color]([Color(0.86, 0.89, 0.96, 1), Color(0.38, 0.72, 1, 1), Color(0.78, 0.5, 1, 1), Color(1, 0.74, 0.28, 1)])
+slot_icons = Array[Texture2D]([ExtResource("7_anklets"), ExtResource("8_mask"), ExtResource("9_talisman")])
+drum_icon = ExtResource("5_drum")
+drum_empty_icon = ExtResource("6_drum_empty")
+drum_icon_size = 30.0
+damage_number_scene = ExtResource("10_number")
+screen_margin = 10.0
+damage_number_height = 0.3
+reply_width = 250.0
+card_bottom_portrait = 236.0
+card_bottom_landscape = 10.0
+
+[node name="SafeArea" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="HealthBar" type="Control" parent="SafeArea"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 14.0
+offset_top = 20.0
+offset_right = 134.0
+offset_bottom = 34.0
+mouse_filter = 2
+script = ExtResource("3_health")
+back_color = Color(0.05, 0.06, 0.16, 0.7)
+fill_color = Color(1, 0.56, 0.36, 1)
+low_color = Color(1, 0.22, 0.28, 1)
+corner_radius = 7
+border = 2.0
+
+[node name="TopRight" type="HBoxContainer" parent="SafeArea"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -230.0
+offset_top = 6.0
+offset_right = -8.0
+offset_bottom = 50.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="Drums" type="HBoxContainer" parent="SafeArea/TopRight"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 2
+
+[node name="PauseButton" type="Button" parent="SafeArea/TopRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBox_empty")
+theme_override_styles/hover = SubResource("StyleBox_empty")
+theme_override_styles/pressed = SubResource("StyleBox_empty")
+theme_override_styles/normal = SubResource("StyleBox_empty")
+theme_override_styles/hover_pressed = SubResource("StyleBox_empty")
+icon = ExtResource("4_pause")
+icon_alignment = 1
+expand_icon = true
+
+[node name="Message" type="Label" parent="SafeArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 62.0
+offset_right = -16.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_type_variation = &"MessageLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Title" type="VBoxContainer" parent="SafeArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.16
+anchor_right = 1.0
+anchor_bottom = 0.16
+offset_left = 16.0
+offset_right = -16.0
+offset_bottom = 96.0
+grow_horizontal = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="OverTitle" type="Label" parent="SafeArea/Title"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"OverTitleLabel"
+horizontal_alignment = 1
+
+[node name="TitleText" type="Label" parent="SafeArea/Title"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LootCard" type="PanelContainer" parent="SafeArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -52.0
+offset_right = 100.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_type_variation = &"CardPanel"
+
+[node name="Row" type="HBoxContainer" parent="SafeArea/LootCard"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CardIcon" type="TextureRect" parent="SafeArea/LootCard/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardName" type="Label" parent="SafeArea/LootCard/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Reply" type="Label" parent="."]
+unique_name_in_owner = true
+offset_right = 250.0
+offset_bottom = 23.0
+theme_type_variation = &"ReplyLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="."]
+unique_name_in_owner = true
+offset_right = 40.0
+offset_bottom = 23.0
+theme_type_variation = &"HintLabel"
+horizontal_alignment = 1
