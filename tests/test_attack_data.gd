@@ -31,6 +31,7 @@ func test_la_zone_de_detection_couvre_tous_les_coups() -> void:
 	for attack: AttackData in _all_attacks():
 		assert_lte(attack.reach + tuning.dummy_radius, tuning.hitbox_radius, String(attack.id))
 	assert_lte(dive_max + tuning.dummy_radius, tuning.hitbox_radius, "onde du plongeon")
+	assert_lte(maxf(dive_max, tuning.rainbow_radius) + tuning.dummy_radius, tuning.hitbox_radius, "onde du Salto arc-en-ciel")
 
 
 func test_l_animation_porte_exactement_a_l_impact() -> void:

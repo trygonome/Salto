@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 
 Tuning="*res://scripts/autoload/tuning.gd"
 Feedback="*res://scripts/autoload/feedback.gd"
+Rhythm="*res://scripts/autoload/rhythm.gd"
 
 [display]
 

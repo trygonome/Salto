@@ -220,3 +220,61 @@ extends Resource
 @export var dummy_recoil_distance: float
 ## Durée du recul du mannequin (s).
 @export var dummy_recoil_time: float
+
+@export_group("Rythme")
+## Tempo de la musique (battements par minute).
+@export var rhythm_bpm: float
+## Avance tolérée pour un Parfait (s).
+@export var perfect_early: float
+## Retard toléré pour un Parfait (s).
+@export var perfect_late: float
+## Avance tolérée pour un Bien (s).
+@export var good_early: float
+## Retard toléré pour un Bien (s).
+@export var good_late: float
+## Multiplicateur de dégâts d'un Parfait.
+@export var perfect_multiplier: float
+## Multiplicateur de dégâts d'un Bien.
+@export var good_multiplier: float
+## Arrêt sur image d'un coup Parfait (s).
+@export var hit_stop_perfect: float
+## Taille de l'étincelle d'un coup Parfait (1 = étincelle normale).
+@export var perfect_spark_scale: float
+## Jauge de groove pleine.
+@export var groove_max: float
+## Groove gagné par un coup Parfait qui touche.
+@export var groove_perfect: float
+## Groove gagné par un coup Bien qui touche.
+@export var groove_good: float
+## Volume d'une couche de musique audible (dB).
+@export var music_volume_db: float
+## Volume d'une couche de musique qui se tait (dB).
+@export var music_silent_db: float
+## Fondu quand une couche apparaît ou se tait (s).
+@export var music_layer_fade_time: float
+## Rayon de l'anneau de battement au début de chaque temps (m).
+@export var beat_ring_radius_max: float
+## Rayon de l'anneau de battement sur le temps (m).
+@export var beat_ring_radius_min: float
+## Opacité maximale de l'anneau de battement (0 à 1).
+@export var beat_ring_opacity: float
+## Durée de l'éclat de l'anneau après un appui jugé (s).
+@export var judgement_flash_time: float
+## Notes du carillon Parfait, en demi-tons au-dessus du son de base : il monte avec le combo.
+@export var chime_scale_semitones: PackedFloat32Array
+## Volume du carillon pour un Bien (dB, le Parfait est à 0).
+@export var good_chime_volume_db: float
+## Variation aléatoire de la hauteur du son d'impact (fraction).
+@export var hit_pitch_variation: float
+## Durée d'un tour complet des couleurs de la jauge pleine (s).
+@export var groove_rainbow_cycle_time: float
+
+@export_group("Salto arc-en-ciel")
+## Vitesse du bond avant le plongeon géant (m/s).
+@export var rainbow_hop_speed: float
+## Rayon minimal de l'onde (m).
+@export var rainbow_radius: float
+## Multiplicateur de dégâts.
+@export var rainbow_multiplier: float
+## Durée d'étourdissement des cibles touchées (s).
+@export var rainbow_stun: float
