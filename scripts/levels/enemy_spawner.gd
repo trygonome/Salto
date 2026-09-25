@@ -15,6 +15,8 @@ signal muet_freed(muet: Muet)
 
 ## Errant : il s'éloigne davantage de son poste qu'un gardien.
 var wanderer: bool = false
+## Rang du sanctuaire gardé : plus loin, plus fort.
+var tier: int = 0
 ## Zone où le Muet n'entre pas (le village) ; rayon 0 : aucune.
 var safe_zone_center: Vector3 = Vector3.ZERO
 var safe_zone_radius: float = 0.0
@@ -31,6 +33,7 @@ func _spawn() -> void:
 	muet.position = position
 	if wanderer:
 		muet.guardian = false
+	muet.tier = tier
 	muet.safe_zone_center = safe_zone_center
 	muet.safe_zone_radius = safe_zone_radius
 	get_parent().add_child(muet)

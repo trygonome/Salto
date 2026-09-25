@@ -89,3 +89,43 @@ func test_un_assemblage_articule_tient_en_un_seul_maillage() -> void:
 	assert_eq(vertices.size(), 3 * 24, "trois cubes de 24 sommets")
 	var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
 	assert_eq(bones[bones.size() - 4], rig.bone(&"arm"), "le dernier cube suit le bras")
+
+
+func test_chaque_muet_a_sa_forme() -> void:
+	var hopper: Dictionary = MuetShapes.build(&"hop", false, false, 0.0)
+	var boss: Dictionary = MuetShapes.build(&"hop", true, false, 0.0)
+	var king: Dictionary = MuetShapes.build(&"hop", true, true, 0.0)
+	assert_gt((boss[&"body"] as PackedFloat32Array).size(), (hopper[&"body"] as PackedFloat32Array).size(), "le Grand Muet est plus gros")
+	assert_gt((king[&"body"] as PackedFloat32Array).size(), (boss[&"body"] as PackedFloat32Array).size(), "le Roi Muet porte une flèche")
+	assert_false((hopper[&"eyes"] as PackedFloat32Array).is_empty())
+	assert_true(MuetShapes.build(&"fly", false, false, 0.0).has(&"wing_left"), "le volant a des ailes")
+	assert_true(MuetShapes.build(&"shield", false, false, 0.0).has(&"shield"), "le porte-bouclier a son bouclier")
+	assert_false(hopper.has(&"shield"))
+	var tip_a: PackedFloat32Array = MuetShapes.build(&"hop", false, false, 0.1)[&"body"]
+	var tip_b: PackedFloat32Array = MuetShapes.build(&"hop", false, false, 0.6)[&"body"]
+	assert_ne(tip_a, tip_b, "bouts d'antennes de couleurs différentes")
+
+
+func test_la_taille_des_muets_suit_le_prototype() -> void:
+	var height: float = MuetShapes.height(MuetShapes.RADIUS[&"hop"]) * tuning.hopper_scale * tuning.voxel_unit
+	assert_almost_eq(height, 0.78, 0.01, "sautillant : 3 u")
+	var boss: float = MuetShapes.height(MuetShapes.BOSS_RADIUS) * tuning.boss_scale * tuning.voxel_unit
+	assert_almost_eq(boss, 1.72, 0.01, "Grand Muet : 6,6 u")
+
+
+func test_un_mot_jaillit_puis_se_pose() -> void:
+	assert_eq(EffectsMath.pop(0.0, tuning), tuning.fx_word_pop_start)
+	assert_almost_eq(EffectsMath.pop(tuning.fx_word_pop_time, tuning), tuning.fx_word_pop_peak, 0.0001)
+	assert_almost_eq(EffectsMath.pop(1.0, tuning), 1.0, 0.0001)
+
+
+func test_l_etincelle_est_une_etoile() -> void:
+	var long: float = EffectsMath.star_reach(0.0)
+	var short: float = EffectsMath.star_reach(TAU / EffectsMath.STAR_POINTS)
+	assert_gt(long, short, "pointes longues et courtes")
+	assert_almost_eq(EffectsMath.star_reach(TAU - 0.0001), long, 0.01, "l'étoile se referme")
+
+
+func test_les_mots_font_au_plus_cinq_mots() -> void:
+	for text: String in GameTexts.WORDS:
+		assert_lte(GameTexts.word_count(text), 5, text)

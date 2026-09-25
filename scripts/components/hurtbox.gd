@@ -6,6 +6,8 @@ extends Area3D
 
 signal hurt(hit: HitData)
 signal dodged(hit: HitData)
+## Le coup a été arrêté (bouclier) : ni dégâts ni effet.
+signal blocked(hit: HitData)
 
 ## Rayon de la cible (m), ajouté à la portée des coups ; renseigné par le propriétaire.
 @export var radius: float
@@ -16,12 +18,17 @@ signal dodged(hit: HitData)
 var can_be_hit: bool = true
 ## Multiplicateur des dégâts reçus (un cornu assommé est plus fragile).
 var damage_taken_multiplier: float = 1.0
+## Garde facultative : reçoit le HitData et renvoie vrai si le coup est arrêté (bouclier).
+var blocker: Callable
 
 
-## Reçoit un coup ; renvoie vrai s'il a porté, faux s'il a été esquivé.
+## Reçoit un coup ; renvoie vrai s'il a porté, faux s'il a été esquivé ou arrêté.
 func receive(hit: HitData) -> bool:
 	if not can_be_hit:
 		dodged.emit(hit)
+		return false
+	if blocker.is_valid() and blocker.call(hit):
+		blocked.emit(hit)
 		return false
 	hit.damage *= damage_taken_multiplier
 	if health:

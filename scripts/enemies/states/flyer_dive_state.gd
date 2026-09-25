@@ -1,25 +1,30 @@
 class_name FlyerDiveState
 extends MuetState
-## Volant, piqué : il passe au ras du sol à l'endroit annoncé puis remonte de l'autre côté,
-## en blessant au contact.
+## Volant, piqué : il file tout droit le long de la ligne annoncée, passe au ras du sol à
+## mi-chemin puis remonte, en blessant au contact.
 
 var _start: Vector3 = Vector3.ZERO
-var _target: Vector3 = Vector3.ZERO
+var _direction: Vector3 = Vector3.FORWARD
+var _length: float = 0.0
 var _elapsed: float = 0.0
 
 
-## Prépare le piqué : départ (en vol) et point visé au sol.
-func plan(start: Vector3, target: Vector3) -> void:
+## Prépare le piqué : départ (en vol), direction et longueur.
+func plan(start: Vector3, direction: Vector3, length: float) -> void:
 	_start = start
-	_target = target
+	_direction = direction
+	_length = length
 
 
 func enter(_previous: StringName) -> void:
 	var tuning: TuningData = Tuning.data
 	_elapsed = 0.0
-	var direction: Vector3 = muet.flat_direction_to(_target)
-	muet.face(direction)
-	muet.strike(tuning.flyer_radius, CombatMath.FULL_CIRCLE_DEG, direction, tuning.flyer_dive_time, tuning.flyer_damage, false)
+	muet.face(_direction)
+	muet.strike(tuning.flyer_radius, CombatMath.FULL_CIRCLE_DEG, _direction, tuning.flyer_dive_time, muet.damage_of(&"damage"), false)
+
+
+func exit() -> void:
+	muet.hitbox.deactivate()
 
 
 func physics_update(delta: float) -> void:
@@ -27,6 +32,7 @@ func physics_update(delta: float) -> void:
 	_elapsed += delta
 	var fraction: float = minf(_elapsed / tuning.flyer_dive_time, 1.0)
 	muet.velocity = Vector3.ZERO
-	muet.global_position = EnemyMath.swoop_position(_start, _target, fraction)
+	muet.body.set_motion(false, tuning.flyer_swoop_lean, 0.0, false, true)
+	muet.global_position = EnemyMath.swoop_position(_start, _direction, _length, muet.post.y, tuning.flyer_dive_low, fraction, tuning.flyer_dive_curve)
 	if fraction >= 1.0:
-		machine.transition_to(&"Orbit")
+		machine.transition_to(&"Hover")

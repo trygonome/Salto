@@ -6,11 +6,11 @@
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="4_hitbox"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="5_health"]
 [ext_resource type="Script" path="res://scripts/components/state_machine.gd" id="6_machine"]
-[ext_resource type="Script" path="res://scripts/enemies/states/muet_stunned_state.gd" id="7_stunned"]
-[ext_resource type="Script" path="res://scripts/enemies/states/muet_freed_state.gd" id="8_freed"]
 [ext_resource type="PackedScene" path="res://scenes/fx/telegraph.tscn" id="9_telegraph"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/freed.wav" id="20_freed"]
-[ext_resource type="Script" path="res://scripts/enemies/states/hopper_hop_state.gd" id="30_hop"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_hop_state.gd" id="30_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_stunned_state.gd" id="31_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_freed_state.gd" id="32_state"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
@@ -32,6 +32,8 @@ telegraph_scene = ExtResource("9_telegraph")
 shape = SubResource("CapsuleShape_body")
 
 [node name="Body" parent="." instance=ExtResource("2_body")]
+kind = &"hop"
+boss = false
 
 [node name="Hurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health") groups=["enemy_hurtbox"]]
 collision_layer = 16
@@ -63,10 +65,10 @@ script = ExtResource("6_machine")
 initial_state = NodePath("Hop")
 
 [node name="Hop" type="Node" parent="StateMachine"]
-script = ExtResource("30_hop")
+script = ExtResource("30_state")
 
 [node name="Stunned" type="Node" parent="StateMachine"]
-script = ExtResource("7_stunned")
+script = ExtResource("31_state")
 
 [node name="Freed" type="Node" parent="StateMachine"]
-script = ExtResource("8_freed")
+script = ExtResource("32_state")

@@ -3,6 +3,9 @@ extends Node3D
 ## Onde de choc du Grand Muet en rage : un anneau qui s'élargit au sol. Quand son front passe
 ## le héros, il est touché s'il a les pieds au sol ; s'il est en l'air, il gagne du groove.
 
+## Dégâts infligés au héros resté au sol (fixés par le Grand Muet).
+var damage: float = 0.0
+
 var _radius: float = 0.0
 var _passed_hero: bool = false
 
@@ -22,7 +25,7 @@ func _physics_process(delta: float) -> void:
 			if hero.global_position.y - global_position.y < tuning.boss_wave_clearance:
 				var hit := HitData.new()
 				hit.attacker = self
-				hit.damage = tuning.boss_wave_damage
+				hit.damage = damage
 				hit.direction = flat.normalized() if not flat.is_zero_approx() else Vector3.BACK
 				hit.point = hero.global_position
 				hit.move = &"wave"

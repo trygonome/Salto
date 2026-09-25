@@ -34,6 +34,13 @@ const MESSAGE_DRUM_LOST := "Tambour perdu !"
 const MESSAGE_PAGE_FOUND := "Nouvelle page du carnet"
 const MESSAGES: PackedStringArray = [MESSAGE_DRUM_PICKED, MESSAGE_DRUM_LOST, MESSAGE_PAGE_FOUND]
 
+## Mots qui montent près de leur source (un seul à la fois).
+const WORD_BLOCKED := "Bloqué"
+const WORD_STUNNED := "Étourdi !"
+const WORD_PERFECT_DODGE := "Esquive parfaite !"
+const WORD_MULTI_HIT := "×%d !"
+const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_MULTI_HIT]
+
 ## Menus.
 const PAUSE_TITLE := "Pause"
 const RESUME := "Reprendre"

@@ -1,6 +1,7 @@
 extends MuetState
-## Cornu, annonce : une ligne rouge de toute la longueur de la charge ; pendant le premier temps
-## elle suit le héros, puis elle se fige. Le cornu charge à la fin de l'annonce.
+## Cornu, annonce : il se tasse, une ligne rouge de toute la longueur de la charge ; pendant le
+## premier temps elle suit le héros, puis elle se fige. Il charge à la fin de l'annonce. Un coup
+## reçu pendant l'annonce l'en dissuade.
 
 var _elapsed: float = 0.0
 var _duration: float = 0.0
@@ -19,12 +20,22 @@ func enter(_previous: StringName) -> void:
 	_mark.show_line(muet.global_position, _end(), tuning.charger_line_width, _duration)
 
 
+func exit() -> void:
+	if is_instance_valid(_mark) and _elapsed < _duration:
+		_mark.queue_free()
+
+
+func interruptible() -> bool:
+	return true
+
+
 func physics_update(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed <= _track_time:
 		_aim()
 		if is_instance_valid(_mark):
 			_mark.move_line(muet.global_position, _end(), Tuning.data.charger_line_width)
+	muet.body.set_motion(false, 0.0, 0.0, true, false)
 	muet.move(Vector3.ZERO, delta)
 	if _elapsed >= _duration:
 		(machine.get_node(^"Charge") as ChargerChargeState).direction = _direction

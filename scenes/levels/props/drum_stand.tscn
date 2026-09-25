@@ -1,8 +1,7 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/props/drum_stand.gd" id="1_stand"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="2_model"]
-[ext_resource type="PackedScene" path="res://scenes/fx/shockwave.tscn" id="3_burst"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="4_sound"]
 
 [sub_resource type="StandardMaterial3D" id="Material_wood"]
@@ -28,9 +27,6 @@ radius = 2.4
 [node name="DrumStand" type="Node3D" node_paths=PackedStringArray("slots")]
 script = ExtResource("1_stand")
 slots = [NodePath("Slot1"), NodePath("Slot2"), NodePath("Slot3")]
-burst_scene = ExtResource("3_burst")
-burst_duration = 0.6
-burst_size = 2.4
 
 [node name="Stage" type="StaticBody3D" parent="."]
 

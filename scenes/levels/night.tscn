@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -26,6 +26,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="23_debug"]
 [ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="24_ambience"]
 [ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="25_hint"]
+[ext_resource type="PackedScene" path="res://scenes/fx/effects.tscn" id="90_effects"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spitter.tscn" id="93_spitter"]
 
 [sub_resource type="CylinderShape3D" id="Shape_village"]
 height = 4.0
@@ -39,6 +43,9 @@ script = ExtResource("1_night")
 night = 1
 hopper_scene = ExtResource("2_hopper")
 flyer_scene = ExtResource("3_flyer")
+shielder_scene = ExtResource("91_shielder")
+charger_scene = ExtResource("92_charger")
+spitter_scene = ExtResource("93_spitter")
 boss_scene = ExtResource("4_boss")
 drum_scene = ExtResource("5_drum")
 loot_scene = ExtResource("6_loot")
@@ -120,3 +127,5 @@ shape = SubResource("Shape_hint_start")
 [node name="EndScreen" parent="." instance=ExtResource("22_end")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
+
+[node name="Effects" parent="." instance=ExtResource("90_effects")]

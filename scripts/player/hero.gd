@@ -22,12 +22,6 @@ const SEMITONES_PER_OCTAVE := 12.0
 
 ## Joystick tactile ; s'il n'est pas touché, on lit le clavier ou la manette.
 @export var joystick: FloatingJoystick
-## Effet d'étincelle posé au point d'impact.
-@export var spark_scene: PackedScene
-## Effet d'onde du plongeon (sert aussi à la poussière d'atterrissage).
-@export var shockwave_scene: PackedScene
-## Couleur de la poussière soulevée à l'atterrissage.
-@export var land_dust_color: Color
 
 ## Faux dans les tests : les commandes sont alors fixées à la main (input_move, input_jump_held, press).
 var reads_player_input: bool = true
@@ -75,6 +69,8 @@ var _roll_end: float = -INF
 var _buffer: InputBuffer
 var _clock: float = 0.0
 var _spawn: Transform3D
+## Point le plus haut atteint depuis le dernier contact avec le sol (m) : hauteur de chute.
+var _air_peak: float = 0.0
 
 @onready var state_machine: StateMachine = $StateMachine
 @onready var visual: HeroVisual = $Visual
@@ -224,11 +220,17 @@ func jump(speed: float) -> void:
 	velocity.y = speed
 	jumps_used += 1
 	coyote_left = 0.0
+	var fx: Effects = Effects.of(self)
 	if jumps_used >= tuning.max_jumps:
 		visual.play_salto(tuning.salto_duration)
 		_salto_sound.play()
+		if fx:
+			fx.ring(global_position, tuning.fx_double_ring, fx.white, tuning.fx_double_ring_time)
+			fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_double_cubes, tuning.fx_double_speed)
 	else:
 		_jump_sound.play()
+		if fx and is_on_floor():
+			fx.dust(global_position, tuning.fx_jump_dust, tuning.fx_jump_dust_speed)
 
 
 ## Saute en l'air s'il reste un saut : saut normal pendant la tolérance de bord, sinon salto.
@@ -254,6 +256,10 @@ func move(delta: float) -> void:
 	move_and_slide()
 	if falling_speed > 0.0 and is_on_floor():
 		_on_landed(falling_speed)
+	if is_on_floor():
+		_air_peak = global_position.y
+	else:
+		_air_peak = maxf(_air_peak, global_position.y)
 
 
 ## Son d'un mouvement : « roll » (roulade) ou « swing » (coup dans le vide).
@@ -266,16 +272,16 @@ func play_move_sound(sound: StringName) -> void:
 			_swing_sound.play()
 
 
-## Atterrissage à `speed` m/s : un bruit sourd, et de la poussière après une grande chute.
+## Atterrissage à `speed` m/s : un bruit sourd, et de la poussière d'autant plus que la chute
+## était haute.
 func _on_landed(speed: float) -> void:
 	if speed >= tuning.land_sound_speed:
 		_land_sound.play()
-	if speed >= tuning.land_dust_speed and shockwave_scene:
-		var dust: FadingBurst = shockwave_scene.instantiate() as FadingBurst
-		get_parent().add_child(dust)
-		dust.global_position = global_position
-		dust.tint(land_dust_color)
-		dust.play(tuning.land_dust_time, tuning.land_dust_size)
+	var fall: float = _air_peak - global_position.y
+	var fx: Effects = Effects.of(self)
+	if fx and fall > tuning.fx_land_min_fall:
+		var count: int = mini(tuning.fx_land_dust_max, tuning.fx_land_dust_min + floori(fall * tuning.fx_land_dust_per_meter))
+		fx.dust(global_position, count, tuning.fx_land_dust_speed)
 
 
 ## Temps de jeu écoulé depuis l'apparition du héros (s).
@@ -337,19 +343,27 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time)
 	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
 	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
-	if not shockwave_scene:
+	for orb: Node in get_tree().get_nodes_in_group(&"silence_orbs"):
+		var at: Vector3 = (orb as Node3D).global_position
+		if Vector2(at.x - global_position.x, at.z - global_position.z).length() < radius:
+			orb.call(&"pop")
+	var fx: Effects = Effects.of(self)
+	if fx == null:
 		return
+	if move == &"rainbow":
+		fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_rainbow_cubes, tuning.fx_rainbow_speed)
+		fx.ring(global_position, tuning.fx_rainbow_ring, fx.white, tuning.fx_rainbow_ring_time, true)
 	for i: int in colors.size():
-		var wave: FadingBurst = shockwave_scene.instantiate() as FadingBurst
-		get_parent().add_child(wave)
-		wave.global_position = global_position
-		wave.tint(colors[i])
-		wave.play(tuning.shockwave_time, radius * (i + 1) / colors.size())
+		fx.ring(global_position, radius * (i + 1) / colors.size(), colors[i], tuning.fx_dive_ring_time)
+	fx.dust(global_position, tuning.fx_dive_dust, tuning.fx_dive_dust_speed)
 
 
 ## Rebond d'un champignon-trampoline : le héros repart vers le haut à `speed` ; comme après un
 ## saut, le salto reste possible.
 func bounce(speed: float) -> void:
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(global_position, tuning.fx_bounce_ring, fx.pink, tuning.fx_bounce_ring_time)
 	velocity.y = speed
 	jumps_used = 1
 	coyote_left = 0.0
@@ -419,7 +433,7 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 	var to_target: Vector3 = hurtbox.global_position - global_position
 	to_target.y = 0.0
 	hit.direction = facing_direction() if to_target.is_zero_approx() else to_target.normalized()
-	hit.point = hurtbox.global_position - hit.direction * hurtbox.radius
+	hit.point = hurtbox.center() - hit.direction * hurtbox.radius
 	return hit
 
 
@@ -434,11 +448,9 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
 	_hit_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
 	_hit_sound.play()
-	if spark_scene:
-		var spark: FadingBurst = spark_scene.instantiate() as FadingBurst
-		get_parent().add_child(spark)
-		spark.global_position = hit.point
-		spark.play(tuning.spark_time, tuning.perfect_spark_scale if perfect else 1.0)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.spark(hit.point, tuning.fx_spark_size_crit if hit.critical else tuning.fx_spark_size, fx.gold if hit.critical else fx.white)
 	hit_landed.emit(hit)
 
 
@@ -464,6 +476,10 @@ func _on_dodged(_hit: HitData) -> void:
 	if not invulnerable:
 		return
 	Feedback.slow_motion(tuning.perfect_dodge_slow_time, tuning.perfect_dodge_time_scale)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(global_position, tuning.fx_dodge_ring, fx.cyan, tuning.fx_dodge_ring_time)
+		fx.word(GameTexts.WORD_PERFECT_DODGE, global_position + Vector3.UP * tuning.hero_height, fx.cyan, true)
 	_next_hit_critical = true
 	groove.add(tuning.groove_perfect_dodge)
 	beat_ring.flash(RhythmMath.Judgement.PERFECT)

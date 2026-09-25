@@ -190,16 +190,12 @@ extends Resource
 @export var shake_max_offset: float
 ## Poussée de la caméra dans la direction du coup, à pleine secousse (m).
 @export var camera_push: float
-## Durée de l'étincelle d'impact (s).
-@export var spark_time: float
 ## Durée de vie de la traînée du coup (s).
 @export var trail_time: float
 ## Début de la traînée le long de la jambe, en multiples de la distance hanche-pied.
 @export var trail_inner_reach: float
 ## Bout de la traînée, en multiples de la distance hanche-pied (au-delà de 1 : prolongée).
 @export var trail_outer_reach: float
-## Durée d'expansion de l'onde du plongeon (s).
-@export var shockwave_time: float
 
 @export_group("Animation")
 ## Fondu entre deux animations (s).
@@ -240,8 +236,6 @@ extends Resource
 @export var good_multiplier: float
 ## Arrêt sur image d'un coup Parfait (s).
 @export var hit_stop_perfect: float
-## Taille de l'étincelle d'un coup Parfait (1 = étincelle normale).
-@export var perfect_spark_scale: float
 ## Jauge de groove pleine.
 @export var groove_max: float
 ## Groove gagné par un coup Parfait qui touche.
@@ -314,92 +308,253 @@ extends Resource
 @export var attack_vertical_reach: float
 
 @export_group("Muets")
-## Distance à laquelle un Muet repère le héros (m).
+## Distance à laquelle un Muet repère le héros (m) ; une fois lancé, il le garde en vue jusqu'à
+## cette distance multipliée par `muet_detection_keep`.
 @export var muet_detection_range: float
-## Distance à son poste au-delà de laquelle un gardien y retourne (m).
+@export var muet_detection_keep: float
+## Distance à son poste au-delà de laquelle un gardien lâche le héros (m).
 @export var muet_leash_guard: float
 ## Même distance pour un Muet errant (m).
 @export var muet_leash_wander: float
+## Au repos, il rentre vers son poste s'il s'en est éloigné de plus que cette part de sa laisse ;
+## sinon il sautille au hasard, parfois (chance par temps), sur une part de son bond.
+@export var muet_return_fraction: float
+@export var muet_idle_hop_chance: float
+@export var muet_idle_hop_fraction: float
+## En chasse, il bondit jusqu'au contact du héros, plus cette marge (m).
+@export var muet_approach_margin: float
+## Bond plus court que cela (m) : il reste sur place.
+@export var muet_min_hop: float
+## Temps avant sa première attaque, tiré au hasard entre ces deux valeurs.
+@export var muet_first_act_min: int
+@export var muet_first_act_max: int
 ## Décalage maximal de chaque Muet par rapport au temps, pour éviter l'effet mécanique (s).
 @export var muet_beat_jitter_max: float
-## Vitesse de marche des Muets au sol (m/s).
-@export var muet_walk_speed: float
 ## Recul d'un Muet touché (m/s) et sa durée (s).
 @export var muet_knockback_speed: float
 @export var muet_knockback_time: float
-## Éclat blanc d'un Muet touché (s).
+## Contact : il blesse le héros à moins de son rayon plus cette marge (m), au plus une fois par
+## `muet_contact_cooldown` (s), s'il n'est pas en l'air (hauteur max, m) et si le héros n'est pas
+## au-dessus de lui (part de sa hauteur).
+@export var muet_contact_margin: float
+@export var muet_contact_cooldown: float
+@export var muet_contact_max_lift: float
+@export var muet_contact_hero_above: float
+## Vitesse à laquelle il se tourne (rad/s).
+@export var muet_turn_rate: float
+## Éclat blanc d'un Muet touché : durée (s) et force (0 à 1).
 @export var muet_hit_flash_time: float
-## Durée de la libération d'un Muet avant qu'il disparaisse (s).
+@export var muet_hit_flash_strength: float
+## Durée de la libération d'un Muet avant qu'il disparaisse (s), et grossissement.
 @export var muet_freed_time: float
+@export var muet_freed_pop_scale: float
 ## Gravité appliquée aux Muets au sol (m/s²).
 @export var muet_gravity: float
+## Plus forts près des sanctuaires lointains (PV et dégâts en plus par rang de sanctuaire) et
+## nuit après nuit (part en plus par nuit).
+@export var muet_health_per_tier: float
+@export var muet_damage_per_tier: float
+@export var muet_health_per_night: float
+@export var muet_damage_per_night: float
+
+@export_group("Muets : corps")
+## Coup reçu : durée de la réaction (s), élargissement du corps, yeux fermés au-delà de cette part.
+@export var muet_hit_time: float
+@export var muet_hit_widen: float
+@export var muet_hit_eyes_shut: float
+## Ressort du corps (gelée) : raideur, amortissement, amplitude maximale, élargissement quand il
+## s'écrase, enfoncement, tassement quand il se prépare.
+@export var muet_squash_stiffness: float
+@export var muet_squash_damping: float
+@export var muet_squash_limit: float
+@export var muet_squash_widen: float
+@export var muet_squash_sink: float
+@export var muet_squash_crouch: float
+## Élans donnés au ressort : départ d'un bond, atterrissage, coup reçu, frappe, coup de bouclier, crachat.
+@export var muet_squash_hop: float
+@export var muet_squash_land: float
+@export var muet_squash_hit: float
+@export var muet_squash_slam: float
+@export var muet_squash_bash: float
+@export var muet_squash_spit: float
+## Respiration au repos : vitesse (rad/s) et hauteur (m).
+@export var muet_bob_speed: float
+@export var muet_bob_height: float
+## Clignement des yeux : intervalle au hasard (s).
+@export var muet_blink_min: float
+@export var muet_blink_max: float
+## Rotation des yeux d'un Muet étourdi (rad/s).
+@export var muet_stun_eye_spin: float
+## Nombre de couleurs de bouts d'antennes différentes.
+@export var muet_tip_variants: int
 
 @export_group("Sautillant")
+## Taille d'une case du corps (unités du prototype), PV, dégâts, rayon du corps (m).
+@export var hopper_scale: float
 @export var hopper_health: float
 @export var hopper_damage: float
-## Rayon du corps (m).
 @export var hopper_radius: float
-## Hauteur du corps (m).
-@export var hopper_height: float
-## Longueur d'un bond, à chaque temps (m).
+## Un bond tous les combien de temps ; longueur (m), durée (s) et hauteur (m) d'un bond.
+@export var hopper_hop_every: int
 @export var hopper_hop_distance: float
-## Hauteur d'un bond (m) ; sa durée découle de la gravité des Muets.
+@export var hopper_hop_time: float
 @export var hopper_hop_height: float
 
 @export_group("Volant")
+@export var flyer_scale: float
 @export var flyer_health: float
 @export var flyer_damage: float
 @export var flyer_radius: float
-@export var flyer_height: float
-## Altitude de vol (m).
+## Altitude de vol (m) ; il la rejoint à cette vitesse (/s) en ondulant (m, rad/s).
 @export var flyer_altitude: float
-## Distance au héros à laquelle il tourne (m).
-@export var flyer_orbit_radius: float
-## Vitesse angulaire autour du héros (rad/s).
-@export var flyer_orbit_speed: float
-## Vitesse à laquelle il rejoint sa place en vol (/s).
+@export var flyer_altitude_rate: float
+@export var flyer_bob_height: float
+@export var flyer_bob_speed: float
+## En chasse, il se tient à cette distance du héros (m), un peu sur le côté (rad) ; il rejoint sa
+## place à cette vitesse (/s).
+@export var flyer_hover_distance: float
+@export var flyer_hover_angle: float
 @export var flyer_follow_rate: float
-## Un piqué tous les combien de temps.
-@export var flyer_dive_every_beats: int
-## Temps d'annonce (ligne rouge) avant le piqué.
+## Au repos, il tourne au-dessus de son poste : rayon (m), vitesse (rad/s).
+@export var flyer_idle_radius: float
+@export var flyer_idle_speed: float
+## Piqué : portée (m), temps de repos entre deux, temps d'annonce (ligne rouge), durée (s),
+## élan au-delà du héros (m), hauteur au plus bas (m), courbe de la descente.
+@export var flyer_act_max_range: float
+@export var flyer_act_cooldown: int
 @export var flyer_telegraph_beats: int
-## Durée du piqué (s).
 @export var flyer_dive_time: float
+@export var flyer_dive_overshoot: float
+@export var flyer_dive_low: float
+@export var flyer_dive_curve: float
 ## Largeur de la ligne d'annonce (m).
 @export var flyer_line_width: float
+## Battements d'ailes (rad/s ; plus lents en piqué) et amplitude (rad) ; penché en piqué (rad).
+@export var flyer_flap_speed: float
+@export var flyer_flap_speed_swoop: float
+@export var flyer_flap_angle: float
+@export var flyer_swoop_lean: float
+## Son ombre est plus petite que son corps (part de son rayon).
+@export var flyer_shadow_fraction: float
 
 @export_group("Cornu")
+@export var charger_scale: float
 @export var charger_health: float
 @export var charger_damage: float
 ## Part des dégâts infligée par simple contact (hors charge).
 @export var charger_contact_fraction: float
 @export var charger_radius: float
-@export var charger_height: float
+@export var charger_hop_every: int
+@export var charger_hop_distance: float
+@export var charger_hop_time: float
+@export var charger_hop_height: float
+## Il charge quand le héros est entre ces distances (m), puis se repose ce nombre de temps.
+@export var charger_act_min_range: float
+@export var charger_act_max_range: float
+@export var charger_act_cooldown: int
 ## Temps d'annonce avant la charge ; il suit le héros pendant le premier.
 @export var charger_telegraph_beats: int
 @export var charger_track_beats: int
-## Vitesse et longueur de la charge (m/s, m).
+## Vitesse et longueur de la charge (m/s, m) ; penché en avant (rad).
 @export var charger_speed: float
 @export var charger_distance: float
+@export var charger_lean: float
 ## Assommé contre un obstacle (s), et dégâts reçus pendant ce temps (multiplicateur).
 @export var charger_stun_time: float
 @export var charger_stunned_damage_multiplier: float
-## Temps de repos entre deux charges.
-@export var charger_rest_beats: int
 ## Largeur de la ligne d'annonce (m).
 @export var charger_line_width: float
+## Il recule moins que les autres quand on le frappe (multiplicateur).
+@export var charger_knockback_factor: float
+
+@export_group("Porte-bouclier")
+@export var shielder_scale: float
+@export var shielder_health: float
+@export var shielder_damage: float
+@export var shielder_radius: float
+@export var shielder_hop_every: int
+@export var shielder_hop_distance: float
+@export var shielder_hop_time: float
+@export var shielder_hop_height: float
+## Coup de bouclier quand le héros est à moins de cette distance (m), puis repos (temps).
+@export var shielder_act_max_range: float
+@export var shielder_act_cooldown: int
+## Il se tourne lentement (rad/s) : on peut le prendre à revers.
+@export var shielder_turn_rate: float
+## Il bloque les coups venus de face, à moins de cet angle de son regard (rad) ; le bouclier se
+## lève un instant (s, cases, grossissement) et le héros est repoussé (m/s).
+@export var shielder_block_angle: float
+@export var shielder_block_time: float
+@export var shielder_raise: float
+@export var shielder_raise_scale: float
+@export var shielder_block_push: float
+## Un plongeon passe par-dessus son bouclier et l'étourdit (s).
+@export var shielder_dive_stun: float
+## Coup de bouclier : temps de préparation, puis petit bond vers le héros (m, s, m) ; il touche à
+## l'atterrissage à moins de cette marge (m).
+@export var shielder_prepare_beats: int
+@export var shielder_bash_distance: float
+@export var shielder_bash_time: float
+@export var shielder_bash_height: float
+@export var shielder_bash_reach: float
+
+@export_group("Cracheur")
+@export var spitter_scale: float
+@export var spitter_health: float
+@export var spitter_damage: float
+@export var spitter_radius: float
+@export var spitter_hop_every: int
+@export var spitter_hop_distance: float
+@export var spitter_hop_time: float
+@export var spitter_hop_height: float
+## Il crache quand le héros est à moins de cette distance (m), puis se repose (temps).
+@export var spitter_act_max_range: float
+@export var spitter_act_cooldown: int
+## Il se tient entre ces distances du héros (m) ; entre les deux, il tourne autour de lui en
+## changeant de sens tous les quelques temps.
+@export var spitter_keep_min: float
+@export var spitter_keep_max: float
+@export var spitter_strafe_beats: int
+## Crachat : il se gonfle (part de sa taille) pendant la préparation (temps), puis lance une bulle
+## de silence : vitesse (m/s), durée (s), hauteur (m), départ devant lui (m), rayon (m).
+@export var spitter_inflate: float
+@export var spitter_prepare_beats: int
+@export var spitter_orb_speed: float
+@export var spitter_orb_life: float
+@export var spitter_orb_height: float
+@export var spitter_orb_spawn_distance: float
+@export var spitter_orb_radius: float
+## La bulle tourne sur elle-même (rad/s) et ondule (rad/s, m) ; elle touche le héros de ses pieds
+## (moins cette marge, m) à sa tête.
+@export var orb_spin_x: float
+@export var orb_spin_y: float
+@export var orb_bob_speed: float
+@export var orb_bob_height: float
+@export var orb_hero_below: float
 
 @export_group("Grand Muet")
+@export var boss_scale: float
 @export var boss_health: float
-## Dégâts de la frappe au sol et de l'onde.
-@export var boss_slam_damage: float
-@export var boss_wave_damage: float
+@export var boss_damage: float
 @export var boss_radius: float
-@export var boss_height: float
-## Une frappe au sol tous les combien de temps.
-@export var boss_attack_every_beats: int
-## Temps d'annonce (cercle rouge) avant la frappe.
+@export var boss_hop_every: int
+@export var boss_hop_distance: float
+@export var boss_hop_time: float
+@export var boss_hop_height: float
+## Frappe au sol quand le héros est à moins de cette distance (m), puis repos (temps ; moins en rage).
+@export var boss_act_max_range: float
+@export var boss_act_cooldown: int
+@export var boss_act_cooldown_enraged: int
+## PV et dégâts en plus par rang de sanctuaire.
+@export var boss_health_per_tier: float
+@export var boss_damage_per_tier: float
+## Dégâts de la frappe au sol (et en plus par rang), et de l'onde (part des dégâts de contact).
+@export var boss_slam_damage: float
+@export var boss_slam_damage_per_tier: float
+@export var boss_wave_damage_factor: float
+## Temps d'annonce (cercle rouge) avant la frappe ; il gonfle pendant l'annonce (part de sa taille).
 @export var boss_telegraph_beats: int
+@export var boss_slam_inflate: float
 ## Rayon de la frappe au sol (m).
 @export var boss_slam_radius: float
 ## Part des PV sous laquelle il enrage (phase 2).
@@ -409,6 +564,8 @@ extends Resource
 @export var boss_wave_range: float
 ## Hauteur des pieds au-dessus du sol à partir de laquelle l'onde passe sous le héros (m).
 @export var boss_wave_clearance: float
+## Il recule peu quand on le frappe (multiplicateur).
+@export var boss_knockback_factor: float
 
 @export_group("Nuit")
 ## Tambours à rapporter pour accomplir la nuit (un par sanctuaire).
@@ -486,12 +643,8 @@ extends Resource
 @export var end_screen_delay: float
 
 @export_group("Finition")
-## Vitesse de chute à partir de laquelle l'atterrissage s'entend, puis soulève de la poussière (m/s).
+## Vitesse de chute à partir de laquelle l'atterrissage s'entend (m/s).
 @export var land_sound_speed: float
-@export var land_dust_speed: float
-## Poussière d'atterrissage : durée (s) et taille (m).
-@export var land_dust_time: float
-@export var land_dust_size: float
 
 @export_group("Monde voxel")
 ## Mètres par unité du prototype (le héros y mesure 7 u pour 1,8 m).
@@ -577,3 +730,143 @@ extends Resource
 @export var villager_first_flip_step: float
 @export var villager_flip_gap_min: float
 @export var villager_flip_gap_max: float
+
+@export_group("Effets")
+## Petits cubes : nombre en réserve ; boîte d'affichage (m, autour du niveau).
+@export var fx_cube_count: int
+@export var fx_cull_margin: float
+## Vitesse de départ au hasard, en part de la vitesse demandée (plus bas).
+@export var fx_speed_min: float
+## Vie (s), élan vers le haut (m/s), taille (m), gravité (m/s²) des cubes d'éclat et de la poussière.
+@export var fx_cube_life_min: float
+@export var fx_cube_life_max: float
+@export var fx_cube_rise_min: float
+@export var fx_cube_rise_max: float
+@export var fx_cube_size_min: float
+@export var fx_cube_size_max: float
+@export var fx_cube_gravity: float
+@export var fx_dust_life_min: float
+@export var fx_dust_life_max: float
+@export var fx_dust_rise_min: float
+@export var fx_dust_rise_max: float
+@export var fx_dust_size_min: float
+@export var fx_dust_size_max: float
+@export var fx_dust_gravity: float
+## Poussière : dispersion au départ et hauteur au-dessus du sol (m).
+@export var fx_dust_spread: float
+@export var fx_dust_lift: float
+## Sol où les cubes rebondissent : au moins cette hauteur, sinon sous leur départ (m) ; rebond,
+## frottement.
+@export var fx_floor_min: float
+@export var fx_cube_floor_drop: float
+@export var fx_dust_floor_drop: float
+@export var fx_bounce: float
+@export var fx_bounce_friction: float
+## Variation de teinte autour de la teinte demandée ; rotation (rad/s, et rapport entre les axes) ;
+## les cubes rapetissent sur la fin de leur vie (plus la valeur est grande, plus c'est tard).
+@export var fx_hue_jitter: float
+@export var fx_cube_spin: float
+@export var fx_cube_spin_ratio: float
+@export var fx_shrink: float
+## Anneaux : hauteur (m), taille de départ (part du rayon), bord intérieur (part du rayon),
+## segments, tours de couleur de l'anneau arc-en-ciel.
+@export var fx_ring_lift: float
+@export var fx_ring_start: float
+@export var fx_ring_inner: float
+@export var fx_ring_segments: int
+@export var fx_rainbow_turns: float
+## Étincelles : durée (s), taille de départ (part), texture (px), éclat du dégradé.
+@export var fx_spark_time: float
+@export var fx_spark_start: float
+@export var fx_spark_texture_size: int
+@export var fx_spark_glow: float
+## Étincelle d'un coup, d'un coup critique (m).
+@export var fx_spark_size: float
+@export var fx_spark_size_crit: float
+## Mots qui montent : durée (s), montée (m), début de l'effacement (part), jaillissement (durée en
+## part, taille de départ, taille au plus fort), affichage (priorité, police, contour, taille d'un
+## pixel en m, couleur du contour).
+@export var fx_word_time: float
+@export var fx_word_rise: float
+@export var fx_word_fade_start: float
+@export var fx_word_pop_time: float
+@export var fx_word_pop_start: float
+@export var fx_word_pop_peak: float
+@export var fx_word_priority: int
+@export var fx_word_font_size: int
+@export var fx_word_font_size_big: int
+@export var fx_word_outline: int
+@export var fx_word_pixel_size: float
+@export var fx_word_outline_color: Color
+## Teintes des éclats : or, rouge, étourdi.
+@export var fx_gold_hue: float
+@export var fx_red_hue: float
+@export var fx_stun_hue: float
+## Muet libéré : hauteur de la gerbe (part de sa taille), cubes et vitesse (m/s ; Grand Muet),
+## cubes dorés, anneau (m ; Grand Muet) et sa durée (s).
+@export var fx_freed_burst_height: float
+@export var fx_freed_cubes: int
+@export var fx_freed_boss_cubes: int
+@export var fx_freed_speed: float
+@export var fx_freed_boss_speed: float
+@export var fx_freed_gold_cubes: int
+@export var fx_freed_gold_speed: float
+@export var fx_freed_ring: float
+@export var fx_freed_boss_ring: float
+@export var fx_freed_ring_time: float
+## Frappe du Grand Muet : anneau plus large que le cercle (m), durée (s), gerbe (hauteur m, cubes, m/s).
+@export var fx_slam_ring_extra: float
+@export var fx_slam_ring_time: float
+@export var fx_slam_burst_height: float
+@export var fx_slam_cubes: int
+@export var fx_slam_speed: float
+## Coup bloqué, cornu assommé, bulle éclatée : cubes et vitesse (m/s).
+@export var fx_block_cubes: int
+@export var fx_block_speed: float
+@export var fx_stun_cubes: int
+@export var fx_stun_speed: float
+@export var fx_orb_cubes: int
+@export var fx_orb_speed: float
+## Héros : poussière du saut ; anneau (m, s) et cubes (nombre, m/s, hauteur m) du double saut.
+@export var fx_jump_dust: int
+@export var fx_jump_dust_speed: float
+@export var fx_double_ring: float
+@export var fx_double_ring_time: float
+@export var fx_double_cubes: int
+@export var fx_double_speed: float
+@export var fx_double_height: float
+## Atterrissage : à partir de cette chute (m), poussière (au moins, par mètre de chute, au plus ; m/s).
+@export var fx_land_min_fall: float
+@export var fx_land_dust_min: int
+@export var fx_land_dust_per_meter: float
+@export var fx_land_dust_max: int
+@export var fx_land_dust_speed: float
+## Plongeon : poussière (nombre, m/s), durée de l'anneau (s) ; Salto arc-en-ciel : gerbe (cubes,
+## m/s), anneau (m, s).
+@export var fx_dive_dust: int
+@export var fx_dive_dust_speed: float
+@export var fx_dive_ring_time: float
+@export var fx_rainbow_cubes: int
+@export var fx_rainbow_speed: float
+@export var fx_rainbow_ring: float
+@export var fx_rainbow_ring_time: float
+## Esquive parfaite : anneau (m, s).
+@export var fx_dodge_ring: float
+@export var fx_dodge_ring_time: float
+## Rebond sur un champignon : anneau (m, s).
+@export var fx_bounce_ring: float
+@export var fx_bounce_ring_time: float
+## Tambours : gerbe quand on le prend (cubes, m/s, hauteur m), quand on le rapporte (cubes, m/s,
+## anneau m, s) ; nuit accomplie (cubes, m/s, hauteur m, anneau m, s).
+@export var fx_drum_pick_cubes: int
+@export var fx_drum_pick_speed: float
+@export var fx_drum_pick_height: float
+@export var fx_drum_return_cubes: int
+@export var fx_drum_return_speed: float
+@export var fx_drum_return_ring: float
+@export var fx_drum_return_ring_time: float
+@export var fx_night_cubes: int
+@export var fx_night_speed: float
+@export var fx_night_height: float
+@export var fx_night_ring: float
+@export var fx_night_ring_time: float

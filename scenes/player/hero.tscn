@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -17,8 +17,6 @@
 [ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_CombatMelee.glb" id="15_melee"]
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="16_hitbox"]
 [ext_resource type="Script" path="res://scripts/fx/ribbon_trail.gd" id="17_trail"]
-[ext_resource type="PackedScene" path="res://scenes/fx/hit_spark.tscn" id="18_spark"]
-[ext_resource type="PackedScene" path="res://scenes/fx/shockwave.tscn" id="19_wave"]
 [ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hit.wav" id="21_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/chime.wav" id="22_chime"]
@@ -62,9 +60,6 @@ ring_segments = 4
 collision_layer = 2
 collision_mask = 5
 script = ExtResource("1_hero")
-spark_scene = ExtResource("18_spark")
-shockwave_scene = ExtResource("19_wave")
-land_dust_color = Color(0.42, 0.38, 0.32, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape_body")

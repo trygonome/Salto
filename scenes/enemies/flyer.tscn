@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/muet.gd" id="1_muet"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/muet_body.tscn" id="2_body"]
@@ -6,14 +6,13 @@
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="4_hitbox"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="5_health"]
 [ext_resource type="Script" path="res://scripts/components/state_machine.gd" id="6_machine"]
-[ext_resource type="Script" path="res://scripts/enemies/states/muet_stunned_state.gd" id="7_stunned"]
-[ext_resource type="Script" path="res://scripts/enemies/states/muet_freed_state.gd" id="8_freed"]
 [ext_resource type="PackedScene" path="res://scenes/fx/telegraph.tscn" id="9_telegraph"]
-[ext_resource type="Script" path="res://scripts/enemies/wing_flap.gd" id="10_wing"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/freed.wav" id="20_freed"]
-[ext_resource type="Script" path="res://scripts/enemies/states/flyer_orbit_state.gd" id="30_orbit"]
-[ext_resource type="Script" path="res://scripts/enemies/states/flyer_telegraph_state.gd" id="31_telegraph"]
-[ext_resource type="Script" path="res://scripts/enemies/states/flyer_dive_state.gd" id="32_dive"]
+[ext_resource type="Script" path="res://scripts/enemies/states/flyer_hover_state.gd" id="30_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/flyer_telegraph_state.gd" id="31_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/flyer_dive_state.gd" id="32_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_stunned_state.gd" id="33_state"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_freed_state.gd" id="34_state"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
@@ -22,20 +21,9 @@
 [sub_resource type="SphereShape3D" id="SphereShape_reach"]
 radius = 3.0
 
-[sub_resource type="StandardMaterial3D" id="Material_wing"]
-albedo_color = Color(0.72, 0.68, 0.86, 0.85)
-transparency = 1
-
-[sub_resource type="SphereMesh" id="SphereMesh_wing"]
-material = SubResource("Material_wing")
-radius = 0.28
-height = 0.08
-radial_segments = 16
-rings = 8
-
 [node name="Flyer" type="CharacterBody3D"]
 collision_layer = 4
-collision_mask = 0
+collision_mask = 1
 script = ExtResource("1_muet")
 species = &"flyer"
 guardian = false
@@ -46,28 +34,8 @@ telegraph_scene = ExtResource("9_telegraph")
 shape = SubResource("CapsuleShape_body")
 
 [node name="Body" parent="." instance=ExtResource("2_body")]
-
-[node name="WingLeft" type="Node3D" parent="Body/Pivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.42, 0.62, 0.05)
-script = ExtResource("10_wing")
-flap_rate = 3.0
-flap_angle_deg = 35.0
-side = -1.0
-
-[node name="Mesh" type="MeshInstance3D" parent="Body/Pivot/WingLeft"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26, 0, 0)
-mesh = SubResource("SphereMesh_wing")
-
-[node name="WingRight" type="Node3D" parent="Body/Pivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 0.62, 0.05)
-script = ExtResource("10_wing")
-flap_rate = 3.0
-flap_angle_deg = 35.0
-side = 1.0
-
-[node name="Mesh" type="MeshInstance3D" parent="Body/Pivot/WingRight"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26, 0, 0)
-mesh = SubResource("SphereMesh_wing")
+kind = &"fly"
+boss = false
 
 [node name="Hurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health") groups=["enemy_hurtbox"]]
 collision_layer = 16
@@ -96,19 +64,19 @@ stream = ExtResource("20_freed")
 
 [node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("6_machine")
-initial_state = NodePath("Orbit")
+initial_state = NodePath("Hover")
 
-[node name="Orbit" type="Node" parent="StateMachine"]
-script = ExtResource("30_orbit")
+[node name="Hover" type="Node" parent="StateMachine"]
+script = ExtResource("30_state")
 
 [node name="Telegraph" type="Node" parent="StateMachine"]
-script = ExtResource("31_telegraph")
+script = ExtResource("31_state")
 
 [node name="Dive" type="Node" parent="StateMachine"]
-script = ExtResource("32_dive")
+script = ExtResource("32_state")
 
 [node name="Stunned" type="Node" parent="StateMachine"]
-script = ExtResource("7_stunned")
+script = ExtResource("33_state")
 
 [node name="Freed" type="Node" parent="StateMachine"]
-script = ExtResource("8_freed")
+script = ExtResource("34_state")

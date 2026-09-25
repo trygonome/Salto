@@ -41,6 +41,10 @@ func _on_body_entered(body: Node3D) -> void:
 	_available = false
 	_carried = true
 	_model.visible = false
+	var fx: Effects = Effects.of(self)
+	if fx:
+		var tuning: TuningData = Tuning.data
+		fx.burst(_model.global_position + Vector3.UP * tuning.fx_drum_pick_height, tuning.fx_drum_pick_cubes, tuning.fx_drum_pick_speed)
 	Game.pick_drum()
 
 

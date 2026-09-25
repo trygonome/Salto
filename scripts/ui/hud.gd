@@ -322,6 +322,7 @@ func _find_hero() -> void:
 	_hero = get_tree().get_first_node_in_group(&"hero") as Hero
 	if _hero:
 		_hero.hit_landed.connect(_on_hit_landed)
+		_hero.hurtbox.hurt.connect(_on_hero_hurt)
 		_hero.action_pressed.connect(_on_action_pressed)
 
 
@@ -337,6 +338,16 @@ func _on_hit_landed(hit: HitData) -> void:
 	_hero.get_parent().add_child(number)
 	number.global_position = hit.point + Vector3.UP * damage_number_height
 	number.play(hit.damage, hit.critical)
+
+
+## PV perdus par le héros, en rose au-dessus de lui.
+func _on_hero_hurt(hit: HitData) -> void:
+	if not Game.profile.damage_numbers:
+		return
+	var number: DamageNumber = damage_number_scene.instantiate() as DamageNumber
+	_hero.get_parent().add_child(number)
+	number.global_position = _hero.global_position + Vector3.UP * (Tuning.data.hero_height + damage_number_height)
+	number.play(hit.damage, false, true)
 
 
 func _on_night_started(night: int) -> void:
@@ -369,7 +380,8 @@ func _on_night_completed() -> void:
 func _on_muet_freed(muet: Node3D) -> void:
 	var lines: PackedStringArray = GameTexts.MUET_FREED_LINES
 	var tuning: TuningData = Tuning.data
-	var height: float = float(muet.call(&"stat", &"height")) if muet.has_method(&"stat") else 0.0
+	var body: MuetBody = muet.get_node_or_null(^"Body") as MuetBody
+	var height: float = body.height if body else 0.0
 	show_reply(lines[_reply_index % lines.size()], muet, height + tuning.reply_gap, tuning.reply_time)
 	_reply_index += 1
 

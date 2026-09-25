@@ -12,6 +12,7 @@ var _material: ShaderMaterial
 
 
 func _ready() -> void:
+	add_to_group(&"telegraphs")
 	_material = (material_override as ShaderMaterial).duplicate() as ShaderMaterial
 	material_override = _material
 	($Sound as AudioStreamPlayer3D).play()

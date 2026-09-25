@@ -9,6 +9,9 @@ extends Node3D
 @export var night: int
 @export var hopper_scene: PackedScene
 @export var flyer_scene: PackedScene
+@export var shielder_scene: PackedScene
+@export var charger_scene: PackedScene
+@export var spitter_scene: PackedScene
 @export var boss_scene: PackedScene
 ## Tambour d'un sanctuaire (dans sa bulle jusqu'à la libération du gardien).
 @export var drum_scene: PackedScene
@@ -18,8 +21,14 @@ extends Node3D
 @export var character_material: Material
 @export var character_shadow_material: Material
 
-## Espèces qui gardent les sanctuaires la nuit 1 (tirées au hasard, comme dans le prototype).
-const NIGHT_ONE_FOES: Array[StringName] = [&"hopper", &"hopper", &"hopper", &"flyer"]
+## Espèces tirées au hasard pour garder les sanctuaires et errer, selon la nuit (comme dans le
+## prototype) : de nouvelles espèces arrivent nuit après nuit.
+const NIGHT_FOES: Array[Array] = [
+	[&"hopper", &"hopper", &"hopper", &"flyer"],
+	[&"hopper", &"hopper", &"flyer", &"shielder"],
+	[&"hopper", &"hopper", &"flyer", &"shielder", &"charger"],
+	[&"hopper", &"flyer", &"shielder", &"charger", &"spitter"],
+]
 
 var gen := WorldGen.new()
 var drums: Array[Node3D] = []
@@ -54,7 +63,7 @@ func _ready() -> void:
 	Game.drum_picked.connect(_on_drum_picked)
 	Game.drum_dropped.connect(func() -> void: carried_from = -1)
 	Game.drum_returned.connect(func(_count: int) -> void: carried_from = -1)
-	Game.night_completed.connect(func() -> void: mood.set_won(true))
+	Game.night_completed.connect(_on_night_completed)
 	Rhythm.play(Game.music_layers())
 
 
@@ -126,7 +135,7 @@ func _add_shadow(target: Node3D, radius: float) -> void:
 ## Autel : tambour dans sa bulle, Grand Muet entre le village et l'autel, gardiens autour.
 func _place_sanctuary(index: int) -> void:
 	var s: Vector2 = gen.sanctuaries[index]
-	var boss: EnemySpawner = _spawner(boss_scene, s - s.normalized() * Tuning.data.sanctuary_boss_distance / _unit, false)
+	var boss: EnemySpawner = _spawner(boss_scene, s - s.normalized() * Tuning.data.sanctuary_boss_distance / _unit, false, index)
 	boss.loot_scene = loot_scene
 	boss.muet_freed.connect(func(_muet: Muet) -> void: _on_sanctuary_freed(index))
 	var drum: Node3D = drum_scene.instantiate() as Node3D
@@ -144,7 +153,7 @@ func _place_sanctuary(index: int) -> void:
 		var p: Vector2 = s + Vector2(cos(a), sin(a)) * r
 		if _blocked(p, Tuning.data.spawn_clearance / _unit):
 			continue
-		_spawner(_foe_scene(), p, false)
+		_spawner(_foe_scene(), p, false, index)
 		placed += 1
 
 
@@ -159,19 +168,31 @@ func _spawn_wanderer() -> void:
 			continue
 		if _blocked(p, tuning.spawn_clearance / _unit):
 			continue
-		_spawner(_foe_scene(), p, true)
+		_spawner(_foe_scene(), p, true, mini(Game.progress.drums_returned, gen.sanctuaries.size() - 1))
 		return
 
 
 func _foe_scene() -> PackedScene:
-	return hopper_scene if NIGHT_ONE_FOES[_rng.randi_range(0, NIGHT_ONE_FOES.size() - 1)] == &"hopper" else flyer_scene
+	var foes: Array = NIGHT_FOES[clampi(night - 1, 0, NIGHT_FOES.size() - 1)]
+	var species: StringName = foes[_rng.randi_range(0, foes.size() - 1)]
+	match species:
+		&"flyer":
+			return flyer_scene
+		&"shielder":
+			return shielder_scene
+		&"charger":
+			return charger_scene
+		&"spitter":
+			return spitter_scene
+	return hopper_scene
 
 
-func _spawner(scene: PackedScene, p: Vector2, wanderer: bool) -> EnemySpawner:
+func _spawner(scene: PackedScene, p: Vector2, wanderer: bool, tier: int) -> EnemySpawner:
 	var spawner := EnemySpawner.new()
 	spawner.scene = scene
 	spawner.position = to_world(p)
 	spawner.wanderer = wanderer
+	spawner.tier = tier
 	spawner.safe_zone_radius = Tuning.data.village_radius
 	foes.add_child(spawner)
 	return spawner
@@ -187,6 +208,17 @@ func _blocked(p: Vector2, margin: float) -> bool:
 func _on_sanctuary_freed(index: int) -> void:
 	_freed[index] = true
 	mood.free_sanctuary(index)
+
+
+## Nuit accomplie : le monde éclate de couleurs, une gerbe et un anneau arc-en-ciel au village.
+func _on_night_completed() -> void:
+	var tuning: TuningData = Tuning.data
+	mood.set_won(true)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		var center: Vector3 = to_world(WorldGen.CHIEF)
+		fx.burst(center + Vector3.UP * tuning.fx_night_height, tuning.fx_night_cubes, tuning.fx_night_speed)
+		fx.ring(center, tuning.fx_night_ring, fx.white, tuning.fx_night_ring_time, true)
 
 
 func _on_drum_picked() -> void:

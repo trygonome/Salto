@@ -435,6 +435,33 @@ def ambience_night(length=16.0):
     return buf
 
 
+def sweep(length, f_start, f_end, shape):
+    """Son qui glisse de f_start à f_end (Hz) : sinus, triangle ou carré."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    freq = f_start * (max(f_end, 1.0) / f_start) ** (t / length)
+    phase = 2 * np.pi * np.cumsum(freq) / RATE
+    if shape == "square":
+        return np.sign(np.sin(phase))
+    if shape == "triangle":
+        return 2 / np.pi * np.arcsin(np.sin(phase))
+    return np.sin(phase)
+
+
+def sfx_clink():
+    """Coup arrêté par un bouclier : un tintement métallique bref."""
+    n = int(0.22 * RATE)
+    a = sweep(0.22, 1800, 1200, "square") * env(n, 0.001, 0.05) * 0.5
+    b = sweep(0.22, 2600, 2600, "sine") * env(n, 0.001, 0.08)
+    return a + b
+
+
+def sfx_spit():
+    """Crachat d'une bulle de silence : un « ploup » qui descend."""
+    n = int(0.18 * RATE)
+    return sweep(0.18, 420, 160, "triangle") * env(n, 0.003, 0.06)
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -479,6 +506,8 @@ def main():
     write(ROOT / "assets/audio/sfx/ui_click.wav", sfx_ui_click(), peak=0.4)
     write(ROOT / "assets/audio/sfx/title.wav", sfx_title(), peak=0.5)
     write(ROOT / "assets/audio/ambience/night_ambience.wav", ambience_night(), peak=0.5)
+    write(ROOT / "assets/audio/sfx/clink.wav", sfx_clink(), peak=0.45)
+    write(ROOT / "assets/audio/sfx/spit.wav", sfx_spit(), peak=0.5)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/hero.tscn" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="2_rig"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/flyer.tscn" id="9_flyer"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="10_charger"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/grand_muet.tscn" id="11_boss"]
+[ext_resource type="PackedScene" path="res://scenes/fx/effects.tscn" id="90_effects"]
 
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
@@ -379,3 +380,5 @@ current = true
 [node name="TouchControls" parent="." instance=ExtResource("3_touch")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("4_debug")]
+
+[node name="Effects" parent="." instance=ExtResource("90_effects")]

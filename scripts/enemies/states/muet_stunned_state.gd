@@ -1,11 +1,10 @@
 class_name MuetStunnedState
 extends MuetState
-## Étourdi : le Muet ne fait plus rien un moment (étoiles au-dessus de la tête).
+## Étourdi : le Muet ne fait plus rien un moment (ses yeux tournent). Certaines espèces sont
+## alors plus fragiles (Tuning.<espèce>_stunned_damage_multiplier : le cornu assommé).
 
 ## Durée de l'étourdissement (s), fixée par Muet.stun().
 var duration: float = 0.0
-## Multiplicateur des dégâts reçus pendant l'étourdissement (le cornu assommé est fragile).
-@export var damage_taken_multiplier: float
 
 var _left: float = 0.0
 
@@ -14,8 +13,7 @@ func enter(_previous: StringName) -> void:
 	_left = duration
 	muet.hitbox.deactivate()
 	muet.body.set_stunned(true)
-	if damage_taken_multiplier > 0.0:
-		muet.hurtbox.damage_taken_multiplier = damage_taken_multiplier
+	muet.hurtbox.damage_taken_multiplier = muet.stat_or(&"stunned_damage_multiplier", 1.0)
 
 
 func exit() -> void:
@@ -23,7 +21,12 @@ func exit() -> void:
 	muet.hurtbox.damage_taken_multiplier = 1.0
 
 
+func allows_contact() -> bool:
+	return false
+
+
 func physics_update(delta: float) -> void:
+	muet.body.set_motion(false, 0.0, 0.0, false, false)
 	muet.move(Vector3.ZERO, delta)
 	_left -= delta
 	if _left <= 0.0:

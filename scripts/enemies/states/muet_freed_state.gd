@@ -9,6 +9,10 @@ func enter(_previous: StringName) -> void:
 	muet.release()
 
 
+func allows_contact() -> bool:
+	return false
+
+
 func physics_update(delta: float) -> void:
 	_left -= delta
 	if _left <= 0.0:

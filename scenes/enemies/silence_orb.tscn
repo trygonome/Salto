@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/silence_orb.gd" id="1_orb"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="2_voxel"]
+
+[node name="SilenceOrb" type="Node3D"]
+script = ExtResource("1_orb")
+material = ExtResource("2_voxel")
+
+[node name="Visual" type="Node3D" parent="."]

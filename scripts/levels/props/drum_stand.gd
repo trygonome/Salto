@@ -2,12 +2,9 @@ extends Node3D
 ## Support des tambours, au cœur du village : le héros y pose les tambours qu'il porte.
 ## Chaque tambour posé y reste visible.
 
-## Tambours posés, dans l'ordre (masqués au début de la nuit).
+## Tambours posés, dans l'ordre (masqués au début de la nuit) ; chacun arrive dans une gerbe de
+## cubes et un anneau doré.
 @export var slots: Array[Node3D]
-## Effet de fête quand un tambour est posé, sa durée (s) et sa taille (m).
-@export var burst_scene: PackedScene
-@export var burst_duration: float
-@export var burst_size: float
 
 @onready var _zone: Area3D = $Zone
 @onready var _sound: AudioStreamPlayer3D = $ReturnSound
@@ -32,8 +29,8 @@ func _on_drum_returned(count: int) -> void:
 		if slot.visible:
 			continue
 		slot.visible = true
-		if burst_scene:
-			var burst: FadingBurst = burst_scene.instantiate() as FadingBurst
-			add_child(burst)
-			burst.global_position = slot.global_position
-			burst.play(burst_duration, burst_size)
+		var fx: Effects = Effects.of(self)
+		if fx:
+			var tuning: TuningData = Tuning.data
+			fx.burst(slot.global_position, tuning.fx_drum_return_cubes, tuning.fx_drum_return_speed)
+			fx.ring(slot.global_position, tuning.fx_drum_return_ring, fx.gold, tuning.fx_drum_return_ring_time)
