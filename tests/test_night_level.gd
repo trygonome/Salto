@@ -1,27 +1,37 @@
 extends GutTest
-## Niveau de la nuit 1 : les pièces sont reliées entre elles, les coffres et perchoirs sont
-## atteignables, et tomber dans le ravin ramène au village.
+## Nuit dans le monde voxel : départ au village avec la musique de base, trois sanctuaires gardés
+## chacun par un Grand Muet et ses Muets, des errants, les villageois qui dansent, et l'objectif
+## qui mène au prochain sanctuaire puis ramène le tambour au village.
 
-const LevelScene: PackedScene = preload("res://scenes/levels/night_1.tscn")
-const Notebook: NotebookData = preload("res://data/notebook.tres")
-## Marge sur la hauteur de saut : une marche de perchoir ne demande pas un saut parfait.
-const CLIMB_MARGIN := 0.8
-## Écart maximal entre les bords de deux perchoirs voisins (m).
-const MAX_PERCH_GAP := 1.5
+const LevelScene: PackedScene = preload("res://scenes/levels/night.tscn")
+## Graine fixe : le monde est toujours le même.
+const SEED := 12345
 ## Pas de physique attendus au plus pour qu'une zone voie le héros.
 const MAX_OVERLAP_FRAMES := 30
 
 var tuning: TuningData = Tuning.data
-var level: Node3D
+var level: VoxelNight
 var hero: Hero
 
 
 func before_each() -> void:
-	level = LevelScene.instantiate() as Node3D
+	Game.profile = Profile.new()
+	Game.profile.night_seed = SEED
+	level = LevelScene.instantiate() as VoxelNight
 	hero = level.get_node("Hero") as Hero
 	hero.reads_player_input = false
 	add_child_autofree(level)
+	# Les Muets apparaissent au pas suivant.
+	await get_tree().process_frame
 	await get_tree().physics_frame
+
+
+func _spawners() -> Array[EnemySpawner]:
+	var found: Array[EnemySpawner] = []
+	for node: Node in level.get_node("Foes").get_children():
+		if node is EnemySpawner:
+			found.append(node as EnemySpawner)
+	return found
 
 
 func test_la_nuit_commence_au_village_avec_la_musique_de_base() -> void:
@@ -36,72 +46,57 @@ func test_la_nuit_commence_au_village_avec_la_musique_de_base() -> void:
 	assert_true(village.overlaps_body(hero), "le héros part du village")
 
 
-func test_le_tambour_du_sanctuaire_est_garde_par_le_grand_muet() -> void:
-	var drum: Node = level.get_node("Sanctuary/SanctuaryDrum")
-	var guardian: Node = drum.get(&"guardian") as Node
-	assert_eq(guardian, level.get_node("Sanctuary/GrandMuet"))
-	var boss: PackedScene = guardian.get(&"scene") as PackedScene
-	assert_eq(boss.resource_path, "res://scenes/enemies/grand_muet.tscn")
-	assert_not_null(guardian.get(&"loot_scene"), "le Grand Muet libéré laisse un objet")
+func test_le_monde_est_celui_de_la_graine_de_la_nuit() -> void:
+	assert_eq(Game.profile.night_seed, SEED, "la graine reste pour les sorties suivantes")
+	assert_eq(level.gen.voxel_count(), 17432)
+	assert_eq(level.gen.sanctuaries.size(), 3)
 
 
-func test_le_cercle_a_quatre_gongs_et_une_melodie_jouable() -> void:
-	var circle: Node = level.get_node("GongCircle")
-	var gongs: Array = circle.get(&"gongs")
-	var indices: Array[int] = []
-	for gong: Gong in gongs:
-		indices.append(gong.index)
-	indices.sort()
-	assert_eq(indices, [0, 1, 2, 3])
-	for note: int in circle.get(&"melody") as PackedInt32Array:
-		assert_has(indices, note)
-	var chest: Node = circle.get(&"chest") as Node
-	assert_true(chest.get(&"hidden"), "le coffre des gongs est caché")
+func test_chaque_tambour_est_garde_par_un_grand_muet() -> void:
+	assert_eq(level.drums.size(), 3)
+	for i: int in level.drums.size():
+		var drum: Node3D = level.drums[i]
+		var guardian: EnemySpawner = drum.get(&"guardian") as EnemySpawner
+		assert_eq(guardian.scene.resource_path, "res://scenes/enemies/grand_muet.tscn")
+		assert_not_null(guardian.loot_scene, "le Grand Muet libéré laisse un objet")
+		var altar: Vector3 = level.to_world(level.gen.sanctuaries[i])
+		var flat := Vector2(drum.global_position.x - altar.x, drum.global_position.z - altar.z)
+		assert_almost_eq(flat.length(), 0.0, 0.01, "le tambour est sur son autel")
+		assert_gt(drum.global_position.y, 0.0, "posé en haut de l'autel")
 
 
-func test_chaque_coffre_donne_une_page_differente_du_carnet() -> void:
-	var pages: Array[int] = []
-	for chest: Node in [level.get_node("GongCircle/Chest"), level.get_node("PillarChest")]:
-		var page: int = chest.get(&"page")
-		assert_between(page, 1, Notebook.pages.size())
-		assert_does_not_have(pages, page)
-		pages.append(page)
+func test_une_trentaine_de_muets_gardent_les_sanctuaires_ou_errent() -> void:
+	var spawners: Array[EnemySpawner] = _spawners()
+	var wanderers: int = spawners.filter(func(s: EnemySpawner) -> bool: return s.wanderer).size()
+	var guards: int = 0
+	for i: int in level.gen.sanctuaries.size():
+		guards += tuning.sanctuary_guards + i
+	assert_eq(wanderers, tuning.muet_wanderers)
+	assert_eq(spawners.size(), level.gen.sanctuaries.size() + guards + tuning.muet_wanderers)
+	var village: float = tuning.village_radius
+	for spawner: EnemySpawner in spawners:
+		assert_gt(Vector2(spawner.position.x, spawner.position.z).length(), village, "aucun Muet au village")
+		assert_eq(spawner.safe_zone_radius, village, "les Muets n'entrent pas au village")
 
 
-func test_les_perchoirs_menent_au_coffre_du_pilier() -> void:
-	var climb: float = (pow(tuning.jump_speed, 2.0) + pow(tuning.double_jump_speed, 2.0)) / (2.0 * tuning.gravity_rise_held)
-	var steps: Array[CSGCylinder3D] = []
-	for name: String in ["Perch1", "Perch2", "Perch3", "Perch4", "ChestPillar"]:
-		steps.append(level.get_node("Terrain/" + name) as CSGCylinder3D)
-	var previous_top: float = 0.0
-	for i: int in steps.size():
-		var top: float = steps[i].position.y + steps[i].height / 2.0
-		assert_lt(top - previous_top, climb * CLIMB_MARGIN, "marche vers %s" % steps[i].name)
-		previous_top = top
-		if i > 0:
-			var a: Vector3 = steps[i - 1].position
-			var b: Vector3 = steps[i].position
-			var gap: float = Vector2(b.x - a.x, b.z - a.z).length() - steps[i - 1].radius - steps[i].radius
-			assert_lt(gap, MAX_PERCH_GAP, "écart avant %s" % steps[i].name)
-	var chest: Node3D = level.get_node("PillarChest") as Node3D
-	assert_almost_eq(chest.position.y, previous_top, 0.01, "le coffre est posé sur le pilier")
+func test_le_village_danse_autour_du_chef() -> void:
+	var villagers: Array[Node] = level.get_node("Village").find_children("*", "Villager", false, false)
+	assert_eq(villagers.size(), WorldGen.DANCERS.size() + 1, "six danseurs et le Chef")
+	var chief: Node = get_tree().get_first_node_in_group(&"chief")
+	assert_not_null(chief)
+	assert_true(chief.has_method(&"greet"), "le Chef salue quand il parle")
 
 
-func test_tomber_dans_le_ravin_ramene_au_village() -> void:
-	var spawn: Vector3 = hero.global_position
-	var bridge: CSGBox3D = level.get_node("Terrain/Bridge") as CSGBox3D
-	var respawns: Array[bool] = []
-	hero.respawned.connect(func() -> void: respawns.append(true))
-	# Au-dessus du vide, à côté du pont.
-	hero.global_position = bridge.position + Vector3(bridge.size.x * 2.0, 0.5, 0.0)
-	hero.reset_physics_interpolation()
-	for i: int in 180:
-		await get_tree().physics_frame
-		if not respawns.is_empty():
-			break
-	assert_eq(respawns.size(), 1, "la chute renvoie au village")
-	assert_almost_eq(hero.global_position.x, spawn.x, 0.2)
-	assert_almost_eq(hero.global_position.z, spawn.z, 0.2)
-	var rig: Node3D = level.get_node("CameraRig") as Node3D
-	var feet: Vector3 = Vector3(rig.global_position.x, 0.0, rig.global_position.z)
-	assert_lt(feet.distance_to(Vector3(spawn.x, 0.0, spawn.z)), 1.5, "la caméra revient tout de suite")
+func test_l_objectif_mene_au_sanctuaire_puis_ramene_le_tambour() -> void:
+	assert_eq(level.objective(), Vector2i(0, 1), "d'abord le premier sanctuaire")
+	var boss: EnemySpawner = level.drums[0].get(&"guardian") as EnemySpawner
+	var hit := HitData.new()
+	hit.damage = boss.muet.health.maximum
+	hit.direction = Vector3.FORWARD
+	boss.muet.hurtbox.receive(hit)
+	await get_tree().physics_frame
+	assert_true(level.drums[0].call(&"is_available"), "le tambour sort de sa bulle")
+	assert_eq(level.objective(), Vector2i(0, 1), "aller prendre le tambour libéré")
+	hero.global_position = level.drums[0].global_position
+	Game.pick_drum()
+	assert_eq(level.objective(), Vector2i(0, -1), "le rapporter au village")

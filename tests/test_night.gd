@@ -104,3 +104,16 @@ func test_le_carnet_a_ses_douze_pages() -> void:
 	var notebook: NotebookData = load("res://data/notebook.tres") as NotebookData
 	assert_eq(notebook.pages.size(), 12)
 	assert_string_starts_with(notebook.text(1), "Avant le Grand Silence")
+
+
+func test_on_peut_porter_plusieurs_tambours() -> void:
+	var night := NightProgress.new(3)
+	night.pick_drum()
+	night.pick_drum()
+	assert_eq(night.drums_carried, 2)
+	assert_true(night.return_drum())
+	assert_eq(night.drums_returned, 2, "tous les tambours portés sont posés")
+	night.pick_drum()
+	assert_true(night.drop_drum())
+	assert_eq(night.drums_carried, 0)
+	assert_eq(night.drums_returned, 2)

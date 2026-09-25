@@ -31,8 +31,10 @@ Godot **4.7.2**. Les scripts de `tools/` tournent sous Linux (sessions cloud, CI
 Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (dossier réglable par `SALTO_TOOLS_DIR`).
 - **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
   (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
-  La scène principale est la nuit 1 (`scenes/levels/night_1.tscn`) ; le parcours d'essai
+  La scène principale est la nuit dans le monde voxel (`scenes/levels/night.tscn`, monde généré à
+  partir d'une graine gardée d'une sortie à l'autre) ; le parcours d'essai
   (`scenes/levels/test_course.tscn`) se lance depuis l'éditeur (F6).
+  Le prototype de référence (`docs/prototype/salto-rpg.html`) s'ouvre dans un navigateur.
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
   sans fenêtre ; code de sortie non nul si un test échoue.
 - **Exporter l'APK de test** : `tools/export_android.sh` → `build/android/salto-debug.apk` ;
@@ -52,9 +54,10 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 ## Structure
 ```
 res://
-  scenes/   player/  enemies/  levels/  ui/  fx/
+  scenes/   player/  enemies/  levels/  ui/  fx/  world/ (matériaux et shaders du monde voxel)
   scripts/  autoload/ (Tuning, Feedback, Rhythm, Game, Save)  components/  player/  combat/  enemies/
-            camera/  fx/  ui/  utils/  night/  items/  save/  levels/ (props/)  tuning_data.gd
+            camera/  fx/  ui/  utils/  night/  items/  save/  levels/ (props/)
+            world/ (génération du monde, personnages voxel)  tuning_data.gd
   data/     tuning.tres  notebook.tres  items/  talents/
   assets/   models/  animations/  audio/  fonts/  fx/  ui/ (theme.tres : thème unique)  LICENCES.md
   addons/   gut/ (tests, exclu de l'export)

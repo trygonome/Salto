@@ -1,0 +1,122 @@
+[gd_scene load_steps=29 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/flyer.tscn" id="3_flyer"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/grand_muet.tscn" id="4_boss"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/altar_drum.tscn" id="5_drum"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/loot_drop.tscn" id="6_loot"]
+[ext_resource type="Environment" path="res://scenes/world/night_environment.tres" id="7_env"]
+[ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="8_builder"]
+[ext_resource type="Material" path="res://scenes/world/voxel_static.tres" id="9_voxel"]
+[ext_resource type="Material" path="res://scenes/world/ground.tres" id="10_ground"]
+[ext_resource type="Material" path="res://scenes/world/blob_shadow.tres" id="11_shadow"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/bounce.wav" id="12_bounce"]
+[ext_resource type="Script" path="res://scripts/world/world_mood.gd" id="13_mood"]
+[ext_resource type="Script" path="res://scripts/levels/props/village_zone.gd" id="14_village"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/village_drums.tscn" id="15_drums"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="16_actor"]
+[ext_resource type="Material" path="res://scenes/world/actor_shadow.tres" id="26_actor_shadow"]
+[ext_resource type="PackedScene" path="res://scenes/player/hero.tscn" id="17_hero"]
+[ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="18_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="19_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="20_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="21_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="22_end"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="23_debug"]
+[ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="24_ambience"]
+[ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="25_hint"]
+
+[sub_resource type="CylinderShape3D" id="Shape_village"]
+height = 4.0
+radius = 3.64
+
+[sub_resource type="BoxShape3D" id="Shape_hint_start"]
+size = Vector3(4, 3, 4)
+
+[node name="Night" type="Node3D"]
+script = ExtResource("1_night")
+night = 1
+hopper_scene = ExtResource("2_hopper")
+flyer_scene = ExtResource("3_flyer")
+boss_scene = ExtResource("4_boss")
+drum_scene = ExtResource("5_drum")
+loot_scene = ExtResource("6_loot")
+character_material = ExtResource("16_actor")
+character_shadow_material = ExtResource("26_actor_shadow")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("7_env")
+
+[node name="Light" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, 35, 0)
+light_color = Color(1, 0.94, 0.9, 1)
+light_energy = 1.1
+
+[node name="World" type="Node3D" parent="."]
+script = ExtResource("8_builder")
+voxel_material = ExtResource("9_voxel")
+ground_material = ExtResource("10_ground")
+shadow_material = ExtResource("11_shadow")
+bounce_sound = ExtResource("12_bounce")
+
+[node name="Mood" type="Node" parent="." node_paths=PackedStringArray("hero")]
+script = ExtResource("13_mood")
+hero = NodePath("../Hero")
+
+[node name="Village" type="Node3D" parent="."]
+
+[node name="VillageZone" type="Area3D" parent="Village"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("14_village")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Village/VillageZone"]
+shape = SubResource("Shape_village")
+
+[node name="VillageDrums" parent="Village" instance=ExtResource("15_drums")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.26)
+
+[node name="Foes" type="Node3D" parent="."]
+
+[node name="Hero" parent="." node_paths=PackedStringArray("joystick") instance=ExtResource("17_hero")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.34)
+joystick = NodePath("../TouchControls/Joystick")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("18_rig")
+target = NodePath("../Hero")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+far = 80.0
+
+[node name="Ambience" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("24_ambience")
+volume_db = -4.0
+autoplay = true
+
+[node name="Hints" type="Node3D" parent="."]
+
+[node name="HintMove" type="Area3D" parent="Hints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.34)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("25_hint")
+hint = &"move"
+action = &"move"
+text = "Glisse pour courir"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintMove"]
+shape = SubResource("Shape_hint_start")
+
+[node name="TouchControls" parent="." instance=ExtResource("19_touch")]
+
+[node name="HUD" parent="." instance=ExtResource("20_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("21_pause")]
+
+[node name="EndScreen" parent="." instance=ExtResource("22_end")]
+
+[node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]

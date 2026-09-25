@@ -19,6 +19,10 @@ signal freed(muet: Muet)
 
 ## Position de départ, à laquelle il revient s'il s'en éloigne trop.
 var post: Vector3
+## Zone où les Muets n'entrent pas et où ils laissent le héros tranquille (le village) ;
+## rayon 0 : aucune.
+var safe_zone_center: Vector3 = Vector3.ZERO
+var safe_zone_radius: float = 0.0
 ## Héros repéré (ou null).
 var target: Hero
 var rng := RandomNumberGenerator.new()
@@ -87,10 +91,18 @@ func update_target() -> void:
 		target = null
 		return
 	var hero: Hero = get_tree().get_first_node_in_group(&"hero") as Hero
+	if hero and in_safe_zone(hero.global_position):
+		target = null
+		return
 	if hero and flat_distance_to(hero.global_position) <= tuning.muet_detection_range:
 		target = hero
 	elif hero == null or EnemyMath.beyond_leash(global_position, hero.global_position, leash):
 		target = null
+
+
+## Vrai si `point` est dans la zone où les Muets n'entrent pas.
+func in_safe_zone(point: Vector3) -> bool:
+	return safe_zone_radius > 0.0 and Vector2(point.x - safe_zone_center.x, point.z - safe_zone_center.z).length() < safe_zone_radius
 
 
 func flat_distance_to(point: Vector3) -> float:
@@ -118,6 +130,18 @@ func move(horizontal: Vector3, delta: float) -> void:
 	if not flies:
 		velocity.y -= Tuning.data.muet_gravity * delta
 	move_and_slide()
+	_keep_out_of_safe_zone()
+
+
+## Repousse le Muet au bord de la zone interdite (le village), avec une petite marge.
+func _keep_out_of_safe_zone() -> void:
+	if safe_zone_radius <= 0.0:
+		return
+	var flat := Vector2(global_position.x - safe_zone_center.x, global_position.z - safe_zone_center.z)
+	var limit: float = safe_zone_radius + Tuning.data.muet_village_margin + stat(&"radius")
+	if flat.length() < limit and not flat.is_zero_approx():
+		flat = flat.normalized() * limit
+		global_position = Vector3(safe_zone_center.x + flat.x, global_position.y, safe_zone_center.z + flat.y)
 
 
 ## Coup du Muet : touche le héros à au plus `reach` (plus son rayon), dans un arc de `arc_deg`

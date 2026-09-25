@@ -59,8 +59,18 @@ func return_drum() -> void:
 	drum_returned.emit(progress.drums_returned)
 	if progress.is_complete():
 		new_record = profile.complete_night(night, progress.elapsed)
+		profile.nights_done = maxi(profile.nights_done, night)
+		profile.night_seed = 0
 		save()
 		night_completed.emit()
+
+
+## Graine du monde de la nuit : tirée une fois, puis gardée jusqu'à la nuit suivante.
+func world_seed() -> int:
+	if profile.night_seed == 0:
+		profile.night_seed = randi_range(1, 0x7FFFFFFF)
+		save()
+	return profile.night_seed
 
 
 func free_sanctuary() -> void:

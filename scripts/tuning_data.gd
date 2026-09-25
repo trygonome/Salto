@@ -411,7 +411,7 @@ extends Resource
 @export var boss_wave_clearance: float
 
 @export_group("Nuit")
-## Tambours à rapporter pour accomplir la nuit (la tranche verticale n'a qu'un sanctuaire).
+## Tambours à rapporter pour accomplir la nuit (un par sanctuaire).
 @export var night_drums_required: int
 ## Saturation des couleurs au début de la nuit, et une fois tous les tambours rapportés.
 @export var night_saturation_start: float
@@ -423,8 +423,32 @@ extends Resource
 ## Durée de la danse du Chef quand un tambour revient (s), et accélération par tambour.
 @export var chief_cheer_time: float
 @export var chief_cheer_speed_per_drum: float
-## Taille du Chef Taroum (m).
-@export var chief_height: float
+## Rayon du village (m) : on y reprend des forces et les Muets n'y entrent pas.
+@export var village_radius: float
+## Rayon de la zone où poser les tambours, autour du Chef (m).
+@export var village_drum_radius: float
+## Marge que les Muets gardent au bord du village (m).
+@export var muet_village_margin: float
+
+@export_group("Peuplement de la nuit")
+## Gardiens de chaque sanctuaire (le 2e en a un de plus, le 3e deux de plus).
+@export var sanctuary_guards: int
+## Distance des gardiens à l'autel (m).
+@export var sanctuary_guard_min: float
+@export var sanctuary_guard_max: float
+## Distance du Grand Muet à l'autel, côté village (m).
+@export var sanctuary_boss_distance: float
+## Muets errants dans la jungle, et leur distance au village (m).
+@export var muet_wanderers: int
+@export var wanderer_min_distance: float
+@export var wanderer_max_distance: float
+## Les errants apparaissent loin des sanctuaires et du héros (m).
+@export var wanderer_sanctuary_clearance: float
+@export var wanderer_hero_clearance: float
+## Place libre autour d'un Muet qui apparaît (m), écart d'angle au hasard (rad), essais.
+@export var spawn_clearance: float
+@export var spawn_angle_jitter: float
+@export var spawn_tries: int
 
 @export_group("Objets")
 ## Multiplicateur de valeur par rareté (commun, rare, épique, légendaire).
@@ -478,3 +502,86 @@ extends Resource
 ## Poussière d'atterrissage : durée (s) et taille (m).
 @export var land_dust_time: float
 @export var land_dust_size: float
+
+@export_group("Monde voxel")
+## Mètres par unité du prototype (le héros y mesure 7 u pour 1,8 m).
+@export var voxel_unit: float
+## Côté d'un cube, en fraction de la case (un petit jour entre les cubes).
+@export var voxel_cube_fraction: float
+## Côté des cases de regroupement des cubes (m) : la caméra n'en voit que quelques-unes.
+@export var world_chunk_size: float
+## Hauteur des collisions des obstacles infranchissables (m).
+@export var world_wall_height: float
+## Épaisseur et nombre des murs invisibles au bord du monde.
+@export var world_border_thickness: float
+@export var world_border_segments: int
+## Côté du sol (m).
+@export var world_ground_size: float
+## Saturation du monde selon le nombre de tambours rapportés (0, 1, 2, 3), et nuit gagnée.
+@export var world_saturation_levels: PackedFloat32Array
+@export var world_saturation_won: float
+## Vitesse de retour de la saturation (1/s) ; plus vive pendant un éclat (Salto arc-en-ciel).
+@export var world_saturation_rate: float
+@export var world_saturation_pulse_rate: float
+## Retombée de l'éclat de couleurs (saturation par seconde).
+@export var world_saturation_pulse_decay: float
+## Vitesse à laquelle un sanctuaire libéré reprend ses couleurs (1/s).
+@export var world_freed_rate: float
+## Le monde s'anime plus vite quand la nuit est gagnée.
+@export var world_time_speed_won: float
+## Éclat du décor sur le temps : décroissance après chaque temps.
+@export var world_beat_decay: float
+## Brouillard : densité (1/m), vitesse de rotation de sa teinte (tours/s), saturation, luminosité.
+@export var fog_density: float
+@export var fog_hue_speed: float
+@export var fog_saturation: float
+@export var fog_lightness: float
+## Hauteur au-dessus des pieds du héros du point qu'on garde visible à travers le décor (m).
+@export var cutaway_height: float
+## Hauteur des ombres rondes au-dessus du sol (m) et nombre de côtés du disque.
+@export var shadow_height: float
+@export var shadow_segments: int
+## L'ombre d'un personnage cherche le sol sous lui : départ au-dessus de ses pieds, portée (m).
+@export var shadow_ray_start: float
+@export var shadow_ray_length: float
+## Elle rapetisse quand il s'élève : hauteur (m) à laquelle elle a perdu sa part maximale.
+@export var shadow_shrink_height: float
+@export var shadow_shrink_max: float
+## Épaisseur de la zone de rebond sur un champignon-trampoline (m).
+@export var bounce_pad_thickness: float
+
+@export_group("Personnages voxel")
+## Côté d'un voxel des personnages (unités du prototype) : 20,6 voxels font les 7 u du héros.
+@export var character_voxel: float
+## Clignement des yeux : intervalle au hasard (s), durée (s), yeux écrasés à cette hauteur.
+@export var blink_min: float
+@export var blink_max: float
+@export var blink_time: float
+@export var blink_squash: float
+## Taille du Chef par rapport aux villageois, et sa hauteur (m) : ses répliques s'affichent au-dessus.
+@export var chief_scale: float
+@export var chief_height: float
+## Rayons des ombres rondes (m) : villageois, Chef, héros.
+@export var villager_shadow_radius: float
+@export var chief_shadow_radius: float
+@export var hero_shadow_radius: float
+## Entrain de la danse : de base, par tambour rapporté, nuit gagnée ; le Chef danse plus sobrement.
+@export var villager_dance_base: float
+@export var villager_dance_per_drum: float
+@export var villager_dance_won: float
+@export var chief_dance_factor: float
+## Balancement de gauche à droite (rad, à plein entrain).
+@export var villager_sway: float
+## Vitesse à laquelle la pose rejoint la pose visée (1/s).
+@export var villager_pose_rate: float
+## Décalage de la danse d'un villageois au suivant, et du Chef (temps de musique).
+@export var villager_phase_step: float
+@export var chief_phase: float
+## Saltos de fête : durée (s), hauteur (m), premier salto (s, puis un peu plus tard pour chacun),
+## intervalle au hasard entre deux saltos (s).
+@export var villager_flip_time: float
+@export var villager_flip_height: float
+@export var villager_first_flip: float
+@export var villager_first_flip_step: float
+@export var villager_flip_gap_min: float
+@export var villager_flip_gap_max: float

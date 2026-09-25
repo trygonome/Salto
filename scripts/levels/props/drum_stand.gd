@@ -1,5 +1,5 @@
 extends Node3D
-## Support des tambours, au cœur du village : le héros y pose le tambour qu'il porte.
+## Support des tambours, au cœur du village : le héros y pose les tambours qu'il porte.
 ## Chaque tambour posé y reste visible.
 
 ## Tambours posés, dans l'ordre (masqués au début de la nuit).
@@ -26,11 +26,14 @@ func _on_body_entered(body: Node3D) -> void:
 
 
 func _on_drum_returned(count: int) -> void:
-	var slot: Node3D = slots[mini(count, slots.size()) - 1]
-	slot.visible = true
 	_sound.play()
-	if burst_scene:
-		var burst: FadingBurst = burst_scene.instantiate() as FadingBurst
-		add_child(burst)
-		burst.global_position = slot.global_position
-		burst.play(burst_duration, burst_size)
+	for i: int in mini(count, slots.size()):
+		var slot: Node3D = slots[i]
+		if slot.visible:
+			continue
+		slot.visible = true
+		if burst_scene:
+			var burst: FadingBurst = burst_scene.instantiate() as FadingBurst
+			add_child(burst)
+			burst.global_position = slot.global_position
+			burst.play(burst_duration, burst_size)

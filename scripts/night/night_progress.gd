@@ -1,14 +1,19 @@
 class_name NightProgress
 extends RefCounted
-## Progression d'une nuit : tambours rapportés, tambour porté, pages et objets trouvés cette
+## Progression d'une nuit : tambours rapportés, tambours portés, pages et objets trouvés cette
 ## nuit, Muets libérés, temps écoulé.
-## Tomber ramène au village : on garde ce qui a été rapporté, le tambour porté est perdu
-## (il retourne à son sanctuaire).
+## Tomber ramène au village : on garde ce qui a été rapporté, les tambours portés sont perdus
+## (ils retournent à leurs sanctuaires).
 
 ## Tambours à rapporter pour accomplir la nuit.
 var drums_required: int
 var drums_returned: int = 0
-var carrying_drum: bool = false
+## Tambours portés (on peut en porter plusieurs à la fois).
+var drums_carried: int = 0
+## Vrai si le héros porte au moins un tambour.
+var carrying_drum: bool:
+	get:
+		return drums_carried > 0
 ## Pages du carnet trouvées cette nuit (numéros à partir de 1).
 var pages: Array[int] = []
 var items: Array[ItemData] = []
@@ -22,22 +27,22 @@ func _init(required: int) -> void:
 
 
 func pick_drum() -> void:
-	carrying_drum = true
+	drums_carried += 1
 
 
-## Le tambour porté est perdu (chute) ; renvoie vrai s'il y en avait un.
+## Les tambours portés sont perdus (chute, PV à zéro) ; renvoie vrai s'il y en avait.
 func drop_drum() -> bool:
 	var had_drum: bool = carrying_drum
-	carrying_drum = false
+	drums_carried = 0
 	return had_drum
 
 
-## Pose le tambour porté au village ; renvoie vrai s'il y en avait un.
+## Pose au village tous les tambours portés ; renvoie vrai s'il y en avait.
 func return_drum() -> bool:
 	if not carrying_drum:
 		return false
-	carrying_drum = false
-	drums_returned += 1
+	drums_returned += drums_carried
+	drums_carried = 0
 	return true
 
 

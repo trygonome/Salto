@@ -13,6 +13,11 @@ var items: Array[ItemData] = []
 var hints_done: Array[StringName] = []
 ## Meilleur temps de chaque nuit accomplie (numéro de la nuit → secondes).
 var best_times: Dictionary[int, float] = {}
+## Graine du monde de la nuit en cours (0 : pas encore tirée) : le monde reste le même d'une
+## sortie à l'autre, et change à la nuit suivante.
+var night_seed: int = 0
+## Nuits accomplies (le totem du village grandit).
+var nights_done: int = 0
 ## Réglages : chiffres de dégâts, infos de mise au point (versions de test).
 var damage_numbers: bool = true
 var debug_info: bool = false
@@ -76,6 +81,8 @@ func to_dict() -> Dictionary:
 		"items": saved_items,
 		"hints_done": saved_hints,
 		"best_times": saved_times,
+		"night_seed": night_seed,
+		"nights_done": nights_done,
 		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info},
 	}
 
@@ -95,6 +102,8 @@ static func from_dict(data: Dictionary) -> Profile:
 	if times is Dictionary:
 		for night: Variant in times:
 			profile.best_times[int(night)] = float(times[night])
+	profile.night_seed = int(data.get("night_seed", 0))
+	profile.nights_done = int(data.get("nights_done", 0))
 	var settings: Variant = data.get("settings", {})
 	if settings is Dictionary:
 		profile.damage_numbers = bool(settings.get("damage_numbers", profile.damage_numbers))

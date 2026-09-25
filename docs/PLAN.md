@@ -59,12 +59,12 @@ Jalons :
 8. **Monde voxel** — matériau voxel (couleurs animées, pulsation au temps, zones de silence, brouillard
    coloré, transparence entre la caméra et le héros), sol à dalles et chemins dorés, ciel animé, ombres
    rondes ; génération du monde du prototype (village, trois sanctuaires, arbres, rochers, perchoirs,
-   souches, champignons-trampolines, fleurs, troncs couchés) avec ses collisions.
+   souches, champignons-trampolines, fleurs, troncs couchés) avec ses collisions ; villageois qui dansent
+   au rythme et Chef (avancés du jalon 9).
    *Test : le monde ressemble au prototype et reste fluide.*
 9. **Personnages voxel** — Muets du prototype (sautillant, volant, cornu, Grands Muets ; bouclier et
-   cracheur prêts), villageois qui dansent au rythme et Chef ; effets du prototype (cubes qui jaillissent,
-   anneaux, étincelles, chiffres qui montent).
-   *Test : les Muets sont lisibles et vivants ; le village danse.*
+   cracheur prêts) ; effets du prototype (cubes qui jaillissent, anneaux, étincelles, chiffres qui montent).
+   *Test : les Muets sont lisibles et vivants.*
 10. **Interface du prototype** — police Bungee, écran titre (saga des cinq nuits), HUD (niveau, PV, XP,
     tambours, pause), bannière d'objectif, boutons colorés avec libellés, anneau de rythme, bannières,
     conseils près des boutons, bulles des villageois, pause et résumé de sortie.

@@ -50,6 +50,8 @@ func test_le_profil_survit_a_la_sauvegarde() -> void:
 	profile.complete_night(1, 251.5)
 	profile.damage_numbers = false
 	profile.debug_info = true
+	profile.night_seed = 4242
+	profile.nights_done = 1
 	assert_true(Save.save_profile(profile))
 	var loaded: Profile = Save.load_profile()
 	assert_eq(loaded.pages, [5, 1] as Array[int])
@@ -65,6 +67,8 @@ func test_le_profil_survit_a_la_sauvegarde() -> void:
 	assert_eq(loaded.best_time(1), 251.5)
 	assert_false(loaded.damage_numbers)
 	assert_true(loaded.debug_info)
+	assert_eq(loaded.night_seed, 4242)
+	assert_eq(loaded.nights_done, 1)
 
 
 func test_la_sauvegarde_porte_sa_version() -> void:
@@ -105,6 +109,8 @@ func test_une_nuit_accomplie_garde_son_record() -> void:
 		Game.return_drum()
 	assert_true(Game.new_record)
 	assert_almost_eq(Save.load_profile().best_time(1), 42.0, 0.001)
+	assert_eq(Game.profile.nights_done, 1)
+	assert_eq(Game.profile.night_seed, 0, "la nuit suivante aura un nouveau monde")
 	Game.progress.advance(10.0)
 	assert_almost_eq(Game.progress.elapsed, 42.0, 0.001, "le temps s'arrête une fois la nuit accomplie")
 
@@ -131,3 +137,10 @@ func test_lignes_d_effet_et_durees() -> void:
 	assert_eq(GameTexts.effect_line(&"health", 12.4), "PV max +12")
 	assert_eq(GameTexts.duration(247.9), "4:07")
 	assert_eq(GameTexts.duration(59.0), "0:59")
+
+
+func test_le_monde_de_la_nuit_garde_sa_graine() -> void:
+	var first: int = Game.world_seed()
+	assert_ne(first, 0)
+	assert_eq(Game.world_seed(), first)
+	assert_eq(Save.load_profile().night_seed, first, "gardée même si on quitte le jeu")

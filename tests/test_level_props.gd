@@ -62,7 +62,7 @@ func test_le_tambour_se_libere_avec_son_gardien_et_se_rapporte() -> void:
 	await _walk_to(stand.global_position)
 	await _step(5)
 	assert_eq(layers, [1] as Array[int])
-	assert_true(Game.progress.is_complete(), "la tranche verticale n'a qu'un tambour")
+	assert_eq(Game.progress.drums_returned, 1, "un tambour rapporté sur les trois de la nuit")
 
 
 func test_tomber_ramene_le_tambour_a_son_sanctuaire() -> void:

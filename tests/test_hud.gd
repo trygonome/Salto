@@ -117,8 +117,9 @@ func test_l_ecran_de_fin_montre_le_temps_et_le_record() -> void:
 	var screen: EndScreen = EndScene.instantiate() as EndScreen
 	world.add_child(screen)
 	Game.progress.advance(125.0)
-	Game.pick_drum()
-	Game.return_drum()
+	for i: int in Tuning.data.night_drums_required:
+		Game.pick_drum()
+		Game.return_drum()
 	screen.open()
 	assert_true(get_tree().paused)
 	var texts: Array[String] = []
