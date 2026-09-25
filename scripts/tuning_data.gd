@@ -112,3 +112,111 @@ extends Resource
 @export var camera_combat_pullback: float
 ## Distance d'un Muet qui attaque déclenchant le recul (m).
 @export var camera_combat_radius: float
+
+@export_group("Combat")
+## Niveau du héros au début d'une partie.
+@export var hero_start_level: int
+## Attaque du héros au niveau 1.
+@export var hero_attack_base: float
+## Attaque gagnée par niveau.
+@export var hero_attack_per_level: float
+## Enchaînement au sol, dans l'ordre (martelo, meia-lua, armada).
+@export var combo_attacks: Array[AttackData]
+## Coup roulé : Frappe pendant ou juste après une roulade.
+@export var rolling_kick: AttackData
+## Délai après la fin d'une roulade pendant lequel Frappe donne encore le coup roulé (s).
+@export var rolling_kick_grace: float
+## Délai après la fin d'un coup pendant lequel Frappe continue l'enchaînement (s).
+@export var combo_chain_window: float
+## Poussée du joystick (fraction) qui écourte la fin d'un coup.
+@export var move_cancel_threshold: float
+## Délai après le point d'enchaînement avant que le joystick puisse écourter le coup (s).
+@export var move_cancel_delay: float
+## Cône d'orientation automatique vers la cible la plus proche (degrés).
+@export var auto_aim_cone_deg: float
+## Portée de l'orientation automatique (m).
+@export var auto_aim_range: float
+## Durée pendant laquelle un coup touche, à partir de l'impact (s).
+@export var attack_active_time: float
+## Rayon de détection de la zone de coup (m) : doit couvrir la plus grande portée plus le rayon des cibles.
+@export var hitbox_radius: float
+## Chance de coup critique (fraction).
+@export var crit_chance: float
+## Multiplicateur d'un coup critique.
+@export var crit_multiplier: float
+## Bonus de dégâts par coup du combo (fraction).
+@export var combo_bonus_per_hit: float
+## Bonus de combo maximal (fraction).
+@export var combo_bonus_max: float
+## Durée sans toucher avant de perdre le combo (s).
+@export var combo_timeout: float
+
+@export_group("Plongeon")
+## Vitesse de chute du plongeon (m/s).
+@export var dive_fall_speed: float
+## Rayon de l'onde sans hauteur de chute (m).
+@export var dive_radius_base: float
+## Rayon d'onde gagné par mètre de chute (m/m).
+@export var dive_radius_per_meter: float
+## Bonus de rayon maximal (m).
+@export var dive_radius_bonus_max: float
+## Multiplicateur de dégâts sans hauteur de chute.
+@export var dive_multiplier_base: float
+## Multiplicateur gagné par mètre de chute.
+@export var dive_multiplier_per_meter: float
+## Bonus de multiplicateur maximal.
+@export var dive_multiplier_bonus_max: float
+## Temps au sol après l'onde avant de pouvoir repartir (s).
+@export var dive_recovery: float
+## Clip de la pose du plongeon (bibliothèque/nom).
+@export var dive_animation: StringName
+## Instant du clip figé pendant la chute (s).
+@export var dive_pose_time: float
+## Inclinaison du corps vers l'avant pendant la chute (degrés).
+@export var dive_pitch_deg: float
+
+@export_group("Retours d'impact")
+## Arrêt sur image quand un coup touche (s).
+@export var hit_stop_hit: float
+## Secousse de caméra quand un coup touche (0 à 1).
+@export var shake_trauma_hit: float
+## Secousse de caméra pour l'onde du plongeon (0 à 1).
+@export var shake_trauma_dive: float
+## Vitesse à laquelle la secousse s'éteint (/s).
+@export var shake_decay: float
+## Décalage maximal de la caméra à pleine secousse (m).
+@export var shake_max_offset: float
+## Poussée de la caméra dans la direction du coup, à pleine secousse (m).
+@export var camera_push: float
+## Durée de l'étincelle d'impact (s).
+@export var spark_time: float
+## Durée de vie de la traînée du coup (s).
+@export var trail_time: float
+## Début de la traînée le long de la jambe, en multiples de la distance hanche-pied.
+@export var trail_inner_reach: float
+## Bout de la traînée, en multiples de la distance hanche-pied (au-delà de 1 : prolongée).
+@export var trail_outer_reach: float
+## Durée d'expansion de l'onde du plongeon (s).
+@export var shockwave_time: float
+
+@export_group("Animation")
+## Fondu entre deux animations (s).
+@export var anim_blend_time: float
+## Vitesse en dessous de laquelle le héros est considéré immobile (m/s).
+@export var idle_speed_threshold: float
+## Vitesse du cycle de course à pleine vitesse (1 = vitesse du clip).
+@export var run_animation_speed: float
+## Hauteur du pivot de la roulade au-dessus des pieds (m).
+@export var roll_pivot_height: float
+
+@export_group("Mannequin")
+## Hauteur du mannequin d'entraînement (m).
+@export var dummy_height: float
+## Rayon du mannequin, pour la portée des coups et les collisions (m).
+@export var dummy_radius: float
+## Points de vie du mannequin (il se relève quand ils sont épuisés).
+@export var dummy_health: float
+## Recul visuel du mannequin quand il est touché (m).
+@export var dummy_recoil_distance: float
+## Durée du recul du mannequin (s).
+@export var dummy_recoil_time: float

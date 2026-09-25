@@ -1,6 +1,67 @@
-[gd_resource type="Resource" script_class="TuningData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="TuningData" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/tuning_data.gd" id="1_tuning"]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="2_attack"]
+
+[sub_resource type="Resource" id="Attack_martelo"]
+script = ExtResource("2_attack")
+id = &"martelo"
+animation = &"melee/Melee_Unarmed_Attack_Kick"
+animation_impact = 0.43
+duration = 0.34
+impact = 0.12
+chain_from = 0.17
+reach = 0.8
+arc_deg = 120.0
+damage_multiplier = 1.0
+lunge = 0.33
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+
+[sub_resource type="Resource" id="Attack_meia_lua"]
+script = ExtResource("2_attack")
+id = &"meia_lua"
+animation = &"melee/Melee_Unarmed_Attack_Kick"
+animation_impact = 0.43
+duration = 0.38
+impact = 0.15
+chain_from = 0.21
+reach = 0.85
+arc_deg = 150.0
+damage_multiplier = 1.15
+lunge = 0.39
+hop_speed = 0.0
+spin_keys = PackedVector2Array(0, 0, 0.08, 70, 0.22, -80, 0.38, 0)
+
+[sub_resource type="Resource" id="Attack_armada"]
+script = ExtResource("2_attack")
+id = &"armada"
+animation = &"melee/Melee_Unarmed_Attack_Kick"
+animation_impact = 0.43
+duration = 0.56
+impact = 0.25
+chain_from = 0.42
+reach = 1.0
+arc_deg = 360.0
+damage_multiplier = 1.8
+lunge = 0.2
+hop_speed = 2.4
+spin_keys = PackedVector2Array(0, 0, 0.14, 180, 0.36, 360)
+
+[sub_resource type="Resource" id="Attack_rolling_kick"]
+script = ExtResource("2_attack")
+id = &"rolling_kick"
+animation = &"melee/Melee_Unarmed_Attack_Kick"
+animation_impact = 0.43
+duration = 0.36
+impact = 0.12
+chain_from = 0.24
+reach = 0.95
+arc_deg = 86.0
+damage_multiplier = 1.35
+lunge = 1.0
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
 
 [resource]
 script = ExtResource("1_tuning")
@@ -51,3 +112,52 @@ camera_follow_rate = 3.5
 camera_lookahead = 0.9
 camera_combat_pullback = 0.13
 camera_combat_radius = 4.6
+hero_start_level = 1
+hero_attack_base = 12.0
+hero_attack_per_level = 2.0
+combo_attacks = Array[ExtResource("2_attack")]([SubResource("Attack_martelo"), SubResource("Attack_meia_lua"), SubResource("Attack_armada")])
+rolling_kick = SubResource("Attack_rolling_kick")
+rolling_kick_grace = 0.15
+combo_chain_window = 0.45
+move_cancel_threshold = 0.5
+move_cancel_delay = 0.06
+auto_aim_cone_deg = 80.0
+auto_aim_range = 1.4
+attack_active_time = 0.05
+hitbox_radius = 2.5
+crit_chance = 0.15
+crit_multiplier = 1.6
+combo_bonus_per_hit = 0.04
+combo_bonus_max = 0.6
+combo_timeout = 2.6
+dive_fall_speed = 8.7
+dive_radius_base = 0.72
+dive_radius_per_meter = 0.35
+dive_radius_bonus_max = 0.77
+dive_multiplier_base = 1.3
+dive_multiplier_per_meter = 0.7
+dive_multiplier_bonus_max = 1.5
+dive_recovery = 0.25
+dive_animation = &"melee/Melee_Unarmed_Attack_Kick"
+dive_pose_time = 0.45
+dive_pitch_deg = 35.0
+hit_stop_hit = 0.05
+shake_trauma_hit = 0.35
+shake_trauma_dive = 0.7
+shake_decay = 3.0
+shake_max_offset = 0.12
+camera_push = 0.15
+spark_time = 0.15
+trail_time = 0.17
+trail_inner_reach = 0.6
+trail_outer_reach = 2.0
+shockwave_time = 0.25
+anim_blend_time = 0.1
+idle_speed_threshold = 0.2
+run_animation_speed = 1.0
+roll_pivot_height = 0.6
+dummy_height = 1.1
+dummy_radius = 0.35
+dummy_health = 300.0
+dummy_recoil_distance = 0.15
+dummy_recoil_time = 0.2
