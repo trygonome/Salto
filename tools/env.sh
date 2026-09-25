@@ -86,5 +86,8 @@ set_editor_setting() {
 
 # Importe les ressources (nécessaire après un clone : cache des classes, textures…).
 import_project() {
+	# Les exports (build/) ne doivent pas être importés ni repris dans l'export suivant.
+	mkdir -p "$ROOT/build"
+	touch "$ROOT/build/.gdignore"
 	"$GODOT" --headless --path "$ROOT" --import >/dev/null 2>&1 || true
 }
