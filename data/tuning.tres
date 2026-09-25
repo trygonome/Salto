@@ -6,6 +6,7 @@
 script = ExtResource("1_tuning")
 hero_height = 1.8
 hero_radius = 0.3
+respawn_fall_depth = 8.0
 run_speed = 4.0
 ground_accel_rate = 11.0
 ground_brake_rate = 14.0
@@ -20,6 +21,7 @@ gravity_rise_held = 9.8
 gravity_rise_released = 18.0
 gravity_fall = 11.8
 jump_speed = 3.9
+max_jumps = 2
 double_jump_speed = 4.0
 salto_duration = 0.5
 mushroom_bounce_speed = 6.2

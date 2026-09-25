@@ -10,6 +10,8 @@ extends Resource
 @export var hero_height: float
 ## Rayon de la capsule du héros (m).
 @export var hero_radius: float
+## Profondeur de chute sous le point de départ qui ramène le héros au départ (m).
+@export var respawn_fall_depth: float
 
 @export_group("Déplacement")
 ## Vitesse de course (m/s).
@@ -28,7 +30,7 @@ extends Resource
 @export var step_height: float
 
 @export_group("Joystick")
-## Rayon du joystick tactile (px, à l'échelle de l'interface).
+## Rayon du joystick tactile, en unités d'interface (base 400 : environ des dp sur téléphone).
 @export var joystick_radius_px: float
 ## Zone morte, en fraction du rayon.
 @export var joystick_dead_zone: float
@@ -44,6 +46,8 @@ extends Resource
 @export var gravity_fall: float
 ## Vitesse initiale du saut (m/s).
 @export var jump_speed: float
+## Nombre de sauts avant de toucher le sol ; le dernier est le salto.
+@export var max_jumps: int
 ## Vitesse initiale du double saut, le salto (m/s).
 @export var double_jump_speed: float
 ## Durée de la rotation du salto (s).
