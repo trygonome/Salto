@@ -43,6 +43,9 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
   toutes les APK de test ont la même signature et s'installent par-dessus la précédente.
   Depuis l'éditeur sur PC, régler *Paramètres de l'éditeur > Export > Android > Debug Keystore* sur ce fichier
   pour garder la même signature.
+- **Exporter la version web** : `tools/export_web.sh` → `build/web/` (moteur Compatibility, sans threads :
+  s'héberge partout, par exemple sur itch.io). L'essayer en local : `tools/serve_web.sh` puis
+  http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.
 - **Régénérer la musique et les bruitages** : `python3 tools/audio/generate_audio.py` (demande `numpy`) —
   musique de la nuit en 4 couches à 104 BPM et sons d'impact, entièrement synthétisés.
 

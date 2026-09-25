@@ -2,7 +2,7 @@ class_name DebugOverlay
 extends Label
 ## Infos de mise au point, pour les versions de test (éditeur, ou export marqué « test_build »,
 ## en débogage comme en version optimisée), quand le réglage « Infos techniques » est coché :
-## images par seconde, moteur de rendu, taille de l'écran, orientation, puis la ligne
+## images par seconde, moteur de rendu, taille de l'écran, orientation, temps de la musique, puis la ligne
 ## `debug_text()` du premier nœud du groupe « debug_info » (le héros).
 
 
@@ -34,6 +34,10 @@ func _process(_delta: float) -> void:
 		OS.get_model_name(),
 		Engine.get_version_info()["string"],
 	]
+	if Rhythm.is_playing():
+		text += "\nmusique %.1f s · couches %d/%d" % [Rhythm.song_time(), Rhythm.audible_layers(), Rhythm.NIGHT_LAYERS.size()]
+	else:
+		text += "\nmusique arrêtée"
 	var source: Node = get_tree().get_first_node_in_group(&"debug_info")
 	if source:
 		text += "\n" + String(source.call(&"debug_text"))
