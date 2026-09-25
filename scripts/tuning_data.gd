@@ -170,12 +170,6 @@ extends Resource
 @export var dive_multiplier_bonus_max: float
 ## Temps au sol après l'onde avant de pouvoir repartir (s).
 @export var dive_recovery: float
-## Clip de la pose du plongeon (bibliothèque/nom).
-@export var dive_animation: StringName
-## Instant du clip figé pendant la chute (s).
-@export var dive_pose_time: float
-## Inclinaison du corps vers l'avant pendant la chute (degrés).
-@export var dive_pitch_deg: float
 
 @export_group("Retours d'impact")
 ## Arrêt sur image quand un coup touche (s).
@@ -202,10 +196,8 @@ extends Resource
 @export var anim_blend_time: float
 ## Vitesse en dessous de laquelle le héros est considéré immobile (m/s).
 @export var idle_speed_threshold: float
-## Vitesse du cycle de course à pleine vitesse (1 = vitesse du clip).
-@export var run_animation_speed: float
-## Hauteur du pivot de la roulade au-dessus des pieds (m).
-@export var roll_pivot_height: float
+## Pendant la roulade, le corps descend de cette hauteur à mi-tour (m).
+@export var hero_roll_drop: float
 
 @export_group("Mannequin")
 ## Hauteur du mannequin d'entraînement (m).
@@ -870,3 +862,53 @@ extends Resource
 @export var fx_night_height: float
 @export var fx_night_ring: float
 @export var fx_night_ring_time: float
+
+@export_group("Héros voxel")
+## Vitesse à laquelle la pose rejoint la pose visée (1/s) : d'ordinaire, en roulade ou en élan,
+## pendant un coup, en plongeon, en salto.
+@export var hero_pose_rate: float
+@export var hero_pose_rate_roll: float
+@export var hero_pose_rate_attack: float
+@export var hero_pose_rate_plunge: float
+@export var hero_pose_rate_flip: float
+## Un coup reste armé jusqu'à cette part du temps d'impact ; la rotation des hanches de la frappe
+## se relâche de cette part jusqu'à la fin du coup.
+@export var hero_windup_fraction: float
+@export var hero_hip_unwind: float
+## Course : cadence des pas (au pas, en plus à pleine vitesse), montée en cadence au démarrage,
+## entrain des bras et jambes par rapport à la vitesse, vitesse prise en compte au plus (part de
+## la vitesse de course).
+@export var hero_run_step_base: float
+@export var hero_run_step_speed: float
+@export var hero_run_ramp: float
+@export var hero_run_amount: float
+@export var hero_run_max: float
+## Repos : retombée du balancement après chaque temps.
+@export var hero_idle_bounce_decay: float
+## Corps en gelée : raideur, amortissement, amplitude maximale, élargissement quand il s'écrase ;
+## élans du saut, de l'atterrissage (de base, par mètre de chute, au plus) et du plongeon.
+@export var hero_squash_stiffness: float
+@export var hero_squash_damping: float
+@export var hero_squash_limit: float
+@export var hero_squash_widen: float
+@export var hero_squash_jump: float
+@export var hero_squash_land_base: float
+@export var hero_squash_land_per_meter: float
+@export var hero_squash_land_max: float
+@export var hero_squash_dive: float
+## Tassement à l'atterrissage : plein pour une chute de cette hauteur (m) ; il se relève à cette
+## vitesse (/s). Recul quand il est touché : il se redresse à cette vitesse (/s).
+@export var hero_land_crouch_height: float
+@export var hero_land_crouch_decay: float
+@export var hero_flinch_decay: float
+## Plume : raideur et amortissement de son ressort.
+@export var hero_plume_stiffness: float
+@export var hero_plume_damping: float
+## Tambour porté au-dessus de la tête : il tourne (rad/s).
+@export var carried_drum_spin: float
+## Poussière des pas : à partir de cette part de la vitesse de course, derrière le héros (m),
+## nombre de cubes, vitesse (m/s).
+@export var fx_step_speed: float
+@export var fx_step_back: float
+@export var fx_step_dust: int
+@export var fx_step_dust_speed: float

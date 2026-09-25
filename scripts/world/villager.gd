@@ -65,11 +65,6 @@ static func dance_amount(drums: int, won: bool, tuning: TuningData) -> float:
 	return tuning.villager_dance_base + tuning.villager_dance_per_drum * drums
 
 
-## Position dans le salto (0 à 1) adoucie au début et à la fin, comme le prototype (easeInOut).
-static func ease_in_out(t: float) -> float:
-	return 2.0 * t * t if t < 0.5 else 1.0 - pow(-2.0 * t + 2.0, 2.0) / 2.0
-
-
 func _process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	_time += delta
@@ -96,7 +91,7 @@ func _process(delta: float) -> void:
 	if _flip >= 0.0:
 		var jump: float = sin(PI * _flip)
 		lift = jump * tuning.villager_flip_height
-		spin = -TAU * ease_in_out(_flip)
+		spin = -TAU * Smoothing.ease_in_out(_flip)
 		for key: StringName in FLIP_POSE:
 			target[key] = FLIP_POSE[key] * jump
 		target.merge(FLIP_ARMS)

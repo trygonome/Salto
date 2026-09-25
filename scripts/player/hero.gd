@@ -99,7 +99,7 @@ func _ready() -> void:
 	capsule.radius = tuning.hero_radius
 	capsule.height = tuning.hero_height
 	_collision.position = Vector3.UP * tuning.hero_height / 2.0
-	visual.setup(tuning.hero_height, tuning.roll_pivot_height)
+	visual.setup(tuning.hero_height, tuning.hero_roll_drop)
 	visual.trail.lifetime = tuning.trail_time
 	visual.trail.inner_reach = tuning.trail_inner_reach
 	visual.trail.outer_reach = tuning.trail_outer_reach
@@ -220,6 +220,7 @@ func jump(speed: float) -> void:
 	velocity.y = speed
 	jumps_used += 1
 	coyote_left = 0.0
+	visual.squash(tuning.hero_squash_jump)
 	var fx: Effects = Effects.of(self)
 	if jumps_used >= tuning.max_jumps:
 		visual.play_salto(tuning.salto_duration)
@@ -278,6 +279,8 @@ func _on_landed(speed: float) -> void:
 	if speed >= tuning.land_sound_speed:
 		_land_sound.play()
 	var fall: float = _air_peak - global_position.y
+	visual.squash(-minf(tuning.hero_squash_land_max, tuning.hero_squash_land_base + fall * tuning.hero_squash_land_per_meter))
+	visual.animator.land(fall)
 	var fx: Effects = Effects.of(self)
 	if fx and fall > tuning.fx_land_min_fall:
 		var count: int = mini(tuning.fx_land_dust_max, tuning.fx_land_dust_min + floori(fall * tuning.fx_land_dust_per_meter))

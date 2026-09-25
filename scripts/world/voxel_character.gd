@@ -14,6 +14,8 @@ const POSE_KEYS: Array[StringName] = [
 ## Hauteur des hanches et du pivot des saltos (voxels).
 const HIP_Y := 7.0
 const MID_Y := 10.0
+## Taille, du dessous des pieds au sommet de la tête (voxels).
+const HEIGHT := 20.6
 
 ## Matériau des assemblages articulés (voxel_rig.tres).
 @export var material: Material

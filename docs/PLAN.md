@@ -48,9 +48,10 @@ Chaque jalon se termine jouable sur téléphone.
 Constat (jalon 7) : la tranche verticale Godot est en recul sur le prototype
 (`docs/prototype/salto-rpg.html`, à ouvrir dans un navigateur) : identité visuelle, densité du monde,
 guidage, progression. Décisions :
-- **Style « mélange »** : décor, Muets et villageois en **voxels générés comme dans le prototype**
-  (couleurs qui ondulent, décor qui pulse au rythme, zones de silence qui boivent les couleurs) ;
-  le héros reste le personnage KayKit animé.
+- **Tout en voxels, comme le prototype** : décor, Muets, villageois et héros en **voxels générés**
+  (couleurs qui ondulent, décor qui pulse au rythme, zones de silence qui boivent les couleurs).
+  Le héros est un enfant de la jungle comme les villageois, animé par poses calculées (après le
+  jalon 9 : le personnage KayKit détonnait au milieu du monde voxel).
 - **Échelle du prototype** : 1 u = 0,26 m. Monde compact et dense (rayon ≈ 22 m), village au centre,
   trois sanctuaires à ≈ 15 m, une trentaine de Muets par nuit.
 - **D'abord la nuit 1 au niveau du prototype**, puis les nuits 2 à 5, jalon par jalon.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -9,12 +9,8 @@
 [ext_resource type="Script" path="res://scripts/player/states/air_dash_state.gd" id="7_dash"]
 [ext_resource type="Script" path="res://scripts/player/states/attack_state.gd" id="8_attack"]
 [ext_resource type="Script" path="res://scripts/player/states/dive_state.gd" id="9_dive"]
-[ext_resource type="PackedScene" path="res://assets/models/kaykit/Rogue.glb" id="10_model"]
 [ext_resource type="Script" path="res://scripts/player/hero_animator.gd" id="11_animator"]
-[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_General.glb" id="12_general"]
-[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_MovementBasic.glb" id="13_basic"]
-[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_MovementAdvanced.glb" id="14_advanced"]
-[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_CombatMelee.glb" id="15_melee"]
+[ext_resource type="Material" path="res://scenes/world/voxel_rig.tres" id="12_rig"]
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="16_hitbox"]
 [ext_resource type="Script" path="res://scripts/fx/ribbon_trail.gd" id="17_trail"]
 [ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
@@ -66,23 +62,13 @@ shape = SubResource("CapsuleShape_body")
 
 [node name="Visual" type="Node3D" parent="."]
 script = ExtResource("2_visual")
+material = ExtResource("12_rig")
 
-[node name="Pivot" type="Node3D" parent="Visual"]
-
-[node name="Model" parent="Visual/Pivot" instance=ExtResource("10_model")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Visual/Pivot/Model"]
-libraries = {
-&"advanced": ExtResource("14_advanced"),
-&"basic": ExtResource("13_basic"),
-&"general": ExtResource("12_general"),
-&"melee": ExtResource("15_melee")
-}
+[node name="Animator" type="Node" parent="Visual"]
 script = ExtResource("11_animator")
 
 [node name="CarriedDrum" parent="Visual" instance=ExtResource("28_drum")]
-transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 1.05, 0.42)
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 2.16, 0)
 
 [node name="Trail" type="MeshInstance3D" parent="Visual"]
 material_override = SubResource("Material_trail")

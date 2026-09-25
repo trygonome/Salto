@@ -18,6 +18,16 @@ static func chief() -> Dictionary:
 	}
 
 
+## Style du héros, un enfant de la jungle comme les villageois, en plus coloré : peinture
+## sur le torse, épaules, bandeau, collier et une plume qui suit ses mouvements.
+static func hero() -> Dictionary:
+	return {
+		&"skin": Vector3(2.07, 0.45, 0.52), &"cloth": Vector3(1.0, 0.95, 0.55), &"trim": Vector3(1.5, 0.95, 0.6),
+		&"hair": Vector3(2.05, 0.35, 0.13), &"band": Vector3(1.15, 1.0, 0.55), &"paint": Vector3(1.55, 0.9, 0.6),
+		&"shoulder": Vector3(1.5, 0.9, 0.6), &"necklace": true, &"plume": 0.9,
+	}
+
+
 ## Style du villageois `index` : vêtements de couleurs différentes, un bandeau sur deux.
 static func dancer(index: int) -> Dictionary:
 	var h: float = fmod(index * 0.17, 1.0)

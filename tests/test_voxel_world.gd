@@ -32,11 +32,11 @@ func test_le_village_danse_plus_fort_a_chaque_tambour() -> void:
 
 
 func test_le_salto_part_et_arrive_en_douceur() -> void:
-	assert_eq(Villager.ease_in_out(0.0), 0.0)
-	assert_eq(Villager.ease_in_out(0.5), 0.5)
-	assert_eq(Villager.ease_in_out(1.0), 1.0)
-	assert_lt(Villager.ease_in_out(0.1), 0.1, "démarre lentement")
-	assert_gt(Villager.ease_in_out(0.9), 0.9, "arrive lentement")
+	assert_eq(Smoothing.ease_in_out(0.0), 0.0)
+	assert_eq(Smoothing.ease_in_out(0.5), 0.5)
+	assert_eq(Smoothing.ease_in_out(1.0), 1.0)
+	assert_lt(Smoothing.ease_in_out(0.1), 0.1, "démarre lentement")
+	assert_gt(Smoothing.ease_in_out(0.9), 0.9, "arrive lentement")
 
 
 func test_les_villageois_ont_la_taille_du_heros() -> void:

@@ -36,7 +36,6 @@ func enter(_previous: StringName) -> void:
 
 func exit() -> void:
 	hero.invulnerable = false
-	hero.visual.set_pitch_deg(0.0)
 	hero.visual.trail.emitting = false
 	hero.visual.trail.rainbow = false
 	hero.hitbox.deactivate()
@@ -79,8 +78,7 @@ func _start_fall() -> void:
 	_start_height = hero.global_position.y
 	hero.velocity = Vector3.DOWN * tuning.dive_fall_speed
 	hero.visual.stop_spin()
-	hero.visual.animator.show_pose(tuning.dive_animation, tuning.dive_pose_time)
-	hero.visual.set_pitch_deg(tuning.dive_pitch_deg)
+	hero.visual.animator.show_plunge()
 	# Le coup de pied ne touche qu'à son instant : la chute rapide ne doit pas l'emmener au sol.
 	hero.strike(tuning.air_kick, hero.facing_direction(), _judgement, get_physics_process_delta_time())
 
@@ -89,9 +87,9 @@ func _land() -> void:
 	var tuning: TuningData = hero.tuning
 	_landed = true
 	_recovery_left = tuning.dive_recovery
-	hero.visual.set_pitch_deg(0.0)
 	hero.visual.trail.emitting = false
 	hero.visual.animator.show_ground(0.0)
+	hero.visual.squash(-tuning.hero_squash_dive)
 	var fall: float = _start_height - hero.global_position.y
 	var radius: float = CombatMath.dive_radius(fall, tuning)
 	if _rainbow:

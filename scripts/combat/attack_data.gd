@@ -1,14 +1,11 @@
 class_name AttackData
 extends Resource
-## Un coup du héros : minutage, zone touchée, dégâts, élan et animation.
+## Un coup du héros : minutage, zone touchée, dégâts, élan et rotation du corps (la pose est
+## calculée par HeroAnimator d'après `id`).
 ## Les coups vivent dans res://data/tuning.tres (valeurs de départ : docs/REGLAGES.md).
 
 ## Nom du coup, pour la mise au point et les tests.
 @export var id: StringName
-## Clip joué (bibliothèque/nom).
-@export var animation: StringName
-## Instant du clip où le coup porte (s) : calé sur `impact` pendant le jeu.
-@export var animation_impact: float
 ## Durée totale du coup (s).
 @export var duration: float
 ## Instant où le coup touche (s).
@@ -27,15 +24,6 @@ extends Resource
 @export var hop_speed: float
 ## Rotation visuelle du corps pendant le coup : clés (temps en s, lacet en degrés), interpolées.
 @export var spin_keys: PackedVector2Array
-
-
-## Temps dans le clip pour le temps `t` du coup : la préparation est comprimée (ou étirée)
-## pour que le coup porte exactement à `impact`, puis la fin du clip remplit le reste du coup.
-func animation_time(t: float, clip_length: float) -> float:
-	if t <= impact:
-		return animation_impact * maxf(t, 0.0) / impact
-	var after: float = clampf((t - impact) / (duration - impact), 0.0, 1.0)
-	return lerpf(animation_impact, clip_length, after)
 
 
 ## Lacet visuel (degrés) au temps `t` du coup ; 0 s'il n'y a pas de clés.

@@ -1,7 +1,5 @@
 extends GutTest
-## Coups du héros : cohérence des réglages, calage de l'animation sur l'impact, rotation visuelle.
-
-const CLIP_LENGTH := 0.9
+## Coups du héros : cohérence des réglages, pose de chaque coup, rotation visuelle.
 
 var tuning: TuningData = Tuning.data
 
@@ -34,23 +32,6 @@ func test_la_zone_de_detection_couvre_tous_les_coups() -> void:
 	assert_lte(maxf(dive_max, tuning.rainbow_radius) + tuning.dummy_radius, tuning.hitbox_radius, "onde du Salto arc-en-ciel")
 
 
-func test_l_animation_porte_exactement_a_l_impact() -> void:
-	var attack: AttackData = tuning.combo_attacks[0]
-	assert_eq(attack.animation_time(0.0, CLIP_LENGTH), 0.0)
-	assert_almost_eq(attack.animation_time(attack.impact, CLIP_LENGTH), attack.animation_impact, 0.0001)
-	assert_almost_eq(attack.animation_time(attack.duration, CLIP_LENGTH), CLIP_LENGTH, 0.0001)
-
-
-func test_l_animation_avance_toujours() -> void:
-	var attack: AttackData = tuning.combo_attacks[1]
-	var previous: float = -1.0
-	for i: int in 21:
-		var t: float = attack.duration * i / 20.0
-		var clip_time: float = attack.animation_time(t, CLIP_LENGTH)
-		assert_gt(clip_time, previous)
-		previous = clip_time
-
-
 func test_les_cles_de_rotation_s_interpolent() -> void:
 	var keys := PackedVector2Array([Vector2(0.0, 0.0), Vector2(0.2, 180.0), Vector2(0.4, 360.0)])
 	assert_eq(AttackData.sample_keys(keys, -1.0), 0.0)
@@ -63,3 +44,16 @@ func test_les_cles_de_rotation_s_interpolent() -> void:
 func test_l_armada_fait_un_tour_complet() -> void:
 	var armada: AttackData = tuning.combo_attacks[2]
 	assert_almost_eq(armada.yaw_offset_deg(armada.duration), 360.0, 0.0001)
+
+
+func test_chaque_coup_a_sa_pose_armee_puis_detendue() -> void:
+	for attack: AttackData in _all_attacks():
+		assert_true(HeroAnimator.ATTACK_POSES.has(attack.id), String(attack.id))
+	var martelo: AttackData = tuning.combo_attacks[0]
+	var armed: Dictionary = HeroAnimator.attack_pose(martelo, 0.0, tuning)
+	var struck: Dictionary = HeroAnimator.attack_pose(martelo, martelo.impact, tuning)
+	assert_gt(armed[&"kR"], struck[&"kR"], "le genou plié s'ouvre à l'impact")
+	var end: Dictionary = HeroAnimator.attack_pose(martelo, martelo.duration, tuning)
+	assert_almost_eq(float(end[&"hyaw"]), float(struck[&"hyaw"]) * (1.0 - tuning.hero_hip_unwind), 0.0001, "les hanches se relâchent")
+	var meia_lua: AttackData = tuning.combo_attacks[1]
+	assert_lt(HeroAnimator.attack_pose(meia_lua, meia_lua.impact, tuning)[&"lLx"], 0.0, "la meia-lua part de la jambe gauche")
