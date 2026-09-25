@@ -12,6 +12,7 @@ Chaque pack ou fichier externe est noté ici **avant** d'être importé, avec l'
 | Étincelle d'impact (`fx/spark.svg`) | Salto | créée pour le projet | propriété du projet | `assets/fx` | sans objet (effet) |
 | Musique de la nuit (4 couches) et bruitages (`audio/`) | Salto | synthétisés par `tools/audio/generate_audio.py` | propriété du projet | `assets/audio` | sans objet (son) |
 | Anneaux de la jauge de groove (`ui/icons/groove_ring*.svg`) | Salto | créés pour le projet | propriété du projet | `assets/ui/icons` | sans objet (interface) |
+| Muets (formes rondes : `scenes/enemies/muet_body.tscn` et parties par espèce) | Salto | créés pour le projet | propriété du projet | `scenes/enemies` | oui : 0,6 à 1,1 m, Grand Muet 2,4 m |
 
 ## Outils (non inclus dans le jeu exporté)
 
