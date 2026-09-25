@@ -7,6 +7,7 @@ extends State
 var attack: AttackData
 
 var _elapsed: float = 0.0
+var _judgement: RhythmMath.Judgement = RhythmMath.Judgement.MISS
 var _struck: bool = false
 var _direction: Vector3 = Vector3.FORWARD
 
@@ -15,6 +16,7 @@ var _direction: Vector3 = Vector3.FORWARD
 
 func enter(previous: StringName) -> void:
 	attack = hero.next_attack(previous)
+	_judgement = hero.take_judgement(&"attack")
 	_elapsed = 0.0
 	_struck = false
 	_direction = hero.aim_direction()
@@ -51,7 +53,7 @@ func physics_update(delta: float) -> void:
 	hero.move(delta)
 	if not _struck and _elapsed >= attack.impact:
 		_struck = true
-		hero.strike(attack, _direction)
+		hero.strike(attack, _direction, _judgement)
 	if _elapsed >= attack.chain_from and hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")
 	elif _elapsed >= attack.chain_from + tuning.move_cancel_delay and hero.input_move.length() > tuning.move_cancel_threshold:

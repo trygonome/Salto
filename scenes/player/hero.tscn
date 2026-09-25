@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -19,6 +19,9 @@
 [ext_resource type="Script" path="res://scripts/fx/ribbon_trail.gd" id="17_trail"]
 [ext_resource type="PackedScene" path="res://scenes/fx/hit_spark.tscn" id="18_spark"]
 [ext_resource type="PackedScene" path="res://scenes/fx/shockwave.tscn" id="19_wave"]
+[ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/hit.wav" id="21_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/chime.wav" id="22_chime"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
@@ -30,6 +33,17 @@ cull_mode = 2
 shading_mode = 0
 vertex_color_use_as_albedo = true
 no_depth_test = true
+
+[sub_resource type="StandardMaterial3D" id="Material_ring"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+inner_radius = 0.92
+outer_radius = 1.0
+rings = 40
+ring_segments = 4
 
 [node name="Hero" type="CharacterBody3D"]
 collision_layer = 2
@@ -63,6 +77,24 @@ material_override = SubResource("Material_trail")
 cast_shadow = 0
 script = ExtResource("17_trail")
 color = Color(1, 0.86, 0.5, 0.85)
+rainbow_colors = Array[Color]([Color(1, 0.35, 0.35, 1), Color(1, 0.75, 0.25, 1), Color(0.45, 1, 0.45, 1), Color(0.35, 0.7, 1, 1), Color(0.8, 0.45, 1, 1)])
+
+[node name="BeatRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+material_override = SubResource("Material_ring")
+cast_shadow = 0
+mesh = SubResource("TorusMesh_ring")
+script = ExtResource("20_ring")
+beat_color = Color(0.85, 0.92, 1, 1)
+perfect_color = Color(1, 0.82, 0.3, 1)
+good_color = Color(1, 1, 1, 1)
+miss_color = Color(0.45, 0.5, 0.7, 1)
+
+[node name="HitSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21_hit")
+
+[node name="ChimeSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("22_chime")
 
 [node name="Hitbox" type="Area3D" parent="."]
 collision_layer = 8

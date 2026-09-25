@@ -12,5 +12,9 @@ var critical: bool = false
 var direction: Vector3 = Vector3.ZERO
 ## Point de contact, pour l'étincelle.
 var point: Vector3 = Vector3.ZERO
-## Nom du coup (AttackData.id, ou « dive » pour le plongeon).
+## Nom du coup (AttackData.id, « dive » pour le plongeon, « rainbow » pour le Salto arc-en-ciel).
 var move: StringName = &""
+## Jugement rythmique de l'appui qui a lancé le coup.
+var judgement: RhythmMath.Judgement = RhythmMath.Judgement.MISS
+## Durée pendant laquelle la cible est étourdie (s ; 0 = pas d'étourdissement).
+var stun_time: float = 0.0

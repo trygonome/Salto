@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/floating_joystick.gd" id="1_joystick"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/attack.svg" id="2_attack"]
@@ -7,6 +7,10 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/jump_pressed.svg" id="5_jump_pressed"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/dodge.svg" id="6_dodge"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/dodge_pressed.svg" id="7_dodge_pressed"]
+
+[ext_resource type="Script" path="res://scripts/ui/groove_meter.gd" id="8_groove"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring.svg" id="9_ring"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring_under.svg" id="10_ring_under"]
 
 [sub_resource type="CircleShape2D" id="CircleShape_big"]
 radius = 120.0
@@ -48,6 +52,22 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+
+[node name="GrooveMeter" type="TextureProgressBar" parent="Buttons"]
+offset_left = -120.0
+offset_top = -128.0
+offset_right = 168.0
+offset_bottom = 160.0
+scale = Vector2(0.333333, 0.333333)
+mouse_filter = 2
+max_value = 1000.0
+fill_mode = 4
+texture_under = ExtResource("10_ring_under")
+texture_progress = ExtResource("9_ring")
+script = ExtResource("8_groove")
+filling_color = Color(1, 0.82, 0.4, 1)
+rainbow_saturation = 0.7
+rainbow_value = 1.0
 
 [node name="Attack" type="TouchScreenButton" parent="Buttons"]
 position = Vector2(-112, -120)

@@ -11,6 +11,18 @@ extends Node3D
 @export var fading: GeometryInstance3D
 
 
+## Colore l'effet : lueur d'un maillage, ou teinte d'un sprite.
+func tint(color: Color) -> void:
+	var sprite: Sprite3D = fading as Sprite3D
+	if sprite:
+		sprite.modulate = color
+		return
+	var mesh_instance: MeshInstance3D = fading as MeshInstance3D
+	var material: StandardMaterial3D = mesh_instance.mesh.surface_get_material(0).duplicate() as StandardMaterial3D
+	material.emission = color
+	mesh_instance.material_override = material
+
+
 func play(duration: float, size: float) -> void:
 	scale = Vector3.ONE * start_scale * size
 	var tween: Tween = create_tween().set_parallel()

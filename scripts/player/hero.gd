@@ -6,11 +6,15 @@ extends CharacterBody3D
 
 ## Un coup du héros a touché.
 signal hit_landed(hit: HitData)
+## Un appui sur Frappe vient d'être jugé par rapport au temps.
+signal judged(judgement: RhythmMath.Judgement)
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 
 ## Groupe des Hurtbox que le héros peut frapper (orientation automatique).
 const TARGET_GROUP := &"enemy_hurtbox"
+## Demi-tons dans une octave (hauteur du carillon).
+const SEMITONES_PER_OCTAVE := 12.0
 
 ## Joystick tactile ; s'il n'est pas touché, on lit le clavier ou la manette.
 @export var joystick: FloatingJoystick
@@ -42,6 +46,10 @@ var invulnerable: bool = false
 var level: int = 0
 ## Coups qui touchent à la suite.
 var combo: ComboCounter
+## Jauge de groove : pleine, Frappe en l'air lance le Salto arc-en-ciel.
+var groove: GrooveGauge
+## Juge un appui fait maintenant (remplacé dans les tests pour choisir le jugement).
+var judge: Callable = Rhythm.judge_now
 ## Tirages des coups critiques (graine réglable dans les tests).
 var rng := RandomNumberGenerator.new()
 ## Dernier coup qui a touché (mise au point).
@@ -50,6 +58,8 @@ var last_hit: HitData
 var tuning: TuningData = Tuning.data
 
 var _combo_step: int = 0
+var _judgements: Dictionary[StringName, RhythmMath.Judgement] = {}
+var _pending_groove: float = 0.0
 var _last_attack_end: float = -INF
 var _roll_end: float = -INF
 
@@ -60,6 +70,9 @@ var _spawn: Transform3D
 @onready var state_machine: StateMachine = $StateMachine
 @onready var visual: HeroVisual = $Visual
 @onready var hitbox: Hitbox = $Hitbox
+@onready var beat_ring: BeatRing = $BeatRing
+@onready var _hit_sound: AudioStreamPlayer = $HitSound
+@onready var _chime: AudioStreamPlayer = $ChimeSound
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 
@@ -77,12 +90,14 @@ func _ready() -> void:
 	visual.trail.outer_reach = tuning.trail_outer_reach
 	level = tuning.hero_start_level
 	combo = ComboCounter.new(tuning.combo_timeout)
+	groove = GrooveGauge.new(tuning.groove_max)
 	rng.randomize()
 	var reach_shape: CollisionShape3D = $Hitbox/CollisionShape3D
 	(reach_shape.shape as SphereShape3D).radius = tuning.hitbox_radius
 	reach_shape.position = Vector3.UP * tuning.hero_height / 2.0
 	hitbox.landed.connect(_on_hit_landed)
 	add_to_group(&"debug_info")
+	add_to_group(&"hero")
 	state_machine.start()
 
 
@@ -101,8 +116,20 @@ func _physics_process(delta: float) -> void:
 
 
 ## Enregistre un appui ; il reste valable input_buffer_time secondes.
+## Frappe est jugée tout de suite par rapport au temps (au moment de l'appui, pas du coup).
 func press(action: StringName) -> void:
 	_buffer.press(action, _clock)
+	if action == &"attack":
+		var judgement: RhythmMath.Judgement = judge.call()
+		_judgements[action] = judgement
+		_on_judged(judgement)
+
+
+## Jugement du dernier appui sur `action` (raté s'il n'y en a pas) ; il ne sert qu'une fois.
+func take_judgement(action: StringName) -> RhythmMath.Judgement:
+	var judgement: RhythmMath.Judgement = _judgements.get(action, RhythmMath.Judgement.MISS)
+	_judgements.erase(action)
+	return judgement
 
 
 ## Vrai si l'action a été appuyée récemment ; l'appui est alors consommé.
@@ -231,21 +258,27 @@ func aim_direction() -> Vector3:
 
 
 ## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant.
-func strike(attack: AttackData, direction: Vector3) -> void:
-	hitbox.activate(attack.reach, attack.arc_deg, direction, tuning.attack_active_time, _make_hit.bind(attack.damage_multiplier, attack.id))
+func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement) -> void:
+	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
+	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier, attack.id, judgement, 0.0)
+	hitbox.activate(attack.reach, attack.arc_deg, direction, tuning.attack_active_time, make_hit)
 
 
-## Onde du plongeon à l'atterrissage, après une chute de `fall_height` mètres.
-func shockwave(fall_height: float) -> void:
-	var radius: float = CombatMath.dive_radius(fall_height, tuning)
-	var multiplier: float = CombatMath.dive_multiplier(fall_height, tuning)
-	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, _make_hit.bind(multiplier, &"dive"))
+## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
+## `colors` : une onde par couleur, de plus en plus grande (une seule pour le plongeon normal).
+func shockwave(radius: float, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, colors: Array[Color]) -> void:
+	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
+	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time)
+	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
 	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
-	if shockwave_scene:
+	if not shockwave_scene:
+		return
+	for i: int in colors.size():
 		var wave: FadingBurst = shockwave_scene.instantiate() as FadingBurst
 		get_parent().add_child(wave)
 		wave.global_position = global_position
-		wave.play(tuning.shockwave_time, radius)
+		wave.tint(colors[i])
+		wave.play(tuning.shockwave_time, radius * (i + 1) / colors.size())
 
 
 ## Ramène le héros au point de départ.
@@ -267,19 +300,22 @@ func debug_text() -> String:
 		tuning.air_dashes_per_jump,
 		" · invulnérable" if invulnerable else "",
 	]
-	text += "\ncombo %d" % combo.hits
+	text += "\ncombo %d · groove %.1f/%.0f" % [combo.hits, groove.value, groove.maximum]
 	if last_hit:
 		text += " · %s %.1f%s" % [last_hit.move, last_hit.damage, " critique" if last_hit.critical else ""]
 	return text
 
 
-func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName) -> HitData:
+func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float) -> HitData:
 	var hit := HitData.new()
 	hit.attacker = self
 	hit.move = move
+	hit.judgement = judgement
+	hit.stun_time = stun_time
 	hit.critical = rng.randf() < tuning.crit_chance
 	var attack: float = CombatMath.hero_attack(level, tuning)
-	hit.damage = CombatMath.damage(attack, multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
+	var move_multiplier: float = multiplier * RhythmMath.damage_multiplier(judgement, tuning)
+	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
 	var to_target: Vector3 = hurtbox.global_position - global_position
 	to_target.y = 0.0
 	hit.direction = facing_direction() if to_target.is_zero_approx() else to_target.normalized()
@@ -290,14 +326,33 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName) -> HitData
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
-	Feedback.hit_stop(tuning.hit_stop_hit)
+	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
+	groove.add(_pending_groove)
+	_pending_groove = 0.0
+	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
+	Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
 	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
+	_hit_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
+	_hit_sound.play()
 	if spark_scene:
 		var spark: FadingBurst = spark_scene.instantiate() as FadingBurst
 		get_parent().add_child(spark)
 		spark.global_position = hit.point
-		spark.play(tuning.spark_time, 1.0)
+		spark.play(tuning.spark_time, tuning.perfect_spark_scale if perfect else 1.0)
 	hit_landed.emit(hit)
+
+
+## Retour immédiat d'un appui jugé : carillon (qui monte avec le combo) et éclat de l'anneau.
+func _on_judged(judgement: RhythmMath.Judgement) -> void:
+	judged.emit(judgement)
+	beat_ring.flash(judgement)
+	if judgement == RhythmMath.Judgement.MISS:
+		return
+	var notes: PackedFloat32Array = tuning.chime_scale_semitones
+	var semitones: float = notes[mini(combo.hits, notes.size() - 1)]
+	_chime.pitch_scale = pow(2.0, semitones / SEMITONES_PER_OCTAVE)
+	_chime.volume_db = 0.0 if judgement == RhythmMath.Judgement.PERFECT else tuning.good_chime_volume_db
+	_chime.play()
 
 
 func _read_player_input() -> void:

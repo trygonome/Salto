@@ -6,12 +6,16 @@ extends MeshInstance3D
 
 ## Couleur du ruban (l'opacité diminue avec l'âge).
 @export var color: Color
+## Couleurs du ruban arc-en-ciel, de la plus récente à la plus ancienne.
+@export var rainbow_colors: Array[Color]
 
 ## Extrémités du ruban (la hanche et le pied qui frappe).
 var root_node: Node3D
 var tip_node: Node3D
 ## Vrai tant que la traînée doit s'allonger.
 var emitting: bool = false
+## Vrai pour un ruban arc-en-ciel (Salto arc-en-ciel).
+var rainbow: bool = false
 ## Durée de vie d'un point du ruban (s).
 var lifetime: float = 0.0
 ## Début et fin du ruban le long de la jambe, en multiples de la distance hanche-pied.
@@ -52,8 +56,9 @@ func _rebuild() -> void:
 		return
 	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	for i: int in _tips.size():
-		var fade: Color = color
-		fade.a *= 1.0 - _ages[i] / lifetime
+		var age: float = _ages[i] / lifetime
+		var fade: Color = _rainbow_color(age) if rainbow else color
+		fade.a = color.a * (1.0 - age)
 		var faint: Color = fade
 		faint.a = 0.0
 		# Transparent côté hanche, opaque au bout : le ruban dessine la trajectoire du coup.
@@ -62,3 +67,10 @@ func _rebuild() -> void:
 		_mesh.surface_set_color(fade)
 		_mesh.surface_add_vertex(_tips[i])
 	_mesh.surface_end()
+
+
+## Couleur de l'arc-en-ciel pour un point d'âge relatif `age` (0 = neuf, 1 = sur le point de disparaître).
+func _rainbow_color(age: float) -> Color:
+	var position: float = age * (rainbow_colors.size() - 1)
+	var index: int = mini(floori(position), rainbow_colors.size() - 2)
+	return rainbow_colors[index].lerp(rainbow_colors[index + 1], position - index)
