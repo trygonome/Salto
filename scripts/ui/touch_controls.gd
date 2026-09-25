@@ -1,21 +1,23 @@
 class_name TouchControls
 extends CanvasLayer
-## Commandes tactiles : joystick flottant à gauche, trois boutons à droite (Frappe, Saut,
-## Esquive). Pour une aide contextuelle, le bouton à utiliser (ou le repère du joystick) brille.
+## Commandes tactiles du prototype : joystick flottant à gauche, trois boutons ronds colorés à
+## droite (Frappe, Saut, Esquive) avec leur nom, la jauge de groove et l'anneau du battement autour
+## de Frappe. Pour un conseil, le bouton à utiliser (ou le repère du joystick) brille. En paysage,
+## les boutons rétrécissent un peu.
 
-## Action de l'aide « courir » (le joystick).
+## Action du conseil « courir » (le joystick).
 const MOVE := &"move"
 
-## Halo des aides : couleur, épaisseur, écart autour du bouton, battement (fraction du rayon).
+## Halo d'un conseil : couleur, épaisseur, écart autour du bouton, battement (fraction du rayon).
 @export var halo_color: Color
 @export var halo_width: float
 @export var halo_margin: float
 @export var halo_pulse: float
-## Où écrire l'aide : au-dessus des boutons, ou au-dessus du repère du joystick (décalage depuis
-## le haut du halo).
-@export var hint_gap: float
+## Taille des boutons en paysage.
+@export var landscape_scale: float
 
 var _halos: Dictionary[StringName, ButtonHalo] = {}
+var _buttons_rects: Dictionary[StringName, Rect2] = {}
 
 @onready var _buttons: Control = $Buttons
 @onready var _rest_point: Control = $Joystick/RestPoint
@@ -32,34 +34,37 @@ func _ready() -> void:
 		halo.position = button.position + size / 2.0
 		_buttons.add_child(halo)
 		_halos[StringName(button.action)] = halo
+		_buttons_rects[StringName(button.action)] = Rect2(button.position, size)
 	var move_halo: ButtonHalo = _make_halo(Tuning.data.joystick_radius_px + halo_margin)
 	_rest_point.add_child(move_halo)
 	_halos[MOVE] = move_halo
+	get_viewport().size_changed.connect(_layout)
+	_layout()
 
 
-## Fait briller (ou éteint) le bouton de `action` (« move » : le joystick).
+## Fait briller (ou éteint) le bouton de `action` (« move » : le repère du joystick).
 func highlight(action: StringName, on: bool) -> void:
 	if _halos.has(action):
 		_halos[action].set_active(on)
 
 
-## Point (coordonnées du canevas) où centrer le bas du texte d'une aide pour `action` :
-## au-dessus du groupe de boutons, ou au-dessus du joystick.
-func hint_anchor(action: StringName) -> Vector2:
-	if action == MOVE:
-		var halo: ButtonHalo = _halos[MOVE]
-		return halo.global_position + Vector2.UP * (halo.radius + hint_gap)
-	var top: float = INF
-	var left: float = INF
-	var right: float = -INF
-	for key: StringName in _halos:
-		if key == MOVE:
-			continue
-		var halo: ButtonHalo = _halos[key]
-		top = minf(top, halo.global_position.y - halo.radius)
-		left = minf(left, halo.global_position.x - halo.radius)
-		right = maxf(right, halo.global_position.x + halo.radius)
-	return Vector2((left + right) / 2.0, top - hint_gap)
+## Rectangle du bouton de `action` à l'écran (coordonnées du canevas) ; vide pour le joystick.
+func button_rect(action: StringName) -> Rect2:
+	if not _buttons_rects.has(action):
+		return Rect2()
+	var rect: Rect2 = _buttons_rects[action]
+	var transform: Transform2D = _buttons.get_global_transform()
+	return Rect2(transform * rect.position, rect.size * _buttons.scale)
+
+
+## Point du repère du joystick (coordonnées du canevas).
+func stick_point() -> Vector2:
+	return _rest_point.global_position
+
+
+func _layout() -> void:
+	var portrait: bool = CameraRig.is_portrait(get_viewport().get_visible_rect().size)
+	_buttons.scale = Vector2.ONE * (1.0 if portrait else landscape_scale)
 
 
 func _make_halo(radius: float) -> ButtonHalo:

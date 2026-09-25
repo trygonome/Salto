@@ -1,61 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=3 format=3]
 
-[sub_resource type="StandardMaterial3D" id="Material_shell"]
-albedo_color = Color(0.85, 0.42, 0.16, 1)
-roughness = 0.5
-emission_enabled = true
-emission = Color(1, 0.45, 0.15, 1)
-emission_energy_multiplier = 0.6
-
-[sub_resource type="CylinderMesh" id="Mesh_shell"]
-material = SubResource("Material_shell")
-top_radius = 0.3
-bottom_radius = 0.24
-height = 0.5
-radial_segments = 16
-rings = 0
-
-[sub_resource type="StandardMaterial3D" id="Material_skin"]
-albedo_color = Color(0.98, 0.9, 0.72, 1)
-roughness = 0.8
-
-[sub_resource type="CylinderMesh" id="Mesh_skin"]
-material = SubResource("Material_skin")
-top_radius = 0.31
-bottom_radius = 0.31
-height = 0.03
-radial_segments = 16
-rings = 0
-
-[sub_resource type="StandardMaterial3D" id="Material_rim"]
-albedo_color = Color(1, 0.78, 0.3, 1)
-metallic = 0.6
-roughness = 0.3
-emission_enabled = true
-emission = Color(1, 0.7, 0.25, 1)
-emission_energy_multiplier = 1.2
-
-[sub_resource type="TorusMesh" id="Mesh_rim"]
-material = SubResource("Material_rim")
-inner_radius = 0.28
-outer_radius = 0.33
-rings = 24
-ring_segments = 6
+[ext_resource type="Script" path="res://scripts/levels/props/voxel_drum.gd" id="1_drum"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="2_voxel"]
 
 [node name="DrumModel" type="Node3D"]
-
-[node name="Shell" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("Mesh_shell")
-
-[node name="Skin" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.51, 0)
-mesh = SubResource("Mesh_skin")
-
-[node name="RimTop" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.49, 0)
-mesh = SubResource("Mesh_rim")
-
-[node name="RimBottom" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 0.8, 0, 0.03, 0)
-mesh = SubResource("Mesh_rim")
+script = ExtResource("1_drum")
+material = ExtResource("2_voxel")

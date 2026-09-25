@@ -10,6 +10,8 @@ extends Node3D
 ## Direction (horizontale, normalisée), dégâts et Muet qui l'a crachée (fixés au départ).
 var direction: Vector3 = Vector3.FORWARD
 var damage: float = 0.0
+## Vitesse (m/s ; 0 : celle du crachat).
+var speed: float = 0.0
 var source: Node3D
 
 var _life: float = 0.0
@@ -37,7 +39,7 @@ func _physics_process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	_time += delta
 	_life -= delta
-	global_position += direction * tuning.spitter_orb_speed * delta
+	global_position += direction * (speed if speed > 0.0 else tuning.spitter_orb_speed) * delta
 	_visual.rotation = Vector3(_time * tuning.orb_spin_x, _time * tuning.orb_spin_y, 0.0)
 	_visual.position.y = sin(_time * tuning.orb_bob_speed) * tuning.orb_bob_height
 	if _life <= 0.0 or _hits_wall():

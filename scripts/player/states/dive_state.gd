@@ -91,10 +91,10 @@ func _land() -> void:
 	hero.visual.animator.show_ground(0.0)
 	hero.visual.squash(-tuning.hero_squash_dive)
 	var fall: float = _start_height - hero.global_position.y
-	var radius: float = CombatMath.dive_radius(fall, tuning)
+	var radius: float = CombatMath.dive_radius(fall, tuning) * hero.stats.dive_radius
 	if _rainbow:
 		var rainbow_colors: Array[Color] = hero.visual.trail.rainbow_colors
-		hero.shockwave(maxf(radius, tuning.rainbow_radius), tuning.rainbow_multiplier, &"rainbow", _judgement, tuning.rainbow_stun, rainbow_colors)
+		hero.shockwave(maxf(radius, tuning.rainbow_radius), tuning.rainbow_multiplier * hero.stats.rainbow_damage * hero.stats.dive_damage, &"rainbow", _judgement, tuning.rainbow_stun, rainbow_colors)
 	else:
 		var colors: Array[Color] = [hero.visual.trail.color]
-		hero.shockwave(radius, CombatMath.dive_multiplier(fall, tuning), &"dive", _judgement, 0.0, colors)
+		hero.shockwave(radius, CombatMath.dive_multiplier(fall, tuning) * hero.stats.dive_damage, &"dive", _judgement, 0.0, colors)

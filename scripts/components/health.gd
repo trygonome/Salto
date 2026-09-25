@@ -29,6 +29,12 @@ func heal(amount: float) -> void:
 	current = minf(current + amount, maximum)
 
 
+## Change le maximum ; les points de vie actuels ne le dépassent pas.
+func set_maximum(max_health: float) -> void:
+	maximum = max_health
+	current = minf(current, maximum)
+
+
 ## Rend tous les points de vie.
 func restore() -> void:
 	current = maximum

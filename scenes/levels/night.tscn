@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -22,10 +22,17 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="19_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="20_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="21_pause"]
-[ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="22_end"]
+[ext_resource type="PackedScene" path="res://scenes/ui/summary_screen.tscn" id="22_summary"]
+[ext_resource type="PackedScene" path="res://scenes/ui/title_screen.tscn" id="27_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bag_screen.tscn" id="28_bag"]
+[ext_resource type="PackedScene" path="res://scenes/ui/talents_screen.tscn" id="29_talents"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/plume_pickup.tscn" id="30_plume"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/fruit.tscn" id="31_fruit"]
+[ext_resource type="Script" path="res://scripts/levels/objective_guide.gd" id="32_guide"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="33_voxel_actor"]
+[ext_resource type="Material" path="res://scenes/world/beam.tres" id="34_beam"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="23_debug"]
 [ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="24_ambience"]
-[ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="25_hint"]
 [ext_resource type="PackedScene" path="res://scenes/fx/effects.tscn" id="90_effects"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
@@ -34,9 +41,6 @@
 [sub_resource type="CylinderShape3D" id="Shape_village"]
 height = 4.0
 radius = 3.64
-
-[sub_resource type="BoxShape3D" id="Shape_hint_start"]
-size = Vector3(4, 3, 4)
 
 [node name="Night" type="Node3D"]
 script = ExtResource("1_night")
@@ -49,6 +53,8 @@ spitter_scene = ExtResource("93_spitter")
 boss_scene = ExtResource("4_boss")
 drum_scene = ExtResource("5_drum")
 loot_scene = ExtResource("6_loot")
+plume_scene = ExtResource("30_plume")
+fruit_scene = ExtResource("31_fruit")
 character_material = ExtResource("16_actor")
 character_shadow_material = ExtResource("26_actor_shadow")
 
@@ -87,6 +93,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.26)
 
 [node name="Foes" type="Node3D" parent="."]
 
+[node name="Pickups" type="Node3D" parent="."]
+
+[node name="Guide" type="Node3D" parent="."]
+script = ExtResource("32_guide")
+material = ExtResource("33_voxel_actor")
+beam_material = ExtResource("34_beam")
+
 [node name="Hero" parent="." node_paths=PackedStringArray("joystick") instance=ExtResource("17_hero")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.34)
 joystick = NodePath("../TouchControls/Joystick")
@@ -104,27 +117,19 @@ stream = ExtResource("24_ambience")
 volume_db = -4.0
 autoplay = true
 
-[node name="Hints" type="Node3D" parent="."]
-
-[node name="HintMove" type="Area3D" parent="Hints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.34)
-collision_layer = 0
-collision_mask = 2
-script = ExtResource("25_hint")
-hint = &"move"
-action = &"move"
-text = "Glisse pour courir"
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hints/HintMove"]
-shape = SubResource("Shape_hint_start")
-
 [node name="TouchControls" parent="." instance=ExtResource("19_touch")]
 
 [node name="HUD" parent="." instance=ExtResource("20_hud")]
 
 [node name="PauseMenu" parent="." instance=ExtResource("21_pause")]
 
-[node name="EndScreen" parent="." instance=ExtResource("22_end")]
+[node name="SummaryScreen" parent="." instance=ExtResource("22_summary")]
+
+[node name="TitleScreen" parent="." instance=ExtResource("27_title")]
+
+[node name="BagScreen" parent="." instance=ExtResource("28_bag")]
+
+[node name="TalentsScreen" parent="." instance=ExtResource("29_talents")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
 

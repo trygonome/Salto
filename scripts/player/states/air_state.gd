@@ -6,7 +6,7 @@ extends State
 
 func physics_update(delta: float) -> void:
 	var tuning: TuningData = hero.tuning
-	if hero.air_dashes_used < tuning.air_dashes_per_jump and hero.consume_press(&"dodge"):
+	if hero.air_dashes_used < hero.stats.air_dashes and hero.consume_press(&"dodge"):
 		machine.transition_to(&"AirDash")
 		return
 	if hero.consume_press(&"attack"):
@@ -14,7 +14,7 @@ func physics_update(delta: float) -> void:
 		return
 	var jumped: bool = hero.try_air_jump()
 	var direction: Vector3 = hero.move_direction()
-	hero.approach_horizontal_velocity(direction * tuning.run_speed, tuning.air_control_rate, delta)
+	hero.approach_horizontal_velocity(direction * tuning.run_speed * hero.stats.speed, tuning.air_control_rate, delta)
 	hero.turn_toward(direction, tuning.turn_rate_air, delta)
 	if not jumped:
 		hero.apply_gravity(delta)

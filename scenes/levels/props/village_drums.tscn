@@ -13,13 +13,15 @@ script = ExtResource("1_stand")
 slots = [NodePath("Slot1"), NodePath("Slot2"), NodePath("Slot3")]
 
 [node name="Slot1" parent="." instance=ExtResource("2_model")]
-transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, -1.17, 0.26, -1.17)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.17, 0.26, -1.17)
 
 [node name="Slot2" parent="." instance=ExtResource("2_model")]
-transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 0, 0.26, -1.82)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.26, -1.82)
+hue_index = 1
 
 [node name="Slot3" parent="." instance=ExtResource("2_model")]
-transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 1.3, 1.17, 0.26, -1.17)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.17, 0.26, -1.17)
+hue_index = 2
 
 [node name="Zone" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

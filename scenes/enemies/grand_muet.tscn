@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/muet.gd" id="1_muet"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/muet_body.tscn" id="2_body"]
@@ -10,6 +10,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/boss_freed.wav" id="20_freed"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/shock_wave.tscn" id="21_wave"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/slam.wav" id="22_slam"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/silence_orb.tscn" id="23_orb"]
 [ext_resource type="Script" path="res://scripts/enemies/states/muet_hop_state.gd" id="30_state"]
 [ext_resource type="Script" path="res://scripts/enemies/states/boss_telegraph_state.gd" id="31_state"]
 [ext_resource type="Script" path="res://scripts/enemies/states/boss_slam_state.gd" id="32_state"]
@@ -79,6 +80,7 @@ script = ExtResource("31_state")
 script = ExtResource("32_state")
 wave_scene = ExtResource("21_wave")
 sound = NodePath("../../SlamSound")
+orb_scene = ExtResource("23_orb")
 
 [node name="Stunned" type="Node" parent="StateMachine"]
 script = ExtResource("33_state")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://blj0ffhaqyxxe"
-path="res://.godot/imported/groove_ring_under.svg-f87d93ab29afb4e57a46c071a3ffd241.ctex"
+uid="uid://ds4hivxuanyw7"
+path="res://.godot/imported/plume.svg-37e7601d0b85384a22f1fa2c533f5f42.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/icons/groove_ring_under.svg"
-dest_files=["res://.godot/imported/groove_ring_under.svg-f87d93ab29afb4e57a46c071a3ffd241.ctex"]
+source_file="res://assets/ui/icons/plume.svg"
+dest_files=["res://.godot/imported/plume.svg-37e7601d0b85384a22f1fa2c533f5f42.ctex"]
 
 [params]
 

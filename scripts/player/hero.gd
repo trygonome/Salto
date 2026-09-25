@@ -10,6 +10,10 @@ signal hit_landed(hit: HitData)
 signal judged(judgement: RhythmMath.Judgement)
 ## Le héros vient d'être ramené au village.
 signal respawned
+## PV à zéro sans second souffle : la sortie se termine.
+signal fainted
+## Le second souffle l'a relevé.
+signal second_wind
 ## Un appui sur Saut, Esquive ou Frappe (aides contextuelles).
 signal action_pressed(action: StringName)
 
@@ -50,7 +54,13 @@ var combo: ComboCounter
 ## Jauge de groove : pleine, Frappe en l'air lance le Salto arc-en-ciel.
 var groove: GrooveGauge
 ## Juge un appui fait maintenant (remplacé dans les tests pour choisir le jugement).
-var judge: Callable = Rhythm.judge_now
+var judge: Callable = _judge_now
+## Forces du héros (niveau, talents, objets portés), recalculées quand le profil change.
+var stats: HeroStats
+## Le second souffle a déjà servi pendant cette sortie.
+var second_wind_used: bool = false
+## Évanoui : il ne bouge plus jusqu'à la fin de la sortie.
+var fainted_now: bool = false
 ## Tirages des coups critiques (graine réglable dans les tests).
 var rng := RandomNumberGenerator.new()
 ## Dernier coup qui a touché (mise au point).
@@ -69,6 +79,8 @@ var _roll_end: float = -INF
 var _buffer: InputBuffer
 var _clock: float = 0.0
 var _spawn: Transform3D
+## Muets touchés par le coup en cours (défi « plusieurs Muets d'un coup »).
+var _strike_hits: int = 0
 ## Point le plus haut atteint depuis le dernier contact avec le sol (m) : hauteur de chute.
 var _air_peak: float = 0.0
 
@@ -104,6 +116,7 @@ func _ready() -> void:
 	visual.trail.inner_reach = tuning.trail_inner_reach
 	visual.trail.outer_reach = tuning.trail_outer_reach
 	level = tuning.hero_start_level
+	stats = HeroStats.compute(Game.profile, tuning)
 	combo = ComboCounter.new(tuning.combo_timeout)
 	groove = GrooveGauge.new(tuning.groove_max)
 	rng.randomize()
@@ -117,7 +130,10 @@ func _ready() -> void:
 	(body_shape.shape as CapsuleShape3D).height = tuning.hero_height
 	body_shape.position = Vector3.UP * tuning.hero_height / 2.0
 	hurtbox.radius = tuning.hero_radius
-	health.setup(CombatMath.hero_max_health(level, tuning))
+	health.setup(stats.max_health)
+	hurtbox.damage_taken_multiplier = stats.damage_taken
+	Game.stats_changed.connect(_on_stats_changed)
+	Game.level_up.connect(_on_level_up)
 	hurtbox.hurt.connect(_on_hurt)
 	hurtbox.dodged.connect(_on_dodged)
 	add_to_group(&"debug_info")
@@ -215,6 +231,12 @@ func apply_gravity(delta: float) -> void:
 	velocity.y -= HeroMotion.gravity(velocity.y, input_jump_held, tuning) * delta
 
 
+## Sauts autorisés avant de retoucher le sol (le dernier est le salto) : un de plus avec le
+## Triple saut.
+func max_jumps() -> int:
+	return tuning.max_jumps + stats.extra_jumps
+
+
 ## Saute avec la vitesse verticale `speed` ; le dernier saut autorisé est le salto.
 func jump(speed: float) -> void:
 	velocity.y = speed
@@ -222,7 +244,7 @@ func jump(speed: float) -> void:
 	coyote_left = 0.0
 	visual.squash(tuning.hero_squash_jump)
 	var fx: Effects = Effects.of(self)
-	if jumps_used >= tuning.max_jumps:
+	if jumps_used >= max_jumps():
 		visual.play_salto(tuning.salto_duration)
 		_salto_sound.play()
 		if fx:
@@ -242,10 +264,10 @@ func try_air_jump() -> bool:
 			return false
 		jump(tuning.jump_speed)
 		return true
-	if jumps_used >= tuning.max_jumps or not consume_press(&"jump"):
+	if jumps_used >= max_jumps() or not consume_press(&"jump"):
 		return false
 	# Tombé d'un bord sans sauter : le saut en l'air est directement le salto.
-	jumps_used = maxi(jumps_used, tuning.max_jumps - 1)
+	jumps_used = maxi(jumps_used, max_jumps() - 1)
 	jump(tuning.double_jump_speed)
 	return true
 
@@ -333,6 +355,7 @@ func aim_direction() -> Vector3:
 ## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant,
 ## pendant `active_time` secondes (par défaut attack_active_time).
 func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0) -> void:
+	_strike_hits = 0
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier, attack.id, judgement, 0.0)
 	var duration: float = active_time if active_time >= 0.0 else tuning.attack_active_time
@@ -342,6 +365,7 @@ func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgem
 ## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
 ## `colors` : une onde par couleur, de plus en plus grande (une seule pour le plongeon normal).
 func shockwave(radius: float, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, colors: Array[Color]) -> void:
+	_strike_hits = 0
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time)
 	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
@@ -387,14 +411,24 @@ func respawn() -> void:
 	respawned.emit()
 
 
+## Une sortie commence : forces recalculées, tous les PV, second souffle de nouveau disponible.
+func begin_sortie() -> void:
+	_on_stats_changed()
+	health.restore()
+	second_wind_used = false
+	fainted_now = false
+
+
 ## Un Muet vient d'être libéré (appelé par le Muet sur le groupe « hero »).
 func on_enemy_freed(_muet: Node) -> void:
-	groove.add(tuning.groove_enemy_freed)
+	groove.add(tuning.groove_enemy_freed * stats.groove)
+	if stats.heal_per_muet > 0.0 and not health.is_depleted():
+		health.heal(stats.heal_per_muet)
 
 
 ## Une onde de choc est passée sous le héros en l'air.
 func on_wave_jumped() -> void:
-	groove.add(tuning.groove_wave_jumped)
+	groove.add(tuning.groove_wave_jumped * stats.groove)
 
 
 ## Lignes affichées par l'overlay de mise au point.
@@ -402,9 +436,9 @@ func debug_text() -> String:
 	var text: String = "%s · sauts %d/%d · élans %d/%d%s%s" % [
 		state_machine.current.name,
 		jumps_used,
-		tuning.max_jumps,
+		max_jumps(),
 		air_dashes_used,
-		tuning.air_dashes_per_jump,
+		stats.air_dashes,
 		" · invulnérable" if invulnerable else "",
 		" · tambour" if Game.progress.carrying_drum else "",
 	]
@@ -428,9 +462,9 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 	hit.move = move
 	hit.judgement = judgement
 	hit.stun_time = stun_time
-	hit.critical = _next_hit_critical or rng.randf() < tuning.crit_chance
+	hit.critical = _next_hit_critical or rng.randf() < stats.crit_chance
 	_next_hit_critical = false
-	var attack: float = CombatMath.hero_attack(level, tuning)
+	var attack: float = stats.attack
 	var move_multiplier: float = multiplier * RhythmMath.damage_multiplier(judgement, tuning)
 	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
 	var to_target: Vector3 = hurtbox.global_position - global_position
@@ -443,10 +477,17 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
+	_strike_hits += 1
+	Game.on_combo(combo.hits)
+	if _strike_hits >= 2:
+		Game.on_multi_hit(_strike_hits)
 	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
-	groove.add(_pending_groove)
-	_pending_groove = 0.0
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
+	if _pending_groove > 0.0:
+		groove.add(_pending_groove * stats.groove * (stats.perfect_groove if perfect else 1.0))
+		if perfect and stats.perfect_heal > 0.0:
+			health.heal(stats.perfect_heal)
+	_pending_groove = 0.0
 	Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
 	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
 	_hit_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
@@ -466,7 +507,7 @@ func _on_hurt(hit: HitData) -> void:
 	Feedback.shake(tuning.shake_trauma_hurt, hit.direction)
 	_hurt_sound.play()
 	if health.is_depleted():
-		respawn()
+		_faint()
 		return
 	var recoil: float = tuning.hero_recoil_big_speed if hit.big else tuning.hero_recoil_speed
 	set_horizontal_velocity(hit.direction * recoil)
@@ -484,7 +525,10 @@ func _on_dodged(_hit: HitData) -> void:
 		fx.ring(global_position, tuning.fx_dodge_ring, fx.cyan, tuning.fx_dodge_ring_time)
 		fx.word(GameTexts.WORD_PERFECT_DODGE, global_position + Vector3.UP * tuning.hero_height, fx.cyan, true)
 	_next_hit_critical = true
-	groove.add(tuning.groove_perfect_dodge)
+	groove.add(tuning.groove_perfect_dodge * stats.groove)
+	Game.on_perfect_dodge()
+	if stats.shadow:
+		quake(tuning.shadow_quake_radius, tuning.shadow_quake_damage, &"shadow")
 	beat_ring.flash(RhythmMath.Judgement.PERFECT)
 	_dodge_sound.play()
 
@@ -493,6 +537,8 @@ func _on_dodged(_hit: HitData) -> void:
 func _on_judged(judgement: RhythmMath.Judgement) -> void:
 	judged.emit(judgement)
 	beat_ring.flash(judgement)
+	if judgement == RhythmMath.Judgement.PERFECT:
+		Game.on_perfect()
 	if judgement == RhythmMath.Judgement.MISS:
 		return
 	var notes: PackedFloat32Array = tuning.chime_scale_semitones
@@ -533,3 +579,59 @@ func _step_up(delta: float) -> void:
 	if landing.get_normal().angle_to(Vector3.UP) > floor_max_angle:
 		return
 	global_position += rise + landing.get_travel()
+
+
+## Onde qui touche tous les Muets autour du héros (Final fracassant, Pas de l'Ombre) : rayon (m),
+## dégâts en multiples de l'attaque.
+func quake(radius: float, damage: float, move: StringName) -> void:
+	var make_hit: Callable = _make_hit.bind(damage, move, RhythmMath.Judgement.MISS, 0.0)
+	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(global_position, radius, fx.violet, tuning.fx_quake_ring_time)
+		fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_quake_cubes, tuning.fx_quake_speed, tuning.fx_quake_hue)
+
+
+func _judge_now() -> RhythmMath.Judgement:
+	return Rhythm.judge_now(stats.perfect_window if stats else 1.0)
+
+
+## PV à zéro : une fois par sortie, le second souffle le relève ; sinon il s'évanouit.
+func _faint() -> void:
+	if stats.second_wind > 0.0 and not second_wind_used:
+		second_wind_used = true
+		health.restore()
+		health.current = health.maximum * stats.second_wind
+		_hurt_invuln_left = tuning.second_wind_invuln
+		var fx: Effects = Effects.of(self)
+		if fx:
+			fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_level_cubes, tuning.fx_level_speed, tuning.fx_gold_hue)
+			fx.ring(global_position, tuning.fx_level_ring, fx.gold, tuning.fx_level_ring_time)
+		second_wind.emit()
+		return
+	fainted_now = true
+	reads_player_input = false
+	input_move = Vector2.ZERO
+	Game.drop_drum()
+	state_machine.transition_to(&"Hurt")
+	fainted.emit()
+
+
+## Niveau, talents ou objets ont changé : nouvelles forces, les PV suivent le nouveau maximum.
+func _on_stats_changed() -> void:
+	var before: float = health.maximum
+	stats = HeroStats.compute(Game.profile, tuning)
+	hurtbox.damage_taken_multiplier = stats.damage_taken
+	health.set_maximum(stats.max_health)
+	if stats.max_health > before:
+		health.heal(stats.max_health - before)
+
+
+## Niveau gagné : une partie des PV revient, gerbe et anneau.
+func _on_level_up(_level: int) -> void:
+	_on_stats_changed()
+	health.heal(health.maximum * tuning.level_up_heal)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_level_cubes, tuning.fx_level_speed)
+		fx.ring(global_position, tuning.fx_level_ring, fx.green, tuning.fx_level_ring_time)

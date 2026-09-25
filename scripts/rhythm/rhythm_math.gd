@@ -25,8 +25,8 @@ static func beat_phase(time: float, beat: float) -> float:
 
 ## Jugement d'un appui décalé de `offset` secondes : les fenêtres tolèrent plus le retard
 ## que l'avance (le tactile arrive toujours un peu tard).
-static func judge(offset: float, tuning: TuningData) -> Judgement:
-	if offset >= -tuning.perfect_early and offset <= tuning.perfect_late:
+static func judge(offset: float, tuning: TuningData, window: float = 1.0) -> Judgement:
+	if offset >= -tuning.perfect_early * window and offset <= tuning.perfect_late * window:
 		return Judgement.PERFECT
 	if offset >= -tuning.good_early and offset <= tuning.good_late:
 		return Judgement.GOOD

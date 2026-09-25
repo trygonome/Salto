@@ -17,6 +17,9 @@ signal muet_freed(muet: Muet)
 var wanderer: bool = false
 ## Rang du sanctuaire gardé : plus loin, plus fort.
 var tier: int = 0
+## Roi Muet, et nom affiché des Grands Muets.
+var king: bool = false
+var display_name: String = ""
 ## Zone où le Muet n'entre pas (le village) ; rayon 0 : aucune.
 var safe_zone_center: Vector3 = Vector3.ZERO
 var safe_zone_radius: float = 0.0
@@ -34,6 +37,8 @@ func _spawn() -> void:
 	if wanderer:
 		muet.guardian = false
 	muet.tier = tier
+	muet.king = king
+	muet.display_name = display_name
 	muet.safe_zone_center = safe_zone_center
 	muet.safe_zone_radius = safe_zone_radius
 	get_parent().add_child(muet)

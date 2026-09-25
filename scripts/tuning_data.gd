@@ -603,8 +603,21 @@ extends Resource
 @export var item_roll_max: float
 ## Bonus par niveau de forge (fraction).
 @export var item_forge_bonus: float
-## Chances de rareté du butin du Grand Muet et des coffres (commun, rare, épique, légendaire).
-@export var loot_guaranteed_weights: PackedFloat32Array
+## Chances de rareté du butin (commun, rare, épique, légendaire) : Muet ordinaire, Grand Muet (et
+## coffres), Roi Muet ; chance qu'un Muet ordinaire laisse un objet.
+@export var loot_muet_weights: PackedFloat32Array
+@export var loot_boss_weights: PackedFloat32Array
+@export var loot_king_weights: PackedFloat32Array
+@export var loot_muet_chance: float
+## Sac : objets au plus (au-delà, un objet trouvé est recyclé), forge au plus.
+@export var item_inventory_max: int
+@export var item_forge_max: int
+## Plumes : prix de la forge (× niveau de forge suivant × rang de rareté), recyclage (de base et par
+## rang de rareté, × niveau de l'objet ; plus par niveau de forge).
+@export var item_forge_cost: int
+@export var item_recycle_base: int
+@export var item_recycle_per_rarity: int
+@export var item_recycle_per_forge: int
 
 @export_group("Interface")
 ## Durée d'un message éphémère (s) et de ses fondus (s).
@@ -912,3 +925,229 @@ extends Resource
 @export var fx_step_back: float
 @export var fx_step_dust: int
 @export var fx_step_dust_speed: float
+
+@export_group("Progression")
+## Expérience pour passer un niveau : de base, par niveau, par niveau au carré.
+@export var xp_base: float
+@export var xp_per_level: float
+@export var xp_per_level_squared: float
+## Expérience d'un Muet libéré par espèce, en plus par rang de sanctuaire ; Grand Muet (et par rang).
+@export var xp_per_species: Dictionary[StringName, float]
+@export var xp_per_tier: float
+@export var xp_boss: float
+@export var xp_boss_per_tier: float
+## Un niveau gagné rend cette part des PV.
+@export var level_up_heal: float
+## Talents : vitesse et roulade par rang de Pieds légers, dégâts et rayon des plongeons par rang de
+## Chute de comète, fenêtre du Parfait par rang de Métronome, dégâts par rang de Grosse caisse,
+## groove des Parfaits par rang de Roulement, PV par rang de Souffle, PV par Muet par rang de Sève,
+## résistance par rang d'Écorce, PV rendus par Second souffle.
+@export var talent_feet_speed: float
+@export var talent_comet_damage: float
+@export var talent_comet_radius: float
+@export var talent_metro_window: float
+@export var talent_drum_damage: float
+@export var talent_roll_groove: float
+@export var talent_breath_health: float
+@export var talent_sap_heal: float
+@export var talent_bark_resistance: float
+@export var talent_second_health: float
+## Le héros subit au moins cette part des dégâts.
+@export var hero_min_damage_taken: float
+## Légendaires : groove et dégâts du Salto arc-en-ciel (Tempête), PV rendus (Phénix), PV par coup
+## parfait (Cœur Battant).
+@export var legendary_storm_groove: float
+@export var legendary_storm_damage: float
+@export var legendary_phoenix_health: float
+@export var legendary_heart_heal: float
+## Ondes : du Final fracassant (rayon m, dégâts × attaque) et du Pas de l'Ombre.
+@export var finale_quake_radius: float
+@export var finale_quake_damage: float
+@export var shadow_quake_radius: float
+@export var shadow_quake_damage: float
+
+@export_group("Sorties")
+## Nombre de nuits de la saga (la dernière l'achève ; ensuite, les nuits sans fin).
+@export var saga_nights: int
+## Défis : objectif de chacun (coups parfaits, combo, Muets d'un coup, esquives parfaites, Muets
+## vaincus d'un plongeon) et plumes gagnées.
+@export var challenge_targets: Dictionary[StringName, int]
+@export var challenge_reward: int
+## Score d'une sortie : par Muet, Grand Muet, tambour, coup parfait, point de combo, esquive
+## parfaite, niveau ; en plus par nuit (part).
+@export var score_per_muet: float
+@export var score_per_boss: float
+@export var score_per_drum: float
+@export var score_per_perfect: float
+@export var score_per_combo: float
+@export var score_per_dodge: float
+@export var score_per_level: float
+@export var score_per_night: float
+## Plumes d'une sortie : par Muet, Grand Muet, tambour ; en plus par nuit (part).
+@export var plumes_per_muet: float
+@export var plumes_per_boss: float
+@export var plumes_per_drum: float
+@export var plumes_per_night: float
+## Plume posée sur chaque perchoir (plumes, hauteur m, portée m).
+@export var perch_plumes: int
+@export var perch_pickup_radius: float
+@export var perch_pickup_height: float
+## Fruits : chance qu'un Muet en laisse un, part des PV rendus, durée (s) dont clignotement à la
+## fin (s), portée (m).
+@export var fruit_chance: float
+@export var fruit_heal: float
+@export var fruit_life: float
+@export var fruit_blink_time: float
+@export var fruit_pickup_radius: float
+## Un errant libéré est remplacé au bout de ce temps (s).
+@export var wanderer_respawn_time: float
+## Errants en plus par nuit après la première, au plus.
+@export var muet_wanderers_per_night: int
+@export var muet_wanderers_extra_max: int
+## À partir de cette nuit, un gardien de plus par sanctuaire.
+@export var extra_guard_night: int
+## Délai avant le résumé quand le héros s'évanouit, et quand la nuit est accomplie (s).
+@export var faint_summary_delay: float
+@export var night_summary_delay: float
+
+@export_group("Grands Muets des nuits suivantes")
+## À partir de la nuit `boss_summon_night`, la frappe appelle des renforts s'il reste moins de
+## `boss_summon_min_guards` gardiens : combien, et à quelle distance (m).
+@export var boss_summon_night: int
+@export var boss_summon_count: int
+@export var boss_summon_min_guards: int
+@export var boss_summon_distance: float
+## À partir de la nuit `boss_orb_night`, la frappe lance aussi une couronne de bulles : combien, où
+## (m), à quelle vitesse (m/s), dégâts (× dégâts de contact).
+@export var boss_orb_night: int
+@export var boss_orb_count: int
+@export var boss_orb_spawn_distance: float
+@export var boss_orb_speed: float
+@export var boss_orb_damage_factor: float
+## Roi Muet (dernière nuit, troisième sanctuaire) : PV (×), rayon de la frappe (m) ; il lance
+## toujours des ondes, des renforts et des bulles.
+@export var king_health_factor: float
+@export var king_slam_radius: float
+
+@export_group("Tambours et ramassage")
+## Tambour d'un sanctuaire : taille d'un cube (u) ; libéré, il flotte au-dessus de l'autel
+## (hauteur m, vitesse rad/s, battement m).
+@export var drum_voxel: float
+@export var drum_float_height: float
+@export var drum_bob_speed: float
+@export var drum_bob_height: float
+## Plume d'un perchoir : taille d'un cube (u), rotation (rad/s), battement (rad/s, m).
+@export var pickup_voxel: float
+@export var pickup_spin: float
+@export var pickup_bob_speed: float
+@export var pickup_bob_height: float
+## Fruit : taille d'un cube (u), hauteur (m), clignotement à la fin (par seconde), portée en
+## hauteur (m).
+@export var fruit_voxel: float
+@export var fruit_float_height: float
+@export var fruit_blink_rate: float
+@export var fruit_pickup_height: float
+## Gerbes : plume prise (cubes, m/s, hauteur du mot m), fruit mangé (cubes, m/s, teinte).
+@export var fx_plume_cubes: int
+@export var fx_plume_speed: float
+@export var fx_plume_word_height: float
+@export var fx_fruit_cubes: int
+@export var fx_fruit_speed: float
+@export var fx_fruit_hue: float
+## Niveau gagné et second souffle : gerbe (cubes, m/s), anneau (m, s) ; intouchable après le
+## second souffle (s).
+@export var fx_level_cubes: int
+@export var fx_level_speed: float
+@export var fx_level_ring: float
+@export var fx_level_ring_time: float
+@export var second_wind_invuln: float
+## Onde du Final fracassant et du Pas de l'Ombre : anneau (s), gerbe (cubes, m/s, teinte).
+@export var fx_quake_ring_time: float
+@export var fx_quake_cubes: int
+@export var fx_quake_speed: float
+@export var fx_quake_hue: float
+
+@export_group("Butin")
+## Objet au sol : taille d'un cube (u), hauteur (m), rotation (rad/s), battement (rad/s, m) ;
+## colonne de lumière (rayon m, hauteur m) ; portée (m, et en hauteur m) ; gerbe quand on le prend
+## (cubes, m/s).
+@export var loot_voxel: float
+@export var loot_float_height: float
+@export var loot_spin: float
+@export var loot_bob_speed: float
+@export var loot_bob_height: float
+@export var loot_beam_radius: float
+@export var loot_beam_height: float
+@export var loot_pickup_radius: float
+@export var loot_pickup_height: float
+@export var fx_loot_cubes: int
+@export var fx_loot_speed: float
+
+@export_group("Sortie : villageois et conseils")
+## Le Grand Muet libéré laisse un fruit d'un côté, un objet de l'autre (écart m).
+@export var boss_drop_offset: float
+## Conseil du sanctuaire muet : distance (m) et durée (s).
+@export var zone_tip_distance: float
+@export var zone_tip_time: float
+## Villageois : distance à laquelle ils parlent au héros (m), attente entre deux bulles (s),
+## hauteur d'une bulle au-dessus d'un danseur (m).
+@export var bark_distance: float
+@export var bark_cooldown: float
+@export var villager_bubble_height: float
+## Conseils près des boutons : temps de course pour apprendre à courir (s), coups du combo appris,
+## durée d'un conseil (s), attente avant qu'il revienne (s), Muet proche (m), saut proposé après
+## (s), enchaînement proposé après (coups), rythme proposé après (coups), danger proche (m), bulle
+## proche (m), tronc proche (m).
+@export var hint_move_time: float
+@export var hint_combo_hits: int
+@export var hint_show_time: float
+@export var hint_cooldown: float
+@export var hint_near_distance: float
+@export var hint_jump_time: float
+@export var hint_combo_after: int
+@export var hint_beat_after: int
+@export var hint_danger_distance: float
+@export var hint_orb_distance: float
+@export var hint_log_distance: float
+## Flèche près du héros vers l'objectif : taille d'un cube (u), écart au héros (m), hauteur (m),
+## battement (rad/s, m), visible au-delà de (m). Colonne de lumière sur l'objectif : rayon et hauteur
+## (m), visible au-delà de (m).
+@export var guide_arrow_voxel: float
+@export var guide_arrow_distance: float
+@export var guide_arrow_height: float
+@export var guide_arrow_bob_speed: float
+@export var guide_arrow_bob_height: float
+@export var guide_arrow_min: float
+@export var guide_beam_radius: float
+@export var guide_beam_height: float
+@export var guide_beam_min: float
+
+@export_group("Interface du prototype")
+## Message court (s) ; bulle au-dessus de qui parle (s).
+@export var toast_time: float
+@export var bubble_time: float
+## L'objectif qui change bat : fois, taille au plus fort, durée d'un battement (s).
+@export var quest_pulses: int
+@export var quest_pulse_scale: float
+@export var quest_pulse_time: float
+## Le combo qui monte grossit puis revient (taille, s).
+@export var combo_pop_scale: float
+@export var combo_pop_time: float
+## Distance sous le repère arrondie à (m).
+@export var marker_distance_step: int
+## Bannières : hauteur à l'écran (fraction), durée (s), écart avant la suivante (s), taille au
+## départ et au plus fort, parts de la durée (apparition, retour à la taille, début de la
+## disparition), montée en disparaissant (fraction de sa hauteur).
+@export var banner_height: float
+@export var banner_time: float
+@export var banner_gap: float
+@export var banner_start_scale: float
+@export var banner_peak_scale: float
+@export var banner_in: float
+@export var banner_settle: float
+@export var banner_out: float
+@export var banner_rise: float
+## Voile rose du héros touché (s).
+@export var hurt_flash_time: float
+## Un Muet libéré sur tant remercie le héros d'une bulle.
+@export var freed_line_every: int

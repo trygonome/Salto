@@ -22,6 +22,10 @@ signal freed(muet: Muet)
 var post: Vector3
 ## Rang du sanctuaire gardé (0, 1, 2) : plus loin, plus fort.
 var tier: int = 0
+## Roi Muet (Grand Muet de la dernière nuit) : plus gros, plus fort, frappe plus large.
+var king: bool = false
+## Nom affiché au-dessus de sa barre de PV (Grands Muets).
+var display_name: String = ""
 ## Zone où les Muets n'entrent pas et où ils laissent le héros tranquille (le village) ;
 ## rayon 0 : aucune.
 var safe_zone_center: Vector3 = Vector3.ZERO
@@ -34,6 +38,8 @@ var act_cooldown: int = 0
 var parity: int = 0
 ## En rage (Grand Muet sous la moitié de ses PV).
 var enraged: bool = false
+## États d'attaque (annonce ou coup) : le héros devrait esquiver.
+const THREAT_STATES: Array[StringName] = [&"Telegraph", &"Prepare", &"Charge", &"Dive", &"Slam", &"Bash"]
 var rng := RandomNumberGenerator.new()
 
 var _beat_offset: float = 0.0
@@ -45,6 +51,7 @@ var _hop_time: float = 0.0
 var _hop_duration: float = 0.0
 var _hop_height: float = 0.0
 var _hop_landing: Callable
+var _last_hit_move: StringName = &""
 
 @onready var health: Health = $Health
 @onready var hurtbox: Hurtbox = $Hurtbox
@@ -64,6 +71,10 @@ func _ready() -> void:
 	parity = rng.randi_range(0, 1)
 	var radius: float = stat(&"radius")
 	var shadow: float = radius * (tuning.flyer_shadow_fraction if flies else 1.0)
+	body.king = king
+	add_to_group(&"muets")
+	if is_boss():
+		add_to_group(&"bosses")
 	body.setup(stat(&"scale") * tuning.voxel_unit, shadow)
 	body.turn_rate = stat_or(&"turn_rate", tuning.muet_turn_rate)
 	var height: float = body.height
@@ -86,6 +97,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Arrêt sur image : le temps ne passe pas (et les vitesses se calculent en divisant par delta).
+	if delta <= 0.0:
+		return
 	if _knockback_left > 0.0:
 		_knockback_left -= delta
 	_contact_left -= delta
@@ -105,6 +119,16 @@ func stat_or(stat_name: StringName, fallback: float) -> float:
 	return fallback if value == null else float(value)
 
 
+## Vrai pendant une attaque annoncée ou lancée (le héros devrait esquiver).
+func is_threatening() -> bool:
+	return state_machine.current != null and THREAT_STATES.has(state_machine.current.name)
+
+
+## Vrai une fois libéré.
+func is_freed() -> bool:
+	return health.is_depleted()
+
+
 func is_boss() -> bool:
 	return species == &"boss"
 
@@ -113,7 +137,13 @@ func is_boss() -> bool:
 func max_health() -> float:
 	var tuning: TuningData = Tuning.data
 	var per_tier: float = tuning.boss_health_per_tier if is_boss() else tuning.muet_health_per_tier
-	return EnemyMath.scaled(stat(&"health"), per_tier, tier, tuning.muet_health_per_night, Game.night)
+	var base: float = EnemyMath.scaled(stat(&"health"), per_tier, tier, tuning.muet_health_per_night, Game.night)
+	return roundf(base * (tuning.king_health_factor if king else 1.0))
+
+
+## Rayon de la frappe au sol (plus large pour le Roi Muet).
+func slam_radius() -> float:
+	return Tuning.data.king_slam_radius if king else Tuning.data.boss_slam_radius
 
 
 ## Dégâts d'un de ses coups (`stat_name` : damage, slam_damage…), plus par rang, plus par nuit.
@@ -350,6 +380,7 @@ func _on_beat(index: int) -> void:
 
 func _on_hurt(hit: HitData) -> void:
 	var tuning: TuningData = Tuning.data
+	_last_hit_move = hit.move
 	body.flash(tuning.muet_hit_flash_time)
 	_knockback = hit.direction * tuning.muet_knockback_speed * stat_or(&"knockback_factor", 1.0)
 	_knockback_left = tuning.muet_knockback_time
@@ -359,6 +390,7 @@ func _on_hurt(hit: HitData) -> void:
 		enraged = true
 		act_cooldown = 1
 		body.set_enraged(true)
+		get_tree().call_group(&"hud", &"show_banner", GameTexts.BANNER_ENRAGED, GameTexts.BANNER_ENRAGED_TITLE, GameTexts.BANNER_ENRAGED_DETAIL)
 	if health.is_depleted():
 		return
 	var state: MuetState = state_machine.current as MuetState
@@ -408,5 +440,7 @@ func release() -> void:
 	if fx:
 		fx.muet_freed(global_position, body.height, is_boss())
 	get_tree().call_group(&"hero", &"on_enemy_freed", self)
+	if EnemyMath.goes_over_shield(_last_hit_move):
+		Game.on_dive_kill()
 	Game.on_muet_freed(self)
 	freed.emit(self)

@@ -77,3 +77,9 @@ Jalons :
 12. **Progression** — niveaux et expérience, talents (trois voies), butin, sac, équipement, forge et recyclage.
     *Test : on devient plus fort d'une sortie à l'autre.*
 13. **Nuits 2 à 5 et nuits sans fin** — porte-bouclier, cracheur, Roi Muet.
+    *Test : la saga entière, puis les nuits sans fin.*
+
+État (version 1.0.0) : jalons 0 à 13 faits. Le jeu suit le prototype : écran titre et saga des cinq
+nuits, sorties (évanoui ou rentré au village, les tambours rapportés restent jusqu'à la fin de la
+nuit), défis et plumes, niveaux, talents, sac et forge, puis les nuits sans fin. Le parcours d'essai
+et le carnet de la phase 1 restent dans le projet (scène d'essai, données).

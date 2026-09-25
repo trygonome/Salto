@@ -11,13 +11,13 @@ var path: String = DEFAULT_PATH
 ## Relit le profil ; un profil neuf s'il n'y a pas de sauvegarde ou qu'elle est illisible.
 func load_profile() -> Profile:
 	if not FileAccess.file_exists(path):
-		return Profile.new()
+		return Profile.create()
 	var json := JSON.new()
 	var parsed: Error = json.parse(FileAccess.get_file_as_string(path))
 	var data: Variant = json.data
 	if parsed != OK or not data is Dictionary:
 		push_warning("Sauvegarde illisible, profil neuf : %s" % path)
-		return Profile.new()
+		return Profile.create()
 	return Profile.from_dict(data)
 
 

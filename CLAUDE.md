@@ -32,7 +32,7 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 - **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
   (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
   La scène principale est la nuit dans le monde voxel (`scenes/levels/night.tscn`, monde généré à
-  partir d'une graine gardée d'une sortie à l'autre) ; le parcours d'essai
+  partir d'une graine gardée d'une sortie à l'autre) : elle s'ouvre sur l'écran titre ; le parcours d'essai
   (`scenes/levels/test_course.tscn`) se lance depuis l'éditeur (F6).
   Le prototype de référence (`docs/prototype/salto-rpg.html`) s'ouvre dans un navigateur.
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
@@ -50,18 +50,21 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
   http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.
 - **Régénérer la musique et les bruitages** : `python3 tools/audio/generate_audio.py` (demande `numpy`) —
   musique de la nuit en 4 couches à 104 BPM et sons d'impact, entièrement synthétisés.
+- **Régénérer le thème de l'interface** : `python3 tools/ui/make_theme.py` → `assets/ui/theme.tres`
+  (palette du prototype, polices Bungee et Nunito).
 
 ## Structure
 ```
 res://
   scenes/   player/  enemies/  levels/  ui/  fx/  world/ (matériaux et shaders du monde voxel)
   scripts/  autoload/ (Tuning, Feedback, Rhythm, Game, Save)  components/  player/  combat/  enemies/
-            camera/  fx/  ui/  utils/  night/  items/  save/  levels/ (props/)
+            camera/  fx/  ui/  utils/  night/  items/  progression/ (niveaux, talents, forces du héros)
+            save/  levels/ (props/)
             world/ (génération du monde, personnages voxel)  tuning_data.gd
   data/     tuning.tres  notebook.tres  items/  talents/
   assets/   models/  animations/  audio/  fonts/  fx/  ui/ (theme.tres : thème unique)  LICENCES.md
   addons/   gut/ (tests, exclu de l'export)
   tests/
 docs/
-tools/      tests, export Android, keystore de debug (ignoré par Godot)
+tools/      tests, export Android et web, keystore de debug, audio/, ui/ (ignoré par Godot)
 ```

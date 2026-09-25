@@ -354,12 +354,43 @@ func test_un_muet_a_zero_pv_est_libere() -> void:
 	assert_false(is_instance_valid(hopper), "il disparaît")
 
 
-func test_a_zero_pv_le_heros_revient_au_depart() -> void:
+func test_a_zero_pv_le_heros_s_evanouit_et_perd_ses_tambours() -> void:
 	await _spawn_on_flat_ground()
-	hero.global_position = Vector3(2.0, 0.0, 2.0)
+	Game.start_night(1)
+	Game.pick_drum(0)
+	watch_signals(hero)
 	var hit := HitData.new()
 	hit.damage = hero.health.maximum
 	hit.direction = Vector3.FORWARD
 	hero.hurtbox.receive(hit)
-	assert_eq(hero.health.current, hero.health.maximum)
-	assert_almost_eq(hero.global_position, Vector3.ZERO, Vector3.ONE * TOLERANCE)
+	assert_signal_emitted(hero, "fainted")
+	assert_true(hero.fainted_now)
+	assert_false(hero.reads_player_input, "il ne répond plus")
+	assert_false(Game.progress.carrying_drum, "le tambour retourne à son autel")
+
+
+func test_le_second_souffle_releve_le_heros() -> void:
+	await _spawn_on_flat_ground()
+	hero.stats.second_wind = tuning.talent_second_health
+	watch_signals(hero)
+	var hit := HitData.new()
+	hit.damage = hero.health.maximum
+	hit.direction = Vector3.FORWARD
+	hero.hurtbox.receive(hit)
+	assert_signal_emitted(hero, "second_wind")
+	assert_almost_eq(hero.health.current, hero.health.maximum * tuning.talent_second_health, 0.01)
+	assert_false(hero.fainted_now)
+
+
+func test_pendant_un_arret_sur_image_les_muets_restent_en_place() -> void:
+	await _spawn_on_flat_ground()
+	var flyer: Muet = await _add_muet(Flyer, Vector3(2.0, 0.0, -2.0))
+	var hopper: Muet = await _add_muet(Hopper, Vector3(-1.0, 0.0, -1.0))
+	await _step(5)
+	var before: Vector3 = flyer.global_position
+	# Arrêt sur image : le moteur fait un pas de physique de durée nulle.
+	flyer._physics_process(0.0)
+	hopper._physics_process(0.0)
+	assert_true(flyer.global_position.is_finite(), "pas de division par zéro")
+	assert_true(hopper.global_position.is_finite())
+	assert_eq(flyer.global_position, before)

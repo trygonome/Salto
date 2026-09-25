@@ -10,7 +10,7 @@ func enter(_previous: StringName) -> void:
 	var tuning: TuningData = Tuning.data
 	_elapsed = 0.0
 	_duration = muet.beats_to_seconds(tuning.boss_telegraph_beats)
-	muet.telegraph().show_circle(muet.global_position, tuning.boss_slam_radius, _duration)
+	muet.telegraph().show_circle(muet.global_position, muet.slam_radius(), _duration)
 
 
 func physics_update(delta: float) -> void:

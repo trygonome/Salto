@@ -1,173 +1,129 @@
 class_name PauseMenu
-extends CanvasLayer
-## Menu pause : Reprendre, Carnet (pages trouvées), Sac (objets trouvés), Réglages (chiffres de
-## dégâts, infos techniques des versions de test), Recommencer la nuit. S'ouvre avec le bouton
-## de pause, Échap / Start, le bouton retour d'Android, ou quand le jeu passe en arrière-plan.
+extends ScreenLayer
+## Pause du prototype : la nuit et le défi en cours, un rappel des gestes, Reprendre, Sac et
+## forge, Talents, Son, chiffres de dégâts (et infos techniques des versions de test), Rentrer au
+## village (touché deux fois : la sortie se termine). S'ouvre avec le bouton de pause, Échap /
+## Start, le bouton retour d'Android, ou quand le jeu passe en arrière-plan.
 
-## Couleur de chaque rareté (commun, rare, épique, légendaire).
-@export var rarity_colors: Array[Color]
-## Pictogramme de chaque emplacement d'objet (chevillières, masque, talisman).
-@export var slot_icons: Array[Texture2D]
-## Taille des pictogrammes du sac (px).
-@export var icon_size: float
-## Place laissée autour des listes qui défilent (px) et hauteur maximale d'une liste (px).
-@export var list_margin: float
-@export var list_max_height: float
+var _quit_armed: bool = false
 
-const NOTEBOOK: NotebookData = preload("res://data/notebook.tres")
-
-@onready var _views: Array[Control] = [%Main, %NotebookView, %BagView, %SettingsView]
-@onready var _main: Control = %Main
-@onready var _notebook_list: VBoxContainer = %NotebookList
-@onready var _notebook_header: Label = %NotebookHeader
-@onready var _bag_list: VBoxContainer = %BagList
-@onready var _damage_numbers: CheckButton = %DamageNumbers
-@onready var _debug_info: CheckButton = %DebugInfo
+@onready var _info: Label = %Info
+@onready var _resume: Button = %Resume
+@onready var _bag: Button = %Bag
+@onready var _talents: Button = %Talents
+@onready var _sound: Button = %Sound
+@onready var _damage: Button = %DamageNumbers
+@onready var _debug: Button = %DebugInfo
+@onready var _quit: Button = %Quit
 
 
 func _ready() -> void:
+	super()
 	add_to_group(&"pause_menu")
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	visible = false
 	%Title.text = GameTexts.PAUSE_TITLE
-	%Resume.text = GameTexts.RESUME
-	%Notebook.text = GameTexts.NOTEBOOK
-	%Bag.text = GameTexts.BAG
-	%Settings.text = GameTexts.SETTINGS
-	%Restart.text = GameTexts.RESTART_NIGHT
-	%BagHeader.text = GameTexts.BAG
-	%SettingsHeader.text = GameTexts.SETTINGS
-	_damage_numbers.text = GameTexts.SETTING_DAMAGE_NUMBERS
-	_debug_info.text = GameTexts.SETTING_DEBUG_INFO
-	%Resume.pressed.connect(close)
-	%Notebook.pressed.connect(_show_notebook)
-	%Bag.pressed.connect(_show_bag)
-	%Settings.pressed.connect(_show_settings)
-	%Restart.pressed.connect(_restart)
-	for back: Button in [%NotebookBack, %BagBack, %SettingsBack]:
-		back.text = GameTexts.BACK
-		back.pressed.connect(_show.bind(_main))
-	_damage_numbers.toggled.connect(Game.set_damage_numbers)
-	_debug_info.toggled.connect(Game.set_debug_info)
-	_debug_info.visible = DebugOverlay.available()
-	for button: Node in find_children("*", "BaseButton", true, false):
-		(button as BaseButton).pressed.connect($ClickSound.play)
+	%Help.text = GameTexts.PAUSE_HELP
+	_resume.text = GameTexts.RESUME
+	_resume.pressed.connect(close)
+	_bag.pressed.connect(func() -> void: _open_sub(&"bag_screen"))
+	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
+	_sound.pressed.connect(func() -> void:
+		Game.set_muted(not Game.profile.muted)
+		_refresh())
+	_damage.pressed.connect(func() -> void:
+		Game.set_damage_numbers(not Game.profile.damage_numbers)
+		_refresh())
+	_debug.pressed.connect(func() -> void:
+		Game.set_debug_info(not Game.profile.debug_info)
+		_refresh())
+	_debug.visible = DebugOverlay.available()
+	_quit.pressed.connect(_on_quit)
 
 
-## Ouvre le menu et met le jeu en pause (sauf si le jeu est déjà arrêté : écran de fin).
+## Met le jeu en pause et ouvre le menu (pendant une sortie seulement).
 func open() -> void:
-	if visible or get_tree().paused:
+	if visible or get_tree().paused or not _in_sortie():
 		return
 	get_tree().paused = true
-	_show(_main)
-	visible = true
+	_quit_armed = false
+	_refresh()
+	show_screen()
 
 
+## Revient au menu (depuis le sac ou les talents), le jeu reste en pause.
+func reopen() -> void:
+	_refresh()
+	show_screen()
+
+
+## Reprend la partie.
 func close() -> void:
 	if not visible:
 		return
-	visible = false
+	hide_screen()
 	get_tree().paused = false
 
 
-func is_open() -> bool:
-	return visible
-
-
-## Retour : d'une page du menu vers le menu, du menu vers le jeu, du jeu vers le menu.
+## Retour : du menu vers le jeu, du jeu vers le menu.
 func back() -> void:
-	if not visible:
-		open()
-	elif not _main.visible:
-		_show(_main)
-	else:
+	if visible:
 		close()
+	else:
+		open()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"pause"):
-		back()
-		get_viewport().set_input_as_handled()
+		if visible:
+			close()
+			get_viewport().set_input_as_handled()
+		elif not get_tree().paused and _in_sortie():
+			open()
+			get_viewport().set_input_as_handled()
 
 
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
-			back()
+			if visible:
+				close()
+			elif not get_tree().paused:
+				open()
 		NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED:
 			open()
 
 
-func _show(view: Control) -> void:
-	for each: Control in _views:
-		each.visible = each == view
-	var height: float = minf(list_max_height, get_viewport().get_visible_rect().size.y - list_margin)
-	for scroll: ScrollContainer in [%NotebookScroll, %BagScroll]:
-		scroll.custom_minimum_size.y = height
+func _refresh() -> void:
+	var profile: Profile = Game.profile
+	var progress: NightProgress = Game.progress
+	var info: String = GameTexts.NIGHT_CHAPTER % [Game.night, GameTexts.night_name(Game.night)]
+	if progress.challenge != &"":
+		var text: String = GameTexts.challenge_text(progress.challenge, progress.challenge_target)
+		info += "\n" + (GameTexts.CHALLENGE_DONE % text if progress.challenge_done else GameTexts.CHALLENGE_PROGRESS % [text, progress.challenge_progress, progress.challenge_target])
+	_info.text = info
+	_bag.text = GameTexts.BAG_BUTTON % profile.plumes
+	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+	_sound.text = GameTexts.SOUND_OFF if profile.muted else GameTexts.SOUND_ON
+	_damage.text = GameTexts.DAMAGE_NUMBERS_ON if profile.damage_numbers else GameTexts.DAMAGE_NUMBERS_OFF
+	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF
+	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else GameTexts.QUIT
 
 
-func _show_notebook() -> void:
-	_clear(_notebook_list)
-	var found: Array[int] = Game.profile.pages
-	_notebook_header.text = "%s · %s" % [GameTexts.NOTEBOOK, GameTexts.NOTEBOOK_COUNT % [found.size(), NOTEBOOK.pages.size()]]
-	for page: int in range(1, NOTEBOOK.pages.size() + 1):
-		if found.has(page):
-			_add_label(_notebook_list, GameTexts.PAGE_TITLE % page, &"HintLabel")
-			_add_label(_notebook_list, NOTEBOOK.text(page), &"")
-		else:
-			_add_label(_notebook_list, GameTexts.PAGE_MISSING % page, &"SmallLabel")
-	_show(%NotebookView)
+func _on_quit() -> void:
+	if not _quit_armed:
+		_quit_armed = true
+		_refresh()
+		return
+	hide_screen()
+	get_tree().call_group(&"night_level", &"end_sortie", &"quit")
 
 
-func _show_bag() -> void:
-	_clear(_bag_list)
-	if Game.profile.items.is_empty():
-		_add_label(_bag_list, GameTexts.BAG_EMPTY, &"SmallLabel")
-	for item: ItemData in Game.profile.items:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override(&"separation", 10)
-		var icon := TextureRect.new()
-		icon.texture = slot_icons[item.slot]
-		icon.modulate = rarity_colors[item.rarity]
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2.ONE * icon_size
-		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		row.add_child(icon)
-		var column := VBoxContainer.new()
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		column.add_theme_constant_override(&"separation", 0)
-		var name_label: Label = _add_label(column, GameTexts.item_name(item), &"")
-		name_label.modulate = rarity_colors[item.rarity].lerp(Color.WHITE, 0.4)
-		for effect: StringName in item.effects:
-			_add_label(column, GameTexts.effect_line(effect, item.effects[effect]), &"SmallLabel")
-		row.add_child(column)
-		_bag_list.add_child(row)
-	_show(%BagView)
+func _open_sub(group: StringName) -> void:
+	hide_screen()
+	var screen: Node = get_tree().get_first_node_in_group(group)
+	if screen:
+		screen.call(&"open", reopen)
 
 
-func _show_settings() -> void:
-	_damage_numbers.set_pressed_no_signal(Game.profile.damage_numbers)
-	_debug_info.set_pressed_no_signal(Game.profile.debug_info)
-	_show(%SettingsView)
-
-
-func _restart() -> void:
-	visible = false
-	get_tree().paused = false
-	get_tree().reload_current_scene()
-
-
-func _add_label(parent: Control, text: String, variation: StringName) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.theme_type_variation = variation
-	parent.add_child(label)
-	return label
-
-
-func _clear(list: Control) -> void:
-	for child: Node in list.get_children():
-		list.remove_child(child)
-		child.queue_free()
+func _in_sortie() -> bool:
+	var night: Node = get_tree().get_first_node_in_group(&"night_level")
+	return night == null or bool(night.get(&"in_sortie"))

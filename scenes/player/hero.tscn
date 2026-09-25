@@ -68,7 +68,7 @@ material = ExtResource("12_rig")
 script = ExtResource("11_animator")
 
 [node name="CarriedDrum" parent="Visual" instance=ExtResource("28_drum")]
-transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 2.16, 0)
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 2.16, 0)
 
 [node name="Trail" type="MeshInstance3D" parent="Visual"]
 material_override = SubResource("Material_trail")

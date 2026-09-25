@@ -32,6 +32,8 @@ const TOTEM := Vector2(0.0, -12.5)
 const ALTAR_HEIGHT := 2.0
 const TOTEM_R := 1.3
 const BOUNCE := &"bounce"
+## Hauteur d'un tronc couché (u) : de quoi apprendre à sauter.
+const LOG_HEIGHT := 1.35
 ## Valeurs d'une ligne de `voxels`.
 const STRIDE := 7
 
@@ -411,7 +413,7 @@ func _log(cx: float, cz: float, angle: float) -> void:
 			for k: int in range(-1, 1):
 				_sv(x - dz * k * 0.8, (y + 0.5) * 0.7, z + dx * k * 0.8, 0.8, 4.07, 0.5, 0.27 + (0.03 if i % 2 != 0 else 0.0))
 		if i % 2 == 0:
-			_add_solid(x, z, 0.85, 1.35)
+			_add_solid(x, z, 0.85, LOG_HEIGHT)
 	_sv(cx + dx * 3.6, 1.7, cz + dz * 3.6, 0.5, 1.3, 0.8, 0.5)
 
 

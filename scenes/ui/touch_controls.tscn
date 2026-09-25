@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/floating_joystick.gd" id="1_joystick"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/attack.svg" id="2_attack"]
@@ -7,26 +7,26 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/jump_pressed.svg" id="5_jump_pressed"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/dodge.svg" id="6_dodge"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/dodge_pressed.svg" id="7_dodge_pressed"]
-
-[ext_resource type="Script" path="res://scripts/ui/groove_meter.gd" id="8_groove"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring.svg" id="9_ring"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/groove_ring_under.svg" id="10_ring_under"]
+[ext_resource type="Script" path="res://scripts/ui/pad_rings.gd" id="8_rings"]
 [ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="11_controls"]
 
-[sub_resource type="CircleShape2D" id="CircleShape_big"]
-radius = 120.0
+[sub_resource type="CircleShape2D" id="CircleShape_attack"]
+radius = 165.0
 
-[sub_resource type="CircleShape2D" id="CircleShape_small"]
-radius = 90.0
+[sub_resource type="CircleShape2D" id="CircleShape_jump"]
+radius = 130.0
+
+[sub_resource type="CircleShape2D" id="CircleShape_dodge"]
+radius = 120.0
 
 [node name="TouchControls" type="CanvasLayer"]
 layer = 10
 script = ExtResource("11_controls")
-halo_color = Color(1, 0.86, 0.5, 0.95)
-halo_width = 3.0
-halo_margin = 6.0
-halo_pulse = 0.12
-hint_gap = 14.0
+halo_color = Color(1, 1, 1, 0.55)
+halo_width = 5.0
+halo_margin = 9.0
+halo_pulse = 0.08
+landscape_scale = 0.84
 
 [node name="Joystick" type="Control" parent="."]
 layout_mode = 3
@@ -34,21 +34,21 @@ anchor_right = 0.5
 anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("1_joystick")
-ring_color = Color(0.9, 0.94, 1, 0.55)
-knob_color = Color(0.96, 0.81, 0.48, 0.85)
-rest_color = Color(0.9, 0.94, 1, 0.18)
-ring_width = 3.0
-knob_ratio = 0.42
+ring_color = Color(1, 1, 1, 0.4)
+knob_color = Color(1, 1, 1, 0.85)
+rest_color = Color(1, 1, 1, 0.18)
+ring_width = 2.0
+knob_ratio = 0.44
 
 [node name="RestPoint" type="Control" parent="Joystick"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 76.0
-offset_top = -84.0
-offset_right = 76.0
-offset_bottom = -84.0
+offset_left = 82.0
+offset_top = -90.0
+offset_right = 82.0
+offset_bottom = -90.0
 mouse_filter = 2
 
 [node name="Buttons" type="Control" parent="."]
@@ -60,45 +60,81 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="GrooveMeter" type="TextureProgressBar" parent="Buttons"]
-offset_left = -120.0
-offset_top = -128.0
-offset_right = 168.0
-offset_bottom = 160.0
-scale = Vector2(0.333333, 0.333333)
-mouse_filter = 2
-max_value = 1000.0
-fill_mode = 4
-texture_under = ExtResource("10_ring_under")
-texture_progress = ExtResource("9_ring")
-script = ExtResource("8_groove")
-filling_color = Color(1, 0.82, 0.4, 1)
-rainbow_saturation = 0.7
-rainbow_value = 1.0
-
 [node name="Attack" type="TouchScreenButton" parent="Buttons"]
-position = Vector2(-112, -120)
+position = Vector2(-114, -118)
 scale = Vector2(0.333333, 0.333333)
 texture_normal = ExtResource("2_attack")
 texture_pressed = ExtResource("3_attack_pressed")
-shape = SubResource("CircleShape_big")
+shape = SubResource("CircleShape_attack")
 action = "attack"
 visibility_mode = 1
 
 [node name="Jump" type="TouchScreenButton" parent="Buttons"]
-position = Vector2(-190, -88)
+position = Vector2(-212, -94)
 scale = Vector2(0.333333, 0.333333)
 texture_normal = ExtResource("4_jump")
 texture_pressed = ExtResource("5_jump_pressed")
-shape = SubResource("CircleShape_small")
+shape = SubResource("CircleShape_jump")
 action = "jump"
 visibility_mode = 1
 
 [node name="Dodge" type="TouchScreenButton" parent="Buttons"]
-position = Vector2(-124, -198)
+position = Vector2(-100, -210)
 scale = Vector2(0.333333, 0.333333)
 texture_normal = ExtResource("6_dodge")
 texture_pressed = ExtResource("7_dodge_pressed")
-shape = SubResource("CircleShape_small")
+shape = SubResource("CircleShape_dodge")
 action = "dodge"
 visibility_mode = 1
+
+[node name="Rings" type="Node2D" parent="Buttons"]
+position = Vector2(-65, -69)
+script = ExtResource("8_rings")
+groove_radius = 54.0
+groove_width = 6.0
+beat_radius = 51.0
+beat_width = 3.0
+beat_grow = 0.55
+beat_fade = 0.8
+groove_color = Color(1, 0.824, 0.247, 1)
+groove_back = Color(1, 1, 1, 0.14)
+beat_color = Color(1, 1, 1, 1)
+rainbow = Array[Color]([Color(1, 0.184, 0.706, 1), Color(1, 0.824, 0.247, 1), Color(0.235, 1, 0.62, 1), Color(0.086, 0.878, 1, 1), Color(0.69, 0.302, 1, 1)])
+rainbow_speed = 0.9
+dodge_offset = Vector2(0, -106)
+dodge_radius = 34.0
+dodge_color = Color(0.04, 0, 0.1, 0.62)
+segments = 48
+
+[node name="AttackLabel" type="Label" parent="Buttons"]
+layout_mode = 0
+offset_left = -114.0
+offset_top = -118.0
+offset_right = -16.0
+offset_bottom = -20.0
+theme_type_variation = &"PadLarge"
+text = "Frappe"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JumpLabel" type="Label" parent="Buttons"]
+layout_mode = 0
+offset_left = -212.0
+offset_top = -94.0
+offset_right = -134.0
+offset_bottom = -16.0
+theme_type_variation = &"PadMedium"
+text = "Saut"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DodgeLabel" type="Label" parent="Buttons"]
+layout_mode = 0
+offset_left = -100.0
+offset_top = -210.0
+offset_right = -30.0
+offset_bottom = -140.0
+theme_type_variation = &"PadSmall"
+text = "Esquive"
+horizontal_alignment = 1
+vertical_alignment = 1

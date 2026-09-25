@@ -1,6 +1,6 @@
 extends Node3D
 ## Support des tambours, au cœur du village : le héros y pose les tambours qu'il porte.
-## Chaque tambour posé y reste visible.
+## Chaque tambour rapporté y reste visible à sa place (une par sanctuaire), d'une sortie à l'autre.
 
 ## Tambours posés, dans l'ordre (masqués au début de la nuit) ; chacun arrive dans une gerbe de
 ## cubes et un anneau doré.
@@ -11,10 +11,16 @@ extends Node3D
 
 
 func _ready() -> void:
-	for slot: Node3D in slots:
-		slot.visible = false
+	_show_returned()
 	_zone.body_entered.connect(_on_body_entered)
 	Game.drum_returned.connect(_on_drum_returned)
+	Game.night_started.connect(func(_night: int) -> void: _show_returned())
+
+
+## Montre les tambours déjà rapportés cette nuit.
+func _show_returned() -> void:
+	for i: int in slots.size():
+		slots[i].visible = i < Game.progress.returned.size() and Game.progress.returned[i]
 
 
 func _on_body_entered(body: Node3D) -> void:
@@ -22,11 +28,11 @@ func _on_body_entered(body: Node3D) -> void:
 		Game.return_drum()
 
 
-func _on_drum_returned(count: int) -> void:
+func _on_drum_returned(_count: int) -> void:
 	_sound.play()
-	for i: int in mini(count, slots.size()):
+	for i: int in mini(Game.progress.returned.size(), slots.size()):
 		var slot: Node3D = slots[i]
-		if slot.visible:
+		if slot.visible or not Game.progress.returned[i]:
 			continue
 		slot.visible = true
 		var fx: Effects = Effects.of(self)

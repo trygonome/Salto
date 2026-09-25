@@ -45,7 +45,7 @@ func physics_update(delta: float) -> void:
 		hero.move(delta)
 		machine.transition_to(&"Air")
 		return
-	_elapsed += delta
+	_elapsed += delta * hero.stats.attack_speed
 	hero.visual.animator.set_attack_time(_elapsed)
 	hero.visual.set_yaw_offset_deg(attack.yaw_offset_deg(_elapsed))
 	var lunge_speed: float = attack.lunge / attack.impact if _elapsed <= attack.impact else 0.0
@@ -55,6 +55,8 @@ func physics_update(delta: float) -> void:
 	if not _struck and _elapsed >= attack.impact:
 		_struck = true
 		hero.strike(attack, _direction, _judgement)
+		if hero.stats.finale and attack == tuning.combo_attacks[tuning.combo_attacks.size() - 1]:
+			hero.quake(tuning.finale_quake_radius, tuning.finale_quake_damage, &"finale")
 	if _elapsed >= attack.chain_from and hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")
 	elif _elapsed >= attack.chain_from + tuning.move_cancel_delay and hero.input_move.length() > tuning.move_cancel_threshold:

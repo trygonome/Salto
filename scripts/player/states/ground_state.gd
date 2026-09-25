@@ -19,7 +19,7 @@ func physics_update(delta: float) -> void:
 		return
 	var direction: Vector3 = hero.move_direction()
 	var rate: float = tuning.ground_brake_rate if direction.is_zero_approx() else tuning.ground_accel_rate
-	hero.approach_horizontal_velocity(direction * tuning.run_speed, rate, delta)
+	hero.approach_horizontal_velocity(direction * tuning.run_speed * hero.stats.speed, rate, delta)
 	hero.turn_toward(direction, tuning.turn_rate_ground, delta)
 	var jumped: bool = hero.consume_press(&"jump")
 	if jumped:

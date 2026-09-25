@@ -1,0 +1,152 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
+[ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
+
+[sub_resource type="Gradient" id="Gradient_fade"]
+offsets = PackedFloat32Array(0, 0.22, 0.55, 1)
+colors = PackedColorArray(0.114, 0.043, 0.2, 0, 0.114, 0.043, 0.2, 0, 0.114, 0.043, 0.2, 0.62, 0.114, 0.043, 0.2, 0.96)
+
+[sub_resource type="GradientTexture2D" id="Texture_fade"]
+gradient = SubResource("Gradient_fade")
+width = 8
+height = 256
+fill_from = Vector2(0, 0)
+fill_to = Vector2(0, 1)
+
+[node name="TitleScreen" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_title")
+saga_dot_size = 32.0
+max_width = 460.0
+side_margin = 20.0
+top_margin = 24.0
+bottom_margin = 28.0
+compact_height = 540.0
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("Texture_fade")
+expand_mode = 1
+
+[node name="SafeArea" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="Margin" type="MarginContainer" parent="SafeArea/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Column" type="VBoxContainer" parent="SafeArea/Scroll/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 2
+
+[node name="GameTitle" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"DisplayTitle"
+horizontal_alignment = 1
+script = ExtResource("3_neon")
+echo_color = Color(0.086, 0.878, 1, 1)
+echo_offset = Vector2(-5, -5)
+
+[node name="Subtitle" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SubLabel"
+horizontal_alignment = 1
+
+[node name="Gap1" type="Control" parent="SafeArea/Scroll/Margin/Column"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="Saga" type="HBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Gap2" type="Control" parent="SafeArea/Scroll/Margin/Column"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="Chapter" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"ChapterLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ChapterSmall" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Gap3" type="Control" parent="SafeArea/Scroll/Margin/Column"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Buttons" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+
+[node name="Play" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"CtaButton"
+
+[node name="Bag" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="Talents" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="NewGame" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TextButton"
+
+[node name="Records" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_click")

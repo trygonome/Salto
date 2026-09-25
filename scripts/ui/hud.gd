@@ -1,314 +1,495 @@
 class_name Hud
 extends CanvasLayer
-## Interface en jeu, selon la charte des retours à l'écran (docs/GDD.md, section 12) :
-## - le monde parle d'abord : le HUD se limite aux PV, aux tambours et au bouton de pause ;
-## - au plus un message éphémère à la fois, en haut, ou près de sa source (répliques) ;
-## - grands titres pour trois moments seulement (début de nuit, sanctuaire libéré, nuit
-##   accomplie) ; pendant un titre, les messages du haut et les aides attendent ;
-## - carte de l'objet trouvé en bas, pendant loot_card_time ;
-## - aide contextuelle : le bon bouton brille, 2 à 4 mots, jusqu'à ce que l'action soit faite ;
-## - chiffres de dégâts discrets et désactivables.
+## Interface en jeu du prototype :
+## - en haut : niveau, PV et expérience ; tambours rapportés et bouton de pause (il brille quand un
+##   point de talent ou un objet nouveau attend) ; objectif (il bat quand il change) ; défi de la
+##   sortie ; barre du Grand Muet qui se bat ;
+## - combo à droite ; repère de l'objectif (au bord de l'écran s'il est hors champ, avec la
+##   distance) ;
+## - bannières au centre (une à la fois, les suivantes attendent), message court sous l'objectif,
+##   conseil près du bouton à utiliser, bulle au-dessus de qui parle ;
+## - voile rose quand le héros est touché ; chiffres de dégâts discrets et désactivables.
 
-## Le grand titre en cours vient de disparaître.
-signal title_finished
-
-## Importance d'un message : une réplique ne remplace pas une information.
-enum Priority { REPLY, INFO }
-
-## Couleur de chaque rareté (commun, rare, épique, légendaire).
-@export var rarity_colors: Array[Color]
-## Pictogramme de chaque emplacement d'objet (chevillières, masque, talisman).
-@export var slot_icons: Array[Texture2D]
-@export var drum_icon: Texture2D
-@export var drum_empty_icon: Texture2D
-## Taille d'un pictogramme de tambour (px).
-@export var drum_icon_size: float
+## Icônes de l'objectif : village, tambour, sanctuaire, nuit accomplie.
+@export var quest_icons: Dictionary[StringName, Texture2D]
 @export var damage_number_scene: PackedScene
 ## Écart minimal entre un texte et les bords de l'écran (px).
 @export var screen_margin: float
 ## Hauteur du point d'impact où apparaît un chiffre de dégâts (m, au-dessus du contact).
 @export var damage_number_height: float
-## Largeur d'une réplique (px) : les longues passent à la ligne.
-@export var reply_width: float
-## Une réplique dont celui qui parle sort de l'écran de plus que cette marge (px) se cache.
-@export var reply_offscreen_margin: float
-## Écart entre la carte d'objet et le bas de l'écran : en portrait, au-dessus des boutons ;
-## en paysage, tout en bas entre le joystick et les boutons (px).
-@export var card_bottom_portrait: float
-@export var card_bottom_landscape: float
+## Repère : marge sur les côtés, espace laissé sous le haut de l'interface, en bas en portrait et en
+## paysage (px) ; hauteur visée au-dessus de l'objectif, et du village (m) ; caché plus près que (m).
+@export var marker_side: float
+@export var marker_top_gap: float
+@export var marker_bottom_portrait: float
+@export var marker_bottom_landscape: float
+@export var marker_height: float
+@export var marker_home_height: float
+@export var marker_min_distance: float
+## Bulle : écart sous le haut de l'interface (px) ; marge hors écran avant de la cacher (px).
+@export var bubble_top_gap: float
+@export var bubble_offscreen: float
+## Conseil : écart au-dessus du bouton (px) ; place pour le conseil « courir » (fraction de la
+## largeur, px depuis le bas).
+@export var coach_gap: float
+@export var coach_move_x: float
+@export var coach_move_bottom: float
+## Le conseil flotte doucement : hauteur (px), durée d'un aller-retour (s).
+@export var coach_bob_height: float
+@export var coach_bob_period: float
+## Largeur au plus d'une bulle (px), d'un message, d'un conseil, d'une bannière, de l'objectif
+## (fraction de l'écran).
+@export var bubble_max_width: float
+@export var toast_max_fraction: float
+@export var coach_max_fraction: float
+@export var banner_max_fraction: float
+@export var quest_max_fraction: float
+## Combo : à partir de combien il s'affiche, et devient doré.
+@export var combo_min: int
+@export var combo_hot: int
+## Barre du Grand Muet : visible à moins de (m).
+@export var boss_bar_range: float
 
 var _hero: Hero
-var _title_active: bool = false
-var _message_priority: Priority = Priority.REPLY
-var _message_time: float = 0.0
-var _message_left: float = 0.0
-var _message_label: Label
-var _reply_source: Node3D
-var _reply_point: Vector3 = Vector3.ZERO
-var _reply_height: float = 0.0
-## Message du haut arrivé pendant un titre : [texte].
-var _pending_message: String = ""
-var _pending_hint: Array = []
+var _night: VoxelNight
+var _banners: Array[PackedStringArray] = []
+var _banner_busy: bool = false
+var _toast_left: float = 0.0
+var _bubble_left: float = 0.0
+var _bubble_source: Node3D
+var _bubble_height: float = 0.0
+var _coach_action: StringName = &""
 var _hint: StringName = &""
-var _hint_action: StringName = &""
-var _reply_index: int = 0
+var _quest_key: String = ""
+var _combo_shown: int = 0
 var _time: float = 0.0
-var _card_tween: Tween
+var _reply_index: int = 0
 
-@onready var _health_bar: HealthBar = %HealthBar
-@onready var _drums: HBoxContainer = %Drums
+@onready var _safe: Control = $SafeArea
+@onready var _top: VBoxContainer = %Top
+@onready var _level: Label = %LevelLabel
+@onready var _hp_bar: ProgressBar = %HpBar
+@onready var _hp_text: Label = %HpText
+@onready var _xp_bar: ProgressBar = %XpBar
+@onready var _drums: Array[PanelContainer] = [%Drum1, %Drum2, %Drum3]
 @onready var _pause_button: Button = %PauseButton
-@onready var _message: Label = %Message
-@onready var _reply: Label = %Reply
-@onready var _title: Control = %Title
-@onready var _over_title: Label = %OverTitle
-@onready var _title_text: Label = %TitleText
-@onready var _card: Control = %LootCard
-@onready var _card_icon: TextureRect = %CardIcon
-@onready var _card_name: Label = %CardName
-@onready var _hint_label: Label = %Hint
-@onready var _title_sound: AudioStreamPlayer = $TitleSound
+@onready var _quest: PanelContainer = %Quest
+@onready var _quest_icon: TextureRect = %QuestIcon
+@onready var _quest_title: Label = %QuestTitle
+@onready var _quest_sub: Label = %QuestSub
+@onready var _challenge: PanelContainer = %Challenge
+@onready var _challenge_label: Label = %ChallengeLabel
+@onready var _boss: Control = %Boss
+@onready var _boss_name: Label = %BossName
+@onready var _boss_bar: ProgressBar = %BossBar
+@onready var _combo: Control = %Combo
+@onready var _combo_number: Label = %ComboNumber
+@onready var _marker: Control = %Marker
+@onready var _marker_arrow: Control = %MarkerArrow
+@onready var _marker_label: Label = %MarkerLabel
+@onready var _banner: Control = %Banner
+@onready var _banner_small: Label = %BannerSmall
+@onready var _banner_title: Label = %BannerTitle
+@onready var _banner_detail: Label = %BannerDetail
+@onready var _toast: PanelContainer = %Toast
+@onready var _toast_label: Label = %ToastLabel
+@onready var _coach: PanelContainer = %Coach
+@onready var _coach_label: Label = %CoachLabel
+@onready var _bubble: PanelContainer = %Bubble
+@onready var _bubble_label: Label = %BubbleLabel
+@onready var _flash: CanvasItem = %Flash
+@onready var _banner_sound: AudioStreamPlayer = $BannerSound
 @onready var _click_sound: AudioStreamPlayer = $ClickSound
 
 
 func _ready() -> void:
 	add_to_group(&"hud")
-	for control: CanvasItem in [_message, _reply, _title, _card, _hint_label]:
+	for control: CanvasItem in [_banner, _toast, _coach, _bubble, _marker, _boss, _combo, _flash]:
 		control.visible = false
 	_pause_button.pressed.connect(func() -> void:
 		_click_sound.play()
 		get_tree().call_group(&"pause_menu", &"open"))
-	Game.night_started.connect(_on_night_started)
-	Game.drum_picked.connect(_on_drum_picked)
-	Game.drum_dropped.connect(_on_drum_dropped)
-	Game.drum_returned.connect(func(_count: int) -> void: _rebuild_drums())
-	Game.sanctuary_freed.connect(func() -> void: show_title("", GameTexts.TITLE_SANCTUARY_FREED))
-	Game.night_completed.connect(_on_night_completed)
+	Game.sanctuary_freed.connect(func() -> void:
+		show_banner(GameTexts.BANNER_SANCTUARY, GameTexts.BANNER_SANCTUARY_TITLE, GameTexts.BANNER_SANCTUARY_DETAIL))
 	Game.muet_freed.connect(_on_muet_freed)
-	Game.page_found.connect(func(_page: int) -> void: show_message(GameTexts.MESSAGE_PAGE_FOUND))
-	Game.item_found.connect(show_item)
+	Game.item_found.connect(_on_item_found)
+	Game.level_up.connect(func(level: int) -> void:
+		show_banner(GameTexts.BANNER_LEVEL % level, GameTexts.BANNER_LEVEL_TITLE, GameTexts.BANNER_LEVEL_DETAIL))
+	Game.challenge_done.connect(func(reward: int) -> void:
+		show_banner(GameTexts.BANNER_CHALLENGE, GameTexts.BANNER_CHALLENGE_TITLE % reward, _challenge_text()))
+	Game.drum_dropped.connect(func() -> void:
+		if Game.playing:
+			show_toast(GameTexts.TOAST_DRUM_LOST))
+	Game.sortie_started.connect(func() -> void: _quest_key = "")
 	get_viewport().size_changed.connect(_layout)
 	_layout()
-	_rebuild_drums()
 
 
 func _process(delta: float) -> void:
 	_time += delta
 	if _hero == null:
 		_find_hero()
-	if _hero:
-		_health_bar.set_fraction(_hero.health.current / _hero.health.maximum)
-	_update_message(delta)
-	_update_hint()
-	_pulse_carried_drum()
-
-
-## Message éphémère en haut de l'écran (remplace le précédent, sauf une information par une
-## réplique). Pendant un grand titre, il attend la fin du titre.
-func show_message(text: String, priority: Priority = Priority.INFO) -> void:
-	if _title_active:
-		_pending_message = text
+	if _night == null:
+		_night = get_tree().get_first_node_in_group(&"night_level") as VoxelNight
+	if not visible:
 		return
-	if not _can_replace(priority):
-		return
-	_start_message(_message, text, priority, Tuning.data.message_time)
-	_reply_source = null
+	_update_me()
+	_update_quest()
+	_update_boss()
+	_update_combo()
+	_update_marker()
+	_update_toast(delta)
+	_update_bubble(delta)
+	_update_coach()
+	_pause_button.theme_type_variation = &"IconBadge" if _needs_attention() else &"IconButton"
 
 
-## Réplique près de sa source (un Muet libéré, le Chef), `height` mètres au-dessus de ses pieds.
-func show_reply(text: String, source: Node3D, height: float, duration: float, priority: Priority = Priority.REPLY) -> void:
-	if not _can_replace(priority):
-		return
-	_reply_source = source
-	_reply_point = source.global_position
-	_reply_height = height
-	_start_message(_reply, text, priority, duration)
-	_place_reply()
+## Bannière au centre : surtitre, titre, précision. Une à la fois ; au plus trois attendent.
+func show_banner(small: String, title: String, detail: String = "") -> void:
+	if _banners.size() > 2:
+		_banners.pop_front()
+	_banners.append(PackedStringArray([small, title, detail]))
+	if not _banner_busy:
+		_next_banner()
 
 
-## Grand titre : un petit surtitre (facultatif) et le titre.
-func show_title(over_title: String, title: String) -> void:
-	_title_active = true
-	_message.visible = false
-	_over_title.text = over_title
-	_over_title.visible = over_title != ""
-	_title_text.text = title
-	_title.visible = true
-	_title.modulate.a = 0.0
-	_title_sound.play()
-	var tuning: TuningData = Tuning.data
-	var tween: Tween = create_tween()
-	tween.tween_property(_title, "modulate:a", 1.0, tuning.title_fade_in_time)
-	tween.tween_interval(tuning.title_hold_time)
-	tween.tween_property(_title, "modulate:a", 0.0, tuning.title_fade_out_time)
-	tween.tween_callback(_end_title)
+## Bannière affichée (vide s'il n'y en a pas).
+func current_banner() -> String:
+	return _banner_title.text if _banner.visible else ""
 
 
-## Durée totale d'un grand titre (s).
-static func title_duration(tuning: TuningData) -> float:
-	return tuning.title_fade_in_time + tuning.title_hold_time + tuning.title_fade_out_time
+## Message court sous l'objectif.
+func show_toast(text: String, duration: float = -1.0) -> void:
+	_toast_label.text = text
+	_fit(_toast_label, _view_width() * toast_max_fraction)
+	_toast_left = duration if duration > 0.0 else Tuning.data.toast_time
+	_toast.visible = true
+	_toast.modulate.a = 0.0
 
 
-func is_title_active() -> bool:
-	return _title_active
+func current_toast() -> String:
+	return _toast_label.text if _toast_left > 0.0 else ""
 
 
-## Texte du message éphémère affiché (vide s'il n'y en a pas).
-func current_message() -> String:
-	if _message_left <= 0.0:
-		return ""
-	return _message_label.text
+## Bulle au-dessus de `source` (un villageois, le Chef, un Muet libéré), `height` m au-dessus de
+## ses pieds.
+func show_bubble(text: String, source: Node3D, height: float) -> void:
+	_bubble_label.text = text
+	_fit(_bubble_label, bubble_max_width)
+	_bubble_source = source
+	_bubble_height = height
+	_bubble_left = Tuning.data.bubble_time
+	_bubble.visible = true
+	_bubble.reset_size()
+	_place_bubble()
 
 
-## Carte de l'objet trouvé, en bas, pendant loot_card_time.
-func show_item(item: ItemData) -> void:
-	_card_icon.texture = slot_icons[item.slot]
-	_card_icon.modulate = rarity_colors[item.rarity]
-	_card_name.text = GameTexts.item_name(item)
-	_card_name.modulate = rarity_colors[item.rarity].lerp(Color.WHITE, 0.5)
-	_card.visible = true
-	_card.modulate.a = 0.0
-	if _card_tween:
-		_card_tween.kill()
-	var tuning: TuningData = Tuning.data
-	_card_tween = create_tween()
-	_card_tween.tween_property(_card, "modulate:a", 1.0, tuning.message_fade_time)
-	_card_tween.tween_interval(tuning.loot_card_time)
-	_card_tween.tween_property(_card, "modulate:a", 0.0, tuning.message_fade_time)
-	_card_tween.tween_callback(_card.hide)
+func current_bubble() -> String:
+	return _bubble_label.text if _bubble_left > 0.0 else ""
 
 
-## Aide contextuelle : le bouton de `action` brille, avec `text` au-dessus.
-func show_hint(hint: StringName, action: StringName, text: String) -> void:
-	if _title_active:
-		_pending_hint = [hint, action, text]
-		return
-	_clear_hint()
-	_hint = hint
-	_hint_action = action
-	_hint_label.text = text
-	_hint_label.visible = true
+## Conseil près du bouton de `action` (« move » : près du joystick), qui brille.
+func show_coach(text: String, action: StringName) -> void:
+	hide_coach()
+	_coach_action = action
+	_coach_label.text = text
+	_fit(_coach_label, _view_width() * coach_max_fraction)
+	_coach.visible = true
+	_coach.reset_size()
 	_controls_call(&"highlight", [action, true])
+	_update_coach()
+
+
+func hide_coach() -> void:
+	if _coach_action != &"":
+		_controls_call(&"highlight", [_coach_action, false])
+	_coach_action = &""
+	_hint = &""
+	_coach.visible = false
+
+
+## Conseil affiché (vide s'il n'y en a pas).
+func current_coach() -> String:
+	return _coach_label.text if _coach.visible else ""
+
+
+## Aide d'une zone (parcours d'essai) : un conseil qui s'en va dès que l'action est faite.
+func show_hint(hint: StringName, action: StringName, text: String) -> void:
+	show_coach(text, action)
+	_hint = hint
 
 
 func hide_hint(hint: StringName) -> void:
-	if not _pending_hint.is_empty() and _pending_hint[0] == hint:
-		_pending_hint = []
 	if _hint == hint:
-		_clear_hint()
+		hide_coach()
 
 
-## Aide affichée (vide s'il n'y en a pas).
 func current_hint() -> StringName:
 	return _hint
 
 
-func _can_replace(priority: Priority) -> bool:
-	return _message_left <= 0.0 or priority >= _message_priority
+## Niveau, PV, expérience, tambours.
+func _update_me() -> void:
+	var profile: Profile = Game.profile
+	_level.text = GameTexts.LEVEL_CHIP % profile.level
+	if _hero:
+		var current: int = ceili(maxf(_hero.health.current, 0.0))
+		var maximum: int = roundi(_hero.health.maximum)
+		_hp_bar.max_value = maximum
+		_hp_bar.value = current
+		_hp_text.text = GameTexts.HEALTH % [current, maximum]
+	_xp_bar.value = profile.xp / ProgressionMath.xp_needed(profile.level, Tuning.data)
+	var progress: NightProgress = Game.progress
+	var pulse: float = 0.5 + 0.5 * sin(TAU * _time / Tuning.data.hint_pulse_period)
+	for i: int in _drums.size():
+		var returned: bool = i < progress.returned.size() and progress.returned[i]
+		var carried: bool = progress.carrying.has(i)
+		_drums[i].theme_type_variation = &"DrumOn" if returned or carried else &"DrumOff"
+		_drums[i].modulate.a = lerpf(0.45, 1.0, pulse) if carried else 1.0
 
 
-func _start_message(label: Label, text: String, priority: Priority, duration: float) -> void:
-	_message.visible = false
-	_reply.visible = false
-	_message_label = label
-	_message_priority = priority
-	_message_time = duration
-	_message_left = duration
-	label.text = text
-	label.modulate.a = 0.0
-	label.visible = true
+## Objectif : il bat quand il change ; pendant une sortie, une bannière l'annonce.
+func _update_quest() -> void:
+	var goal: Dictionary = _night.objective() if _night and _night.in_sortie else {}
+	var key: String = String(goal.get(&"title", GameTexts.QUEST_WON))
+	if key != _quest_key:
+		var announce: bool = _quest_key != "" and not goal.is_empty()
+		_quest_key = key
+		_quest_icon.texture = quest_icons[goal.get(&"icon", &"won")]
+		_quest_title.text = key
+		_quest_sub.text = String(goal.get(&"sub", GameTexts.QUEST_WON_SUB))
+		_fit(_quest_title, _view_width() * quest_max_fraction)
+		_fit(_quest_sub, _view_width() * quest_max_fraction)
+		_pulse_quest()
+		if announce:
+			show_banner(GameTexts.BANNER_NEW_OBJECTIVE, key, goal[&"sub"])
+	var progress: NightProgress = Game.progress
+	_challenge.visible = progress.challenge != &""
+	if _challenge.visible:
+		var done: bool = progress.challenge_done
+		_challenge.theme_type_variation = &"ChallengeDone" if done else &"ChallengePanel"
+		_challenge_label.theme_type_variation = &"ChallengeDoneLabel" if done else &"ChallengeLabel"
+		_challenge_label.text = GameTexts.CHALLENGE_DONE % _challenge_text() if done \
+			else GameTexts.CHALLENGE_PROGRESS % [_challenge_text(), progress.challenge_progress, progress.challenge_target]
 
 
-func _update_message(delta: float) -> void:
-	if _message_left <= 0.0:
+func _challenge_text() -> String:
+	return GameTexts.challenge_text(Game.progress.challenge, Game.progress.challenge_target)
+
+
+func _pulse_quest() -> void:
+	var tuning: TuningData = Tuning.data
+	_quest.pivot_offset = _quest.size / 2.0
+	_quest.theme_type_variation = &"QuestFlash"
+	var tween: Tween = create_tween()
+	for i: int in tuning.quest_pulses:
+		tween.tween_property(_quest, "scale", Vector2.ONE * tuning.quest_pulse_scale, tuning.quest_pulse_time * 0.35)
+		tween.tween_property(_quest, "scale", Vector2.ONE, tuning.quest_pulse_time * 0.65)
+	tween.tween_callback(func() -> void: _quest.theme_type_variation = &"QuestPanel")
+
+
+## Barre du Grand Muet qui se bat contre le héros.
+func _update_boss() -> void:
+	var fighting: Muet = null
+	if _hero:
+		for node: Node in get_tree().get_nodes_in_group(&"bosses"):
+			var boss: Muet = node as Muet
+			if boss.target != null and not boss.is_freed() and boss.global_position.distance_to(_hero.global_position) < boss_bar_range:
+				fighting = boss
+				break
+	_boss.visible = fighting != null
+	if fighting:
+		_boss_name.text = fighting.display_name
+		_boss_bar.max_value = fighting.health.maximum
+		_boss_bar.value = fighting.health.current
+
+
+func _update_combo() -> void:
+	var hits: int = _hero.combo.hits if _hero else 0
+	_combo.visible = hits >= combo_min
+	if hits == _combo_shown:
 		return
-	_message_left -= delta
-	var fade: float = Tuning.data.message_fade_time
-	var shown: float = _message_time - _message_left
-	_message_label.modulate.a = clampf(minf(shown, _message_left) / fade, 0.0, 1.0)
-	if _message_label == _reply:
-		_place_reply()
-	if _message_left <= 0.0:
-		_message_label.visible = false
+	var grew: bool = hits > _combo_shown
+	_combo_shown = hits
+	if not _combo.visible:
+		return
+	_combo_number.text = str(hits)
+	_combo_number.theme_type_variation = &"ComboHot" if hits >= combo_hot else &"ComboNumber"
+	if grew:
+		var tuning: TuningData = Tuning.data
+		_combo_number.pivot_offset = _combo_number.size / 2.0
+		_combo_number.scale = Vector2.ONE * tuning.combo_pop_scale
+		create_tween().tween_property(_combo_number, "scale", Vector2.ONE, tuning.combo_pop_time).set_ease(Tween.EASE_OUT)
 
 
-func _place_reply() -> void:
-	if is_instance_valid(_reply_source):
-		_reply_point = _reply_source.global_position
-	var camera: Camera3D = _reply.get_viewport().get_camera_3d()
-	if camera == null:
+## Repère de l'objectif : au-dessus de lui s'il est à l'écran, sinon au bord, pointé vers lui.
+func _update_marker() -> void:
+	var goal: Dictionary = _night.objective() if _night and _night.in_sortie else {}
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if goal.is_empty() or _hero == null or camera == null:
+		_marker.visible = false
 		return
-	var world: Vector3 = _reply_point + Vector3.UP * _reply_height
-	if camera.is_position_behind(world):
-		_reply.visible = false
+	var point: Vector3 = goal[&"point"]
+	var distance: float = Vector2(point.x - _hero.global_position.x, point.z - _hero.global_position.z).length()
+	if distance < marker_min_distance:
+		_marker.visible = false
 		return
+	_marker.visible = true
+	var target: Vector3 = point + Vector3.UP * (marker_home_height if goal[&"kind"] == &"return" else marker_height)
+	var behind: bool = camera.is_position_behind(target)
+	var screen: Vector2 = camera.unproject_position(target)
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var top: float = _top.get_global_rect().end.y + marker_top_gap
+	var bottom: float = view.y - (marker_bottom_portrait if CameraRig.is_portrait(view) else marker_bottom_landscape)
+	var inside: bool = not behind and screen.x > marker_side and screen.x < view.x - marker_side and screen.y > top and screen.y < bottom
+	var angle: float = 0.0
+	if not inside:
+		var center := Vector2(view.x / 2.0, (top + bottom) / 2.0)
+		var toward: Vector2 = screen - center
+		if behind:
+			toward = -toward
+		var kx: float = (view.x / 2.0 - marker_side) / maxf(0.001, absf(toward.x))
+		var ky: float = ((center.y - top) if toward.y < 0.0 else (bottom - center.y)) / maxf(0.001, absf(toward.y))
+		screen = center + toward * minf(kx, ky)
+		angle = toward.angle() - PI / 2.0
+	_marker.position = screen - Vector2(_marker.size.x / 2.0, _marker.size.y)
+	_marker_arrow.pivot_offset = _marker_arrow.size / 2.0
+	_marker_arrow.rotation = angle
+	_marker_label.text = GameTexts.MARKER_DISTANCE % (roundi(distance / Tuning.data.marker_distance_step) * Tuning.data.marker_distance_step)
+
+
+func _update_toast(delta: float) -> void:
+	if _toast_left <= 0.0:
+		return
+	var tuning: TuningData = Tuning.data
+	_toast_left -= delta
+	_toast.modulate.a = clampf(minf(_toast.modulate.a + delta / tuning.message_fade_time, _toast_left / tuning.message_fade_time), 0.0, 1.0)
+	_toast.reset_size()
+	_toast.position.x = (_safe.size.x - _toast.size.x) / 2.0
+	if _toast_left <= 0.0:
+		_toast.visible = false
+
+
+func _update_bubble(delta: float) -> void:
+	if _bubble_left <= 0.0:
+		return
+	_bubble_left -= delta
+	if _bubble_left <= 0.0 or not is_instance_valid(_bubble_source):
+		_bubble_left = 0.0
+		_bubble.visible = false
+		return
+	_place_bubble()
+
+
+func _place_bubble() -> void:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null or not is_instance_valid(_bubble_source):
+		return
+	var world: Vector3 = _bubble_source.global_position + Vector3.UP * _bubble_height
+	var view: Vector2 = get_viewport().get_visible_rect().size
 	var point: Vector2 = camera.unproject_position(world)
-	var screen: Vector2 = _reply.get_viewport_rect().size
-	var margin: float = reply_offscreen_margin
-	_reply.visible = point.x > -margin and point.x < screen.x + margin and point.y > 0.0 and point.y < screen.y + margin
-	if not _reply.visible:
+	var shown: bool = not camera.is_position_behind(world) and point.x > -bubble_offscreen and point.x < view.x + bubble_offscreen \
+		and point.y > 0.0 and point.y < view.y + bubble_offscreen
+	_bubble.modulate.a = 1.0 if shown else 0.0
+	_bubble.reset_size()
+	var size: Vector2 = _bubble.size
+	var top: float = _top.get_global_rect().end.y + bubble_top_gap
+	_bubble.position = Vector2(
+		clampf(point.x - size.x / 2.0, screen_margin, maxf(screen_margin, view.x - size.x - screen_margin)),
+		clampf(point.y - size.y, top, maxf(top, view.y - size.y - screen_margin)))
+
+
+## Le conseil se place au-dessus de son bouton (ou du joystick) ; un conseil de zone s'en va dès
+## que le héros court.
+func _update_coach() -> void:
+	if _coach_action == &"":
 		return
-	_reply.size = Vector2(reply_width, 0.0)
-	_reply.size = Vector2(reply_width, _reply.get_combined_minimum_size().y)
-	# Jamais sur la barre du haut (PV, tambours, pause) : au plus haut, à la place des messages.
-	var top: float = _message.get_global_rect().position.y
-	_reply.position = _clamp_to_screen(point - Vector2(_reply.size.x / 2.0, _reply.size.y), _reply.size, top)
-
-
-func _clamp_to_screen(position: Vector2, size: Vector2, top: float) -> Vector2:
-	var screen: Vector2 = _reply.get_viewport_rect().size
-	return Vector2(
-		clampf(position.x, screen_margin, maxf(screen_margin, screen.x - size.x - screen_margin)),
-		clampf(position.y, top, maxf(top, screen.y - size.y - screen_margin)))
-
-
-## Place la carte d'objet selon l'orientation de l'écran.
-func _layout() -> void:
-	var height: float = card_bottom_portrait if CameraRig.is_portrait(_card.get_viewport_rect().size) else card_bottom_landscape
-	var card_height: float = _card.offset_bottom - _card.offset_top
-	_card.offset_bottom = -height
-	_card.offset_top = -height - card_height
-
-
-func _end_title() -> void:
-	_title.visible = false
-	_title_active = false
-	if _pending_message != "":
-		show_message(_pending_message)
-		_pending_message = ""
-	if not _pending_hint.is_empty():
-		var pending: Array = _pending_hint
-		_pending_hint = []
-		show_hint(pending[0], pending[1], pending[2])
-	title_finished.emit()
-
-
-func _update_hint() -> void:
-	if _hint == &"":
+	if _hint != &"" and _coach_action == TouchControls.MOVE and _hero and Vector2(_hero.velocity.x, _hero.velocity.z).length() > Tuning.data.hint_move_speed:
+		_complete_hint()
 		return
-	if _hint_action == TouchControls.MOVE and _hero:
-		var running: Vector3 = Vector3(_hero.velocity.x, 0.0, _hero.velocity.z)
-		if running.length() > Tuning.data.hint_move_speed:
-			_complete_hint()
-			return
-	var anchor: Variant = _controls_call(&"hint_anchor", [_hint_action])
-	if anchor is Vector2:
-		_hint_label.reset_size()
-		var top_left: Vector2 = anchor - Vector2(_hint_label.size.x / 2.0, _hint_label.size.y)
-		_hint_label.position = _clamp_to_screen(top_left, _hint_label.size, screen_margin)
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	_coach.reset_size()
+	var size: Vector2 = _coach.size
+	var anchor := Vector2(view.x * coach_move_x, view.y - coach_move_bottom)
+	var rect: Variant = _controls_call(&"button_rect", [_coach_action])
+	if rect is Rect2 and (rect as Rect2).has_area():
+		anchor = Vector2((rect as Rect2).get_center().x, (rect as Rect2).position.y - coach_gap)
+	var bob: float = sin(TAU * _time / coach_bob_period) * coach_bob_height
+	_coach.position = Vector2(clampf(anchor.x - size.x / 2.0, screen_margin, maxf(screen_margin, view.x - size.x - screen_margin)), anchor.y - size.y + bob)
 
 
 func _complete_hint() -> void:
-	Game.mark_hint_done(_hint)
-	_clear_hint()
+	if _hint != &"":
+		Game.mark_hint_done(_hint)
+	hide_coach()
 
 
-func _clear_hint() -> void:
-	if _hint_action != &"":
-		_controls_call(&"highlight", [_hint_action, false])
-	_hint = &""
-	_hint_action = &""
-	_hint_label.visible = false
+func _next_banner() -> void:
+	if _banners.is_empty():
+		_banner_busy = false
+		_banner.visible = false
+		return
+	var tuning: TuningData = Tuning.data
+	var entry: PackedStringArray = _banners.pop_front()
+	_banner_busy = true
+	_banner_small.text = entry[0]
+	_banner_title.text = entry[1]
+	_banner_detail.text = entry[2]
+	_banner_small.visible = entry[0] != ""
+	_banner_detail.visible = entry[2] != ""
+	for label: Label in [_banner_small, _banner_title, _banner_detail]:
+		_fit(label, _view_width() * banner_max_fraction)
+	_banner.visible = true
+	_banner.reset_size()
+	_banner.position = Vector2((_safe.size.x - _banner.size.x) / 2.0, _safe.size.y * tuning.banner_height - _banner.size.y / 2.0)
+	_banner.pivot_offset = _banner.size / 2.0
+	_banner.scale = Vector2.ONE * tuning.banner_start_scale
+	_banner.modulate.a = 0.0
+	_banner_sound.play()
+	var total: float = tuning.banner_time
+	var rise: float = _banner.position.y - _banner.size.y * tuning.banner_rise
+	var tween: Tween = create_tween()
+	tween.tween_property(_banner, "modulate:a", 1.0, total * tuning.banner_in)
+	tween.parallel().tween_property(_banner, "scale", Vector2.ONE * tuning.banner_peak_scale, total * tuning.banner_in)
+	tween.tween_property(_banner, "scale", Vector2.ONE, total * tuning.banner_settle)
+	tween.tween_interval(total * (tuning.banner_out - tuning.banner_in - tuning.banner_settle))
+	tween.tween_property(_banner, "modulate:a", 0.0, total * (1.0 - tuning.banner_out))
+	tween.parallel().tween_property(_banner, "position:y", rise, total * (1.0 - tuning.banner_out))
+	get_tree().create_timer(tuning.banner_gap, false).timeout.connect(_next_banner)
+
+
+## Un point de talent à dépenser, ou un objet pas encore regardé.
+func _needs_attention() -> bool:
+	if Game.profile.talent_points > 0:
+		return true
+	for item: ItemData in Game.profile.items:
+		if item.is_new:
+			return true
+	return false
+
+
+## En paysage, l'objectif se range à gauche et perd sa précision (comme dans le prototype).
+func _layout() -> void:
+	var portrait: bool = CameraRig.is_portrait(get_viewport().get_visible_rect().size)
+	_quest.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if portrait else Control.SIZE_SHRINK_BEGIN
+	_challenge.size_flags_horizontal = _quest.size_flags_horizontal
+	_quest_sub.visible = portrait
+
+
+## Le texte passe à la ligne s'il dépasse `max_width` (px).
+func _fit(label: Label, max_width: float) -> void:
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.custom_minimum_size.x = 0.0
+	var font: Font = label.get_theme_font(&"font")
+	var font_size: int = label.get_theme_font_size(&"font_size")
+	if font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > max_width:
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.custom_minimum_size.x = max_width
+	label.reset_size()
+
+
+func _view_width() -> float:
+	return get_viewport().get_visible_rect().size.x
 
 
 func _controls_call(method: StringName, arguments: Array) -> Variant:
@@ -324,10 +505,12 @@ func _find_hero() -> void:
 		_hero.hit_landed.connect(_on_hit_landed)
 		_hero.hurtbox.hurt.connect(_on_hero_hurt)
 		_hero.action_pressed.connect(_on_action_pressed)
+		_hero.second_wind.connect(func() -> void:
+			show_banner(GameTexts.BANNER_SECOND_WIND, GameTexts.BANNER_SECOND_WIND_TITLE, ""))
 
 
 func _on_action_pressed(action: StringName) -> void:
-	if _hint != &"" and action == _hint_action:
+	if _hint != &"" and action == _coach_action:
 		_complete_hint()
 
 
@@ -340,77 +523,36 @@ func _on_hit_landed(hit: HitData) -> void:
 	number.play(hit.damage, hit.critical)
 
 
-## PV perdus par le héros, en rose au-dessus de lui.
+## Le héros est touché : voile rose, PV perdus en rose au-dessus de lui.
 func _on_hero_hurt(hit: HitData) -> void:
+	var tuning: TuningData = Tuning.data
+	_flash.visible = true
+	_flash.modulate.a = 1.0
+	create_tween().tween_property(_flash, "modulate:a", 0.0, tuning.hurt_flash_time)
 	if not Game.profile.damage_numbers:
 		return
 	var number: DamageNumber = damage_number_scene.instantiate() as DamageNumber
 	_hero.get_parent().add_child(number)
-	number.global_position = _hero.global_position + Vector3.UP * (Tuning.data.hero_height + damage_number_height)
+	number.global_position = _hero.global_position + Vector3.UP * (tuning.hero_height + damage_number_height)
 	number.play(hit.damage, false, true)
 
 
-func _on_night_started(night: int) -> void:
-	_rebuild_drums()
-	show_title(GameTexts.NIGHT_LABEL % night, GameTexts.night_name(night))
-	await title_finished
-	var chief: Node3D = get_tree().get_first_node_in_group(&"chief") as Node3D
-	if chief and GameTexts.CHIEF_NIGHT_START.has(night):
-		chief.call(&"greet")
-		var tuning: TuningData = Tuning.data
-		show_reply(GameTexts.CHIEF_NIGHT_START[night], chief, tuning.chief_height + tuning.reply_gap, tuning.chief_line_time, Priority.INFO)
-
-
-func _on_drum_picked() -> void:
-	_rebuild_drums()
-	show_message(GameTexts.MESSAGE_DRUM_PICKED)
-
-
-func _on_drum_dropped() -> void:
-	_rebuild_drums()
-	show_message(GameTexts.MESSAGE_DRUM_LOST)
-
-
-func _on_night_completed() -> void:
-	show_title(GameTexts.NIGHT_LABEL % Game.night, GameTexts.TITLE_NIGHT_COMPLETE)
-	get_tree().create_timer(Tuning.data.end_screen_delay, false).timeout.connect(
-		func() -> void: get_tree().call_group(&"end_screen", &"open"))
-
-
+## Un Muet libéré remercie le héros (une fois sur quelques-unes, pour ne pas tout couvrir).
 func _on_muet_freed(muet: Node3D) -> void:
-	var lines: PackedStringArray = GameTexts.MUET_FREED_LINES
 	var tuning: TuningData = Tuning.data
+	_reply_index += 1
+	if _bubble_left > 0.0 or _reply_index % tuning.freed_line_every != 0:
+		return
 	var body: MuetBody = muet.get_node_or_null(^"Body") as MuetBody
 	var height: float = body.height if body else 0.0
-	show_reply(lines[_reply_index % lines.size()], muet, height + tuning.reply_gap, tuning.reply_time)
-	_reply_index += 1
+	var lines: PackedStringArray = GameTexts.MUET_FREED_LINES
+	show_bubble(lines[(_reply_index / tuning.freed_line_every) % lines.size()], muet, height + tuning.reply_gap)
 
 
-## Un pictogramme par tambour à rapporter : plein s'il est rapporté.
-func _rebuild_drums() -> void:
-	for child: Node in _drums.get_children():
-		child.queue_free()
-	for i: int in Game.progress.drums_required:
-		var icon := TextureRect.new()
-		icon.texture = drum_icon if i < Game.progress.drums_returned else drum_empty_icon
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2.ONE * drum_icon_size
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_drums.add_child(icon)
-
-
-## Le tambour qu'on rapporte bat dans sa case, au rythme des aides.
-func _pulse_carried_drum() -> void:
-	var slot: int = Game.progress.drums_returned
-	if slot >= _drums.get_child_count():
+## Objet trouvé : bannière de sa rareté ; sac plein : il est recyclé.
+func _on_item_found(item: ItemData) -> void:
+	if item.id == 0:
+		show_toast(GameTexts.TOAST_BAG_FULL % [GameTexts.item_name(item), ItemMath.recycle_value(item, Tuning.data)])
 		return
-	var icon: TextureRect = _drums.get_child(slot) as TextureRect
-	if icon.is_queued_for_deletion():
-		return
-	if Game.progress.carrying_drum:
-		icon.texture = drum_icon
-		icon.modulate.a = 0.55 + 0.45 * (0.5 + 0.5 * sin(TAU * _time / Tuning.data.hint_pulse_period))
-	else:
-		icon.texture = drum_empty_icon
-		icon.modulate.a = 1.0
+	var detail: String = GameTexts.BANNER_ITEM_STORED if Game.profile.is_hint_done(&"bag") else GameTexts.BANNER_ITEM_FIRST
+	show_banner(GameTexts.RARITY_NAMES[item.rarity], GameTexts.item_name(item), detail)

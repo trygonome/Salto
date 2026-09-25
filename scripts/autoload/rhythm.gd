@@ -96,11 +96,12 @@ func beat_phase() -> float:
 	return RhythmMath.beat_phase(song_time(), beat_length()) if is_playing() else 0.0
 
 
-## Jugement d'un appui fait maintenant (raté si la musique ne joue pas).
-func judge_now() -> RhythmMath.Judgement:
+## Jugement d'un appui fait maintenant (raté si la musique ne joue pas) ; `window` élargit la
+## fenêtre du coup Parfait (Métronome).
+func judge_now(window: float = 1.0) -> RhythmMath.Judgement:
 	if not is_playing():
 		return RhythmMath.Judgement.MISS
-	return RhythmMath.judge(RhythmMath.beat_offset(song_time(), beat_length()), Tuning.data)
+	return RhythmMath.judge(RhythmMath.beat_offset(song_time(), beat_length()), Tuning.data, window)
 
 
 func _process(_delta: float) -> void:

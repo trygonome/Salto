@@ -1,11 +1,13 @@
 extends "res://tests/hero_test_base.gd"
-## Interface : un seul message à la fois, aides contextuelles, carte d'objet, chiffres de dégâts,
-## menu pause, écran de fin.
+## Interface du prototype : bannières (une à la fois), message court, bulle, conseil près du bon
+## bouton, HUD (niveau, PV, tambours, défi), chiffres de dégâts, pause, sac et forge, talents.
 
 const HudScene: PackedScene = preload("res://scenes/ui/hud.tscn")
 const ControlsScene: PackedScene = preload("res://scenes/ui/touch_controls.tscn")
 const PauseScene: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
-const EndScene: PackedScene = preload("res://scenes/ui/end_screen.tscn")
+const BagScene: PackedScene = preload("res://scenes/ui/bag_screen.tscn")
+const TalentsScene: PackedScene = preload("res://scenes/ui/talents_screen.tscn")
+const SummaryScene: PackedScene = preload("res://scenes/ui/summary_screen.tscn")
 const HintZoneScript: GDScript = preload("res://scripts/levels/props/hint_zone.gd")
 
 var hud: Hud
@@ -13,7 +15,8 @@ var hud: Hud
 
 func before_each() -> void:
 	super.before_each()
-	Game.profile = Profile.new()
+	Save.path = "user://test_hud.json"
+	Game.profile = Profile.create()
 	Game.start_night()
 	hud = HudScene.instantiate() as Hud
 	world.add_child(hud)
@@ -21,43 +24,58 @@ func before_each() -> void:
 
 func after_each() -> void:
 	get_tree().paused = false
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(Save.path))
 
 
-func test_un_seul_message_a_la_fois() -> void:
-	hud.show_message("Premier")
-	hud.show_message("Second")
-	assert_eq(hud.current_message(), "Second", "le nouveau remplace l'ancien")
-	var source := Node3D.new()
-	world.add_child(source)
-	hud.show_reply("Merci !", source, 1.0, 1.0)
-	assert_eq(hud.current_message(), "Second", "une réplique ne remplace pas une information")
+func test_les_bannieres_passent_une_a_une() -> void:
+	hud.show_banner("Un", "Premier", "")
+	hud.show_banner("Deux", "Second", "")
+	assert_eq(hud.current_banner(), "Premier", "la suivante attend")
+	await get_tree().create_timer(tuning.banner_gap + 0.1).timeout
+	assert_eq(hud.current_banner(), "Second")
 
 
-func test_pendant_un_grand_titre_les_messages_attendent() -> void:
-	hud.show_title("Nuit 1", "Titre")
-	hud.show_message("Plus tard")
-	assert_eq(hud.current_message(), "")
-	await wait_for_signal(hud.title_finished, Hud.title_duration(tuning) + 1.0)
-	assert_eq(hud.current_message(), "Plus tard")
+func test_un_message_court_puis_il_s_efface() -> void:
+	hud.show_toast("Premier")
+	hud.show_toast("Second")
+	assert_eq(hud.current_toast(), "Second", "le nouveau remplace l'ancien")
+	await get_tree().create_timer(tuning.toast_time + 0.2).timeout
+	assert_eq(hud.current_toast(), "")
 
 
-func test_les_evenements_de_la_nuit_parlent_en_peu_de_mots() -> void:
-	Game.pick_drum()
-	assert_eq(hud.current_message(), GameTexts.MESSAGE_DRUM_PICKED)
-	Game.drop_drum()
-	assert_eq(hud.current_message(), GameTexts.MESSAGE_DRUM_LOST)
-	Game.free_sanctuary()
-	assert_true(hud.is_title_active(), "sanctuaire libéré : grand titre")
-
-
-func test_un_objet_trouve_montre_sa_carte() -> void:
+func test_les_evenements_de_la_nuit_s_annoncent() -> void:
+	Game.free_sanctuary(0)
+	assert_eq(hud.current_banner(), GameTexts.BANNER_SANCTUARY_TITLE)
 	var item := ItemData.new()
 	item.slot = ItemData.Slot.MASK
 	item.rarity = ItemData.Rarity.RARE
 	Game.add_item(item)
-	var card: Control = hud.get_node("%LootCard") as Control
-	assert_true(card.visible)
-	assert_eq((hud.get_node("%CardName") as Label).text, "Masque rare")
+	await get_tree().create_timer(tuning.banner_gap + 0.1).timeout
+	assert_eq(hud.current_banner(), "Masque de corail", "un objet trouvé s'annonce avec sa rareté")
+
+
+func test_le_haut_de_l_ecran_montre_niveau_pv_tambours_et_defi() -> void:
+	await _spawn_on_flat_ground()
+	Game.profile.level = 3
+	Game.progress.set_challenge(&"perfect", 10, 15)
+	Game.progress.challenge_progress = 4
+	Game.pick_drum(0)
+	Game.return_drum()
+	await _step(2)
+	assert_eq((hud.get_node("%LevelLabel") as Label).text, GameTexts.LEVEL_CHIP % 3)
+	assert_eq((hud.get_node("%HpText") as Label).text, GameTexts.HEALTH % [roundi(hero.health.current), roundi(hero.health.maximum)])
+	assert_eq((hud.get_node("%Drum1") as Control).theme_type_variation, &"DrumOn", "le tambour rapporté s'allume")
+	assert_eq((hud.get_node("%Drum2") as Control).theme_type_variation, &"DrumOff")
+	assert_string_contains((hud.get_node("%ChallengeLabel") as Label).text, "(4/10)")
+
+
+func test_une_bulle_au_dessus_de_qui_parle() -> void:
+	var source := Node3D.new()
+	world.add_child(source)
+	hud.show_bubble("Bonjour !", source, 1.0)
+	assert_eq(hud.current_bubble(), "Bonjour !")
+	await get_tree().create_timer(tuning.bubble_time + 0.2).timeout
+	assert_eq(hud.current_bubble(), "")
 
 
 func test_une_aide_brille_puis_disparait_une_fois_suivie() -> void:
@@ -76,10 +94,12 @@ func test_une_aide_brille_puis_disparait_une_fois_suivie() -> void:
 	world.add_child(zone)
 	await _step(3)
 	assert_eq(hud.current_hint(), &"test_jump")
+	assert_eq(hud.current_coach(), "Saute !")
 	hero.press(&"dodge")
 	assert_eq(hud.current_hint(), &"test_jump", "une autre action ne compte pas")
 	hero.press(&"jump")
 	assert_eq(hud.current_hint(), &"")
+	assert_eq(hud.current_coach(), "")
 	assert_true(Game.profile.is_hint_done(&"test_jump"))
 	# Suivie une fois, elle ne revient plus.
 	zone.body_entered.emit(hero)
@@ -100,30 +120,85 @@ func test_les_chiffres_de_degats_se_desactivent() -> void:
 	assert_eq(world.find_children("*", "DamageNumber", true, false).size(), 0)
 
 
-func test_la_pause_arrete_le_jeu_et_revient_en_arriere() -> void:
+func test_la_pause_arrete_le_jeu_et_ouvre_le_sac() -> void:
 	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	var bag: BagScreen = BagScene.instantiate() as BagScreen
 	world.add_child(menu)
+	world.add_child(bag)
 	menu.open()
 	assert_true(get_tree().paused)
-	menu.call(&"_show_notebook")
+	menu.call(&"_open_sub", &"bag_screen")
+	assert_false(menu.is_open())
+	assert_true(bag.is_open())
+	bag.go_back()
+	assert_true(menu.is_open(), "retour : du sac à la pause")
+	assert_true(get_tree().paused)
 	menu.back()
-	assert_true(menu.is_open(), "retour : de la page au menu")
-	menu.back()
-	assert_false(menu.is_open(), "retour : du menu au jeu")
+	assert_false(menu.is_open(), "retour : de la pause au jeu")
 	assert_false(get_tree().paused)
 
 
-func test_l_ecran_de_fin_montre_le_temps_et_le_record() -> void:
-	var screen: EndScreen = EndScene.instantiate() as EndScreen
+func test_rentrer_au_village_se_confirme() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	menu.open()
+	var quit: Button = menu.get_node("%Quit") as Button
+	quit.pressed.emit()
+	assert_eq(quit.text, GameTexts.QUIT_CONFIRM, "il faut toucher deux fois")
+	assert_true(menu.is_open())
+
+
+func test_le_sac_equipe_forge_et_recycle() -> void:
+	var bag: BagScreen = BagScene.instantiate() as BagScreen
+	world.add_child(bag)
+	var item := ItemData.new()
+	item.slot = ItemData.Slot.TALISMAN
+	item.rarity = ItemData.Rarity.EPIC
+	item.rolls.assign({&"xp": 1.0})
+	Game.profile.add_item(item)
+	Game.profile.plumes = 200
+	bag.open()
+	assert_eq((bag.get_node("%Equipped") as Control).get_child_count(), ItemData.Slot.size())
+	assert_eq((bag.get_node("%Inventory") as Control).get_child_count(), 1, "l'objet non porté est dans le sac")
+	bag.call(&"_select", item)
+	assert_false(item.is_new, "regardé")
+	var actions: Array[Node] = bag.get_node("%Actions").get_children()
+	assert_eq(actions.size(), 3, "équiper, forger, recycler")
+	(actions[0] as Button).pressed.emit()
+	assert_true(Game.profile.is_equipped(item))
+	actions = bag.get_node("%Actions").get_children()
+	(actions[0] as Button).pressed.emit()
+	assert_eq(item.forge, 1)
+	assert_true(Game.stats.xp > 1.0, "le héros profite de l'objet porté")
+
+
+func test_les_talents_se_prennent_dans_l_ordre() -> void:
+	var screen: TalentsScreen = TalentsScene.instantiate() as TalentsScreen
 	world.add_child(screen)
-	Game.progress.advance(125.0)
-	for i: int in Tuning.data.night_drums_required:
-		Game.pick_drum()
-		Game.return_drum()
+	Game.profile.talent_points = 3
 	screen.open()
-	assert_true(get_tree().paused)
+	var tree: Control = screen.get_node("%Tree") as Control
+	assert_eq(tree.get_child_count(), 3, "trois voies")
+	var first: TileButton = tree.get_child(0).get_child(1) as TileButton
+	first.pressed.emit()
+	assert_eq(Game.profile.talent_rank(&"feet"), 1)
+	assert_eq(Game.profile.talent_points, 2)
+	var locked: TileButton = tree.get_child(0).get_child(2) as TileButton
+	locked.pressed.emit()
+	assert_eq(Game.profile.talent_rank(&"triple"), 0, "il faut d'abord deux points dans la voie")
+
+
+func test_le_resume_montre_la_sortie() -> void:
+	var screen: SummaryScreen = SummaryScene.instantiate() as SummaryScreen
+	world.add_child(screen)
+	Game.start_sortie()
+	Game.progress.advance(125.0)
+	Game.progress.muets_freed = 7
+	screen.open(Game.end_sortie(&"faint"))
+	assert_eq((screen.get_node("%Title") as Label).text, GameTexts.SUMMARY_FAINT)
 	var texts: Array[String] = []
 	for label: Node in screen.get_node("%Stats").get_children():
 		texts.append((label as Label).text)
 	assert_has(texts, "2:05")
-	assert_has(texts, GameTexts.END_NEW_RECORD)
+	assert_has(texts, "7")
+	assert_eq((screen.get_node("%Again") as Button).text, GameTexts.AGAIN)

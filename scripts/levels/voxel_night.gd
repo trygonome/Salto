@@ -1,12 +1,14 @@
 class_name VoxelNight
 extends Node3D
-## Une nuit dans le monde voxel du prototype : génère le monde de la nuit (graine gardée d'une
-## sortie à l'autre), pose le village et les trois sanctuaires (autel, tambour dans sa bulle,
-## Grand Muet gardien), les Muets qui les gardent et les errants, suit l'objectif (chemin doré)
-## et lance la musique.
+## Une nuit dans le monde voxel du prototype. Génère le monde de la nuit (graine gardée d'une
+## sortie à l'autre), pose le village, les trois sanctuaires et leurs tambours, les plumes des
+## perchoirs. À l'écran titre, le village danse et le héros attend ; une sortie peuple la jungle
+## (gardiens et Grand Muet de chaque sanctuaire dont le tambour n'est pas rentré, errants qui
+## reviennent après leur libération), suit l'objectif (bannière, repère, flèche, colonne de
+## lumière, chemin doré), fait parler les villageois, donne les conseils près des boutons et se
+## termine par le résumé : nuit accomplie, héros évanoui ou rentré au village depuis la pause.
 
-## Numéro de la nuit (1 à 5).
-@export var night: int
+## Muets à faire apparaître, par espèce.
 @export var hopper_scene: PackedScene
 @export var flyer_scene: PackedScene
 @export var shielder_scene: PackedScene
@@ -15,8 +17,10 @@ extends Node3D
 @export var boss_scene: PackedScene
 ## Tambour d'un sanctuaire (dans sa bulle jusqu'à la libération du gardien).
 @export var drum_scene: PackedScene
-## Objet laissé par chaque Grand Muet.
+## Objet au sol, plume d'un perchoir, fruit.
 @export var loot_scene: PackedScene
+@export var plume_scene: PackedScene
+@export var fruit_scene: PackedScene
 ## Matériau des personnages voxel et de leurs ombres rondes.
 @export var character_material: Material
 @export var character_shadow_material: Material
@@ -29,67 +33,174 @@ const NIGHT_FOES: Array[Array] = [
 	[&"hopper", &"hopper", &"flyer", &"shielder", &"charger"],
 	[&"hopper", &"flyer", &"shielder", &"charger", &"spitter"],
 ]
+## Le Roi Muet garde ce sanctuaire lors de la dernière nuit de la saga.
+const KING_SANCTUARY := 2
+## Conseils près des boutons, dans l'ordre où on les propose : identifiant et bouton.
+const HINT_BUTTONS: Array[Array] = [
+	[&"move", TouchControls.MOVE], [&"attack", &"attack"], [&"jump", &"jump"], [&"salto", &"jump"],
+	[&"combo", &"attack"], [&"dodge", &"dodge"], [&"dive", &"attack"], [&"beat", &"attack"], [&"special", &"attack"],
+]
 
 var gen := WorldGen.new()
+## Tambour de chaque sanctuaire, point d'apparition de son Grand Muet, de ses gardiens.
 var drums: Array[Node3D] = []
-## Sanctuaire d'où vient le premier tambour porté (-1 : aucun).
-var carried_from: int = -1
+var bosses: Array[EnemySpawner] = []
+var guards: Array[Array] = []
+## Sortie en cours (sinon : écran titre ou résumé).
+var in_sortie: bool = false
 
 var _rng := RandomNumberGenerator.new()
-var _freed: Array[bool] = [false, false, false]
 var _unit: float = 0.0
+var _bark_left: float = 0.0
+var _ending: bool = false
+## Conseils : en cours, depuis quand (s), attente avant de revenir (s), temps de course, coups.
+var _hint: StringName = &""
+var _hint_time: float = 0.0
+var _hint_cooldowns: Dictionary[StringName, float] = {}
+var _moved_time: float = 0.0
+var _attacks: int = 0
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
 @onready var hero: Hero = $Hero
 @onready var foes: Node3D = $Foes
 @onready var village: Node3D = $Village
+@onready var pickups: Node3D = $Pickups
+@onready var guide: ObjectiveGuide = $Guide
+@onready var hud: Hud = $HUD
+@onready var touch_controls: TouchControls = $TouchControls
+
+
+func _enter_tree() -> void:
+	# Avant les éléments du niveau : l'état de la nuit est prêt quand ils le lisent.
+	Game.start_night(Game.profile.night)
 
 
 func _ready() -> void:
 	var tuning: TuningData = Tuning.data
+	add_to_group(&"night_level")
 	_unit = tuning.voxel_unit
 	_rng.randomize()
-	Game.start_night(night)
 	gen.generate(Game.world_seed(), Game.profile.nights_done)
 	world.build(gen)
-	mood.set_sanctuaries(gen.sanctuaries, _freed)
+	mood.set_sanctuaries(gen.sanctuaries, Game.progress.freed)
 	_place_villagers()
 	_add_shadow(hero, tuning.hero_shadow_radius)
 	for i: int in gen.sanctuaries.size():
-		_place_sanctuary(i)
-	for i: int in tuning.muet_wanderers:
-		_spawn_wanderer()
-	Game.drum_picked.connect(_on_drum_picked)
-	Game.drum_dropped.connect(func() -> void: carried_from = -1)
-	Game.drum_returned.connect(func(_count: int) -> void: carried_from = -1)
+		_place_drum(i)
+		guards.append([])
+	_place_perches()
 	Game.night_completed.connect(_on_night_completed)
+	Game.drum_returned.connect(_on_drum_returned)
+	Game.sanctuary_freed.connect(_on_sanctuary_freed)
+	hero.fainted.connect(_on_hero_fainted)
+	hero.action_pressed.connect(_on_action_pressed)
 	Rhythm.play(Game.music_layers())
+	if Game.start_on_load:
+		Game.start_on_load = false
+		start_sortie()
+	else:
+		_show_title()
 
 
 func _exit_tree() -> void:
 	Rhythm.stop()
 
 
-func _process(_delta: float) -> void:
-	_update_objective()
+func _process(delta: float) -> void:
+	var goal: Dictionary = objective() if in_sortie else {}
+	if goal.is_empty():
+		mood.clear_target()
+	else:
+		mood.set_target(gen.sanctuaries[goal[&"index"]], goal[&"kind"] != &"return")
+	guide.follow(hero, goal)
+	if not in_sortie or _ending:
+		return
+	_update_zone_tip()
+	_update_barks(delta)
+	_update_hints(delta)
 
 
-## Objectif du moment, comme dans le prototype : rapporter le tambour porté, sinon aller prendre
-## un tambour libéré, sinon libérer le prochain sanctuaire. Renvoie l'indice du sanctuaire
-## concerné et le sens (vers le sanctuaire ou vers le village), ou -1.
-func objective() -> Vector2i:
-	if Game.progress.is_complete():
-		return Vector2i(-1, 0)
-	if Game.progress.carrying_drum:
-		return Vector2i(maxi(carried_from, 0), -1)
-	for i: int in drums.size():
-		if (drums[i].call(&"is_available") as bool):
-			return Vector2i(i, 1)
-	for i: int in _freed.size():
-		if not _freed[i]:
-			return Vector2i(i, 1)
-	return Vector2i(-1, 0)
+## Lance une sortie : la jungle se peuple, le héros prend les commandes.
+func start_sortie() -> void:
+	Game.start_sortie()
+	in_sortie = true
+	_ending = false
+	hero.begin_sortie()
+	hero.reads_player_input = true
+	hud.visible = true
+	touch_controls.visible = true
+	get_tree().call_group(&"title_screen", &"close")
+	_spawn_foes()
+	var info: Dictionary = GameTexts.night_info(Game.night)
+	var goal: Dictionary = objective()
+	hud.show_banner(GameTexts.NIGHT_LABEL % Game.night, info[&"title"], info[&"foes"] if Game.profile.sortie == 1 else String(goal.get(&"title", "")))
+	var chief: Villager = village.get_node(^"Chief") as Villager
+	chief.greet()
+	hud.show_bubble(info[&"line"] if Game.profile.sortie == 1 else _pick(GameTexts.CHIEF_TIPS), chief, tuning_chief_height())
+
+
+## Hauteur des bulles du Chef (m au-dessus de ses pieds).
+func tuning_chief_height() -> float:
+	var tuning: TuningData = Tuning.data
+	return tuning.chief_height + tuning.reply_gap
+
+
+## Termine la sortie (&"night", &"faint" ou &"quit") et ouvre le résumé.
+func end_sortie(kind: StringName) -> void:
+	if not in_sortie:
+		return
+	in_sortie = false
+	_ending = false
+	_clear_hint()
+	hero.reads_player_input = false
+	hero.input_move = Vector2.ZERO
+	var summary: Dictionary = Game.end_sortie(kind)
+	hud.visible = false
+	touch_controls.visible = false
+	get_tree().paused = true
+	get_tree().call_group(&"summary_screen", &"open", summary)
+
+
+## Relance la scène : une nouvelle sortie tout de suite (`play`), ou l'écran titre.
+func restart(play: bool) -> void:
+	Game.start_on_load = play
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+## Objectif du moment, comme dans le prototype : rapporter les tambours portés, sinon aller
+## prendre un tambour libéré, sinon libérer le prochain sanctuaire. Dictionnaire vide quand la nuit
+## est accomplie ; sinon : kind (&"return", &"pick", &"free"), index (sanctuaire du chemin doré),
+## point (m), title, sub, icon (&"home", &"drum", &"crown").
+func objective() -> Dictionary:
+	var progress: NightProgress = Game.progress
+	if progress.is_complete():
+		return {}
+	if progress.carrying_drum:
+		return {
+			&"kind": &"return", &"index": progress.carrying[0], &"point": to_world(WorldGen.CHIEF),
+			&"title": GameTexts.QUEST_RETURN, &"sub": GameTexts.QUEST_RETURN_SUB, &"icon": &"home",
+		}
+	for i: int in gen.sanctuaries.size():
+		if progress.freed[i] and not progress.picked[i]:
+			return {
+				&"kind": &"pick", &"index": i, &"point": to_world(gen.sanctuaries[i]),
+				&"title": GameTexts.QUEST_PICK % gen.sanctuary_names[i], &"sub": GameTexts.QUEST_PICK_SUB, &"icon": &"drum",
+			}
+	for i: int in gen.sanctuaries.size():
+		if not progress.freed[i]:
+			return {
+				&"kind": &"free", &"index": i, &"point": to_world(gen.sanctuaries[i]),
+				&"title": GameTexts.QUEST_FREE % gen.sanctuary_names[i],
+				&"sub": GameTexts.QUEST_FREE_KING_SUB if is_king(i) else GameTexts.QUEST_FREE_SUB, &"icon": &"crown",
+			}
+	return {}
+
+
+## Vrai si le Roi Muet garde le sanctuaire `index` cette nuit.
+func is_king(index: int) -> bool:
+	return Game.night == Tuning.data.saga_nights and index == KING_SANCTUARY
 
 
 ## Point du monde en mètres pour un point du prototype (u).
@@ -97,12 +208,38 @@ func to_world(p: Vector2) -> Vector3:
 	return Vector3(p.x * _unit, 0.0, p.y * _unit)
 
 
-func _update_objective() -> void:
-	var goal: Vector2i = objective()
-	if goal.x < 0:
-		mood.clear_target()
-	else:
-		mood.set_target(gen.sanctuaries[goal.x], goal.y > 0)
+## Renforts d'un Grand Muet (à partir de la nuit boss_summon_night, et toujours pour le Roi) :
+## s'il lui reste trop peu de gardiens, d'autres Muets arrivent à ses côtés.
+func summon_guards(boss: Muet) -> void:
+	var tuning: TuningData = Tuning.data
+	var index: int = -1
+	for i: int in bosses.size():
+		if is_instance_valid(bosses[i]) and bosses[i].muet == boss:
+			index = i
+	if index < 0 or not in_sortie:
+		return
+	var alive: int = 0
+	for spawner: EnemySpawner in guards[index]:
+		if is_instance_valid(spawner.muet) and not spawner.muet.is_freed():
+			alive += 1
+	if alive >= tuning.boss_summon_min_guards:
+		return
+	var center := Vector2(boss.global_position.x, boss.global_position.z) / _unit
+	for k: int in tuning.boss_summon_count:
+		var angle: float = _rng.randf() * TAU
+		var p: Vector2 = center + Vector2(cos(angle), sin(angle)) * tuning.boss_summon_distance / _unit
+		guards[index].append(_spawner(_foe_scene(), p, false, index))
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(boss.global_position, tuning.boss_summon_distance, fx.violet, tuning.fx_quake_ring_time)
+
+
+func _show_title() -> void:
+	in_sortie = false
+	hero.reads_player_input = false
+	hud.visible = false
+	touch_controls.visible = false
+	get_tree().call_group(&"title_screen", &"open")
 
 
 ## Les six danseurs autour de la place, tournés vers le centre, et le Chef Taroum devant les tambours.
@@ -132,29 +269,55 @@ func _add_shadow(target: Node3D, radius: float) -> void:
 	target.add_child(shadow)
 
 
-## Autel : tambour dans sa bulle, Grand Muet entre le village et l'autel, gardiens autour.
-func _place_sanctuary(index: int) -> void:
-	var s: Vector2 = gen.sanctuaries[index]
-	var boss: EnemySpawner = _spawner(boss_scene, s - s.normalized() * Tuning.data.sanctuary_boss_distance / _unit, false, index)
-	boss.loot_scene = loot_scene
-	boss.muet_freed.connect(func(_muet: Muet) -> void: _on_sanctuary_freed(index))
+## Tambour d'un sanctuaire sur son autel (absent s'il est déjà au village).
+func _place_drum(index: int) -> void:
 	var drum: Node3D = drum_scene.instantiate() as Node3D
-	drum.set(&"guardian", boss)
-	drum.position = to_world(s) + Vector3.UP * WorldGen.ALTAR_HEIGHT * _unit
+	drum.name = "Drum%d" % (index + 1)
+	drum.set(&"sanctuary", index)
+	drum.position = to_world(gen.sanctuaries[index]) + Vector3.UP * WorldGen.ALTAR_HEIGHT * _unit
 	add_child(drum)
 	drums.append(drum)
-	var count: int = Tuning.data.sanctuary_guards + index
-	var placed: int = 0
-	var tries: int = 0
-	while placed < count and tries < Tuning.data.spawn_tries:
-		tries += 1
-		var a: float = float(placed) / count * TAU + _rng.randf() * Tuning.data.spawn_angle_jitter
-		var r: float = _rng.randf_range(Tuning.data.sanctuary_guard_min, Tuning.data.sanctuary_guard_max) / _unit
-		var p: Vector2 = s + Vector2(cos(a), sin(a)) * r
-		if _blocked(p, Tuning.data.spawn_clearance / _unit):
+
+
+## Une plume au sommet de chaque perchoir, sauf celles déjà prises cette nuit.
+func _place_perches() -> void:
+	for i: int in gen.pickups.size():
+		if Game.profile.perch_taken.has(i):
 			continue
-		_spawner(_foe_scene(), p, false, index)
-		placed += 1
+		var plume: PlumePickup = plume_scene.instantiate() as PlumePickup
+		plume.perch = i
+		var p: Vector3 = gen.pickups[i]
+		plume.position = Vector3(p.x, p.y, p.z) * _unit
+		pickups.add_child(plume)
+
+
+## Gardiens et Grand Muet de chaque sanctuaire dont le tambour n'est pas au village, et errants.
+func _spawn_foes() -> void:
+	var tuning: TuningData = Tuning.data
+	for i: int in gen.sanctuaries.size():
+		if Game.progress.banked_at_start[i]:
+			continue
+		var s: Vector2 = gen.sanctuaries[i]
+		var count: int = tuning.sanctuary_guards + i + (1 if Game.night >= tuning.extra_guard_night else 0)
+		var placed: int = 0
+		var tries: int = 0
+		while placed < count and tries < tuning.spawn_tries:
+			tries += 1
+			var a: float = float(placed) / count * TAU + _rng.randf() * tuning.spawn_angle_jitter
+			var r: float = _rng.randf_range(tuning.sanctuary_guard_min, tuning.sanctuary_guard_max) / _unit
+			var p: Vector2 = s + Vector2(cos(a), sin(a)) * r
+			if _blocked(p, tuning.spawn_clearance / _unit):
+				continue
+			guards[i].append(_spawner(_foe_scene(), p, false, i))
+			placed += 1
+		var boss: EnemySpawner = _spawner(boss_scene, s - s.normalized() * tuning.sanctuary_boss_distance / _unit, false, i)
+		boss.king = is_king(i)
+		boss.display_name = GameTexts.KING_NAME if boss.king else GameTexts.BOSS_NAME % gen.sanctuary_names[i]
+		boss.muet_freed.connect(_on_boss_freed.bind(i))
+		bosses.append(boss)
+	var wanderers: int = tuning.muet_wanderers + mini(tuning.muet_wanderers_extra_max, (Game.night - 1) * tuning.muet_wanderers_per_night)
+	for i: int in wanderers:
+		_spawn_wanderer()
 
 
 func _spawn_wanderer() -> void:
@@ -163,18 +326,26 @@ func _spawn_wanderer() -> void:
 		var a: float = _rng.randf() * TAU
 		var r: float = _rng.randf_range(tuning.wanderer_min_distance, tuning.wanderer_max_distance) / _unit
 		var p := Vector2(cos(a), sin(a)) * r
-		var start := Vector2(hero.global_position.x, hero.global_position.z) / _unit
-		if gen.near_sanctuary(p, tuning.wanderer_sanctuary_clearance / _unit) or p.distance_to(start) < tuning.wanderer_hero_clearance / _unit:
+		var from := Vector2(hero.global_position.x, hero.global_position.z) / _unit
+		if gen.near_sanctuary(p, tuning.wanderer_sanctuary_clearance / _unit) or p.distance_to(from) < tuning.wanderer_hero_clearance / _unit:
 			continue
 		if _blocked(p, tuning.spawn_clearance / _unit):
 			continue
-		_spawner(_foe_scene(), p, true, mini(Game.progress.drums_returned, gen.sanctuaries.size() - 1))
+		var spawner: EnemySpawner = _spawner(_foe_scene(), p, true, mini(Game.progress.drums_returned, gen.sanctuaries.size() - 1))
+		spawner.muet_freed.connect(func(_muet: Muet) -> void: _respawn_wanderer_later(), CONNECT_ONE_SHOT)
 		return
 
 
+## Un errant libéré est remplacé un peu plus tard, si la sortie dure encore.
+func _respawn_wanderer_later() -> void:
+	get_tree().create_timer(Tuning.data.wanderer_respawn_time, false).timeout.connect(func() -> void:
+		if in_sortie and not _ending:
+			_spawn_wanderer())
+
+
 func _foe_scene() -> PackedScene:
-	var foes: Array = NIGHT_FOES[clampi(night - 1, 0, NIGHT_FOES.size() - 1)]
-	var species: StringName = foes[_rng.randi_range(0, foes.size() - 1)]
+	var list: Array = NIGHT_FOES[clampi(Game.night - 1, 0, NIGHT_FOES.size() - 1)]
+	var species: StringName = list[_rng.randi_range(0, list.size() - 1)]
 	match species:
 		&"flyer":
 			return flyer_scene
@@ -195,6 +366,7 @@ func _spawner(scene: PackedScene, p: Vector2, wanderer: bool, tier: int) -> Enem
 	spawner.tier = tier
 	spawner.safe_zone_radius = Tuning.data.village_radius
 	foes.add_child(spawner)
+	spawner.muet_freed.connect(_on_muet_freed)
 	return spawner
 
 
@@ -205,28 +377,236 @@ func _blocked(p: Vector2, margin: float) -> bool:
 	return false
 
 
-func _on_sanctuary_freed(index: int) -> void:
-	_freed[index] = true
-	mood.free_sanctuary(index)
+## Un Muet libéré laisse parfois un fruit ou un objet (le Grand Muet : toujours les deux).
+func _on_muet_freed(muet: Muet) -> void:
+	if muet.is_boss():
+		return
+	var tuning: TuningData = Tuning.data
+	if _rng.randf() < tuning.fruit_chance:
+		_drop(fruit_scene, muet.global_position)
+	if _rng.randf() < tuning.loot_muet_chance:
+		_drop_loot(Game.roll_item(false, false), muet.global_position)
 
 
-## Nuit accomplie : le monde éclate de couleurs, une gerbe et un anneau arc-en-ciel au village.
+func _on_boss_freed(muet: Muet, index: int) -> void:
+	var tuning: TuningData = Tuning.data
+	var side: Vector3 = Vector3.RIGHT * tuning.boss_drop_offset
+	_drop(fruit_scene, muet.global_position + side)
+	_drop_loot(Game.roll_item(true, muet.king), muet.global_position - side)
+	if not Game.progress.freed[index]:
+		(drums[index].call(&"release"))
+
+
+func _drop(scene: PackedScene, at: Vector3) -> Node3D:
+	var node: Node3D = scene.instantiate() as Node3D
+	node.position = Vector3(at.x, 0.0, at.z)
+	pickups.add_child(node)
+	return node
+
+
+func _drop_loot(item: ItemData, at: Vector3) -> void:
+	var loot: LootDrop = loot_scene.instantiate() as LootDrop
+	loot.item = item
+	loot.position = Vector3(at.x, 0.0, at.z)
+	pickups.add_child(loot)
+
+
+func _on_sanctuary_freed() -> void:
+	for i: int in Game.progress.freed.size():
+		if Game.progress.freed[i]:
+			mood.free_sanctuary(i)
+
+
+## Tambours rapportés : le Chef s'en réjouit ; bannière (sauf à la fin de la nuit).
+func _on_drum_returned(count: int) -> void:
+	var chief: Villager = village.get_node(^"Chief") as Villager
+	chief.greet()
+	hud.show_bubble(GameTexts.RETURN_LINES[clampi(count - 1, 0, GameTexts.RETURN_LINES.size() - 1)], chief, tuning_chief_height())
+	if not Game.progress.is_complete():
+		hud.show_banner(GameTexts.BANNER_DRUM, GameTexts.BANNER_DRUM_TITLE % [count, Game.progress.drums_required], GameTexts.BANNER_DRUM_DETAIL)
+
+
+## Nuit accomplie : le monde éclate de couleurs, une gerbe et un anneau arc-en-ciel au village,
+## puis le résumé.
 func _on_night_completed() -> void:
 	var tuning: TuningData = Tuning.data
 	mood.set_won(true)
+	_ending = true
+	hud.show_banner(GameTexts.BANNER_NIGHT_DONE, GameTexts.BANNER_NIGHT_DONE_TITLE, "")
 	var fx: Effects = Effects.of(self)
 	if fx:
 		var center: Vector3 = to_world(WorldGen.CHIEF)
 		fx.burst(center + Vector3.UP * tuning.fx_night_height, tuning.fx_night_cubes, tuning.fx_night_speed)
 		fx.ring(center, tuning.fx_night_ring, fx.white, tuning.fx_night_ring_time, true)
+	get_tree().create_timer(tuning.night_summary_delay, false).timeout.connect(end_sortie.bind(&"night"))
 
 
-func _on_drum_picked() -> void:
-	if carried_from >= 0:
+## Le héros s'évanouit : un instant, puis le résumé.
+func _on_hero_fainted() -> void:
+	if not in_sortie or _ending:
 		return
-	var nearest: float = INF
+	_ending = true
+	_clear_hint()
+	hud.show_toast(GameTexts.TOAST_FAINT)
+	get_tree().create_timer(Tuning.data.faint_summary_delay, false).timeout.connect(end_sortie.bind(&"faint"))
+
+
+## Près d'un sanctuaire encore muet, une fois pour toutes : ce qu'il faut y faire.
+func _update_zone_tip() -> void:
+	if Game.profile.is_hint_done(&"zone"):
+		return
+	var reach: float = Tuning.data.zone_tip_distance
 	for i: int in gen.sanctuaries.size():
-		var d: float = to_world(gen.sanctuaries[i]).distance_to(hero.global_position)
-		if d < nearest:
-			nearest = d
-			carried_from = i
+		if not Game.progress.freed[i] and hero.global_position.distance_to(to_world(gen.sanctuaries[i])) < reach:
+			Game.mark_hint_done(&"zone")
+			hud.show_toast(GameTexts.TOAST_ZONE, Tuning.data.zone_tip_time)
+			return
+
+
+## Les villageois parlent au héros qui passe près d'eux (un de temps en temps).
+func _update_barks(delta: float) -> void:
+	var tuning: TuningData = Tuning.data
+	_bark_left -= delta
+	if _bark_left > 0.0:
+		return
+	for node: Node in village.get_children():
+		var villager: Villager = node as Villager
+		if villager == null or villager.global_position.distance_to(hero.global_position) > tuning.bark_distance:
+			continue
+		var text: String
+		if villager.is_chief:
+			text = _pick(GameTexts.CHIEF_TIPS)
+		else:
+			var mood_index: int = GameTexts.BARKS.size() - 1 if Game.progress.is_complete() else mini(Game.progress.drums_returned, GameTexts.BARKS.size() - 2)
+			text = _pick(GameTexts.BARKS[mood_index])
+		hud.show_bubble(text, villager, (tuning_chief_height() if villager.is_chief else tuning.villager_bubble_height))
+		_bark_left = tuning.bark_cooldown
+		return
+
+
+## Conseils du prototype : le premier qui s'applique, s'il n'est pas encore appris ; il s'en va
+## une fois fait, au bout d'un moment, ou quand il ne s'applique plus.
+func _update_hints(delta: float) -> void:
+	var tuning: TuningData = Tuning.data
+	for id: StringName in _hint_cooldowns.keys():
+		_hint_cooldowns[id] -= delta
+	if hero.input_move.length() > 0.0:
+		_moved_time += delta
+		if _moved_time > tuning.hint_move_time:
+			_learn(&"move")
+	if hero.combo.hits >= tuning.hint_combo_hits:
+		_learn(&"combo")
+	if _hint != &"":
+		_hint_time += delta
+		if Game.profile.is_hint_done(_hint) or _hint_time > tuning.hint_show_time or not _hint_applies(_hint):
+			_clear_hint()
+		return
+	for entry: Array in HINT_BUTTONS:
+		var id: StringName = entry[0]
+		if Game.profile.is_hint_done(id) or _hint_cooldowns.get(id, 0.0) > 0.0:
+			continue
+		if id != &"move" and not Game.profile.is_hint_done(&"move"):
+			return
+		if _hint_applies(id):
+			_hint = id
+			_hint_time = 0.0
+			hud.show_coach(GameTexts.HINTS[id], entry[1])
+			return
+
+
+func _hint_applies(id: StringName) -> bool:
+	var tuning: TuningData = Tuning.data
+	var airborne: bool = not hero.is_on_floor()
+	match id:
+		&"move":
+			return true
+		&"attack":
+			return _muet_near(tuning.hint_near_distance)
+		&"jump":
+			return _log_near() or Game.progress.elapsed > tuning.hint_jump_time
+		&"salto":
+			return airborne and hero.velocity.y > 0.0 and Game.profile.is_hint_done(&"jump")
+		&"combo":
+			return _attacks >= tuning.hint_combo_after and _muet_near(tuning.hint_near_distance)
+		&"dodge":
+			return _danger_near()
+		&"dive":
+			return airborne and _muet_near(tuning.hint_near_distance) and Game.profile.is_hint_done(&"jump")
+		&"beat":
+			return _attacks >= tuning.hint_beat_after
+		&"special":
+			return hero.groove.is_full()
+	return false
+
+
+func _on_action_pressed(action: StringName) -> void:
+	if not in_sortie:
+		return
+	var airborne: bool = not hero.is_on_floor()
+	match action:
+		&"attack":
+			_attacks += 1
+			_learn(&"attack")
+			if airborne:
+				_learn(&"dive")
+				if hero.groove.is_full():
+					_learn(&"special")
+			if Rhythm.judge_now(hero.stats.perfect_window) == RhythmMath.Judgement.PERFECT:
+				_learn(&"beat")
+		&"jump":
+			if airborne:
+				_learn(&"salto")
+			_learn(&"jump")
+		&"dodge":
+			_learn(&"dodge")
+
+
+func _learn(id: StringName) -> void:
+	if Game.profile.is_hint_done(id):
+		return
+	Game.mark_hint_done(id)
+	if _hint == id:
+		_clear_hint()
+
+
+func _clear_hint() -> void:
+	if _hint == &"":
+		return
+	_hint_cooldowns[_hint] = Tuning.data.hint_cooldown
+	_hint = &""
+	hud.hide_coach()
+
+
+func _muet_near(distance: float) -> bool:
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if not muet.is_freed() and muet.global_position.distance_to(hero.global_position) < distance:
+			return true
+	return false
+
+
+func _danger_near() -> bool:
+	var tuning: TuningData = Tuning.data
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if muet.is_threatening() and not muet.is_freed() and muet.global_position.distance_to(hero.global_position) < tuning.hint_danger_distance:
+			return true
+	for node: Node in get_tree().get_nodes_in_group(&"silence_orbs"):
+		if (node as Node3D).global_position.distance_to(hero.global_position) < tuning.hint_orb_distance:
+			return true
+	return false
+
+
+## Un tronc couché tout près : de quoi sauter.
+func _log_near() -> bool:
+	var from := Vector2(hero.global_position.x, hero.global_position.z) / _unit
+	var reach: float = Tuning.data.hint_log_distance / _unit
+	for s: WorldGen.Solid in gen.solids:
+		if is_equal_approx(s.h, WorldGen.LOG_HEIGHT) and Vector2(s.x - from.x, s.z - from.y).length() < reach:
+			return true
+	return false
+
+
+## Un texte au hasard dans `list` (tableau de textes).
+func _pick(list: Variant) -> String:
+	return list[_rng.randi_range(0, list.size() - 1)]

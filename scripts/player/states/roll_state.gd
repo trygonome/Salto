@@ -41,7 +41,7 @@ func physics_update(delta: float) -> void:
 	if fraction >= tuning.roll_chain_from and hero.consume_press(&"dodge"):
 		machine.transition_to(&"Roll")
 		return
-	hero.set_horizontal_velocity(_direction * HeroMotion.roll_speed(fraction, tuning))
+	hero.set_horizontal_velocity(_direction * HeroMotion.roll_speed(fraction, tuning) * hero.stats.roll)
 	hero.apply_gravity(delta)
 	hero.move(delta)
 	if not hero.is_on_floor():

@@ -12,6 +12,8 @@ extends Node3D
 @export var pink: Color
 @export var cyan: Color
 @export var red: Color
+@export var violet: Color
+@export var green: Color
 @export var block_color: Color
 @export var stun_color: Color
 ## Matériaux : cubes voxel (voxel_actor.tres) et anneaux (ring.tres).
