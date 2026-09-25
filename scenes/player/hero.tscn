@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -7,26 +7,36 @@
 [ext_resource type="Script" path="res://scripts/player/states/air_state.gd" id="5_air"]
 [ext_resource type="Script" path="res://scripts/player/states/roll_state.gd" id="6_roll"]
 [ext_resource type="Script" path="res://scripts/player/states/air_dash_state.gd" id="7_dash"]
+[ext_resource type="Script" path="res://scripts/player/states/attack_state.gd" id="8_attack"]
+[ext_resource type="Script" path="res://scripts/player/states/dive_state.gd" id="9_dive"]
+[ext_resource type="PackedScene" path="res://assets/models/kaykit/Rogue.glb" id="10_model"]
+[ext_resource type="Script" path="res://scripts/player/hero_animator.gd" id="11_animator"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_General.glb" id="12_general"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_MovementBasic.glb" id="13_basic"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_MovementAdvanced.glb" id="14_advanced"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/kaykit/Rig_Medium_CombatMelee.glb" id="15_melee"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="16_hitbox"]
+[ext_resource type="Script" path="res://scripts/fx/ribbon_trail.gd" id="17_trail"]
+[ext_resource type="PackedScene" path="res://scenes/fx/hit_spark.tscn" id="18_spark"]
+[ext_resource type="PackedScene" path="res://scenes/fx/shockwave.tscn" id="19_wave"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
-[sub_resource type="StandardMaterial3D" id="Material_body"]
-albedo_color = Color(0.91, 0.64, 0.23, 1)
-roughness = 0.6
+[sub_resource type="SphereShape3D" id="SphereShape_reach"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-material = SubResource("Material_body")
-
-[sub_resource type="StandardMaterial3D" id="Material_visor"]
-albedo_color = Color(0.1, 0.1, 0.2, 1)
-roughness = 0.3
-
-[sub_resource type="BoxMesh" id="BoxMesh_visor"]
-material = SubResource("Material_visor")
-size = Vector3(0.36, 0.12, 0.12)
+[sub_resource type="StandardMaterial3D" id="Material_trail"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+no_depth_test = true
 
 [node name="Hero" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 5
 script = ExtResource("1_hero")
+spark_scene = ExtResource("18_spark")
+shockwave_scene = ExtResource("19_wave")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape_body")
@@ -36,12 +46,32 @@ script = ExtResource("2_visual")
 
 [node name="Pivot" type="Node3D" parent="Visual"]
 
-[node name="Body" type="MeshInstance3D" parent="Visual/Pivot"]
-mesh = SubResource("CapsuleMesh_body")
+[node name="Model" parent="Visual/Pivot" instance=ExtResource("10_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
-[node name="Visor" type="MeshInstance3D" parent="Visual/Pivot"]
-position = Vector3(0, 0.5, -0.26)
-mesh = SubResource("BoxMesh_visor")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Visual/Pivot/Model"]
+libraries = {
+&"advanced": ExtResource("14_advanced"),
+&"basic": ExtResource("13_basic"),
+&"general": ExtResource("12_general"),
+&"melee": ExtResource("15_melee")
+}
+script = ExtResource("11_animator")
+
+[node name="Trail" type="MeshInstance3D" parent="Visual"]
+material_override = SubResource("Material_trail")
+cast_shadow = 0
+script = ExtResource("17_trail")
+color = Color(1, 0.86, 0.5, 0.85)
+
+[node name="Hitbox" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask = 16
+monitorable = false
+script = ExtResource("16_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("SphereShape_reach")
 
 [node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("3_machine")
@@ -58,3 +88,9 @@ script = ExtResource("6_roll")
 
 [node name="AirDash" type="Node" parent="StateMachine"]
 script = ExtResource("7_dash")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("8_attack")
+
+[node name="Dive" type="Node" parent="StateMachine"]
+script = ExtResource("9_dive")

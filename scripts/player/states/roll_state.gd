@@ -1,6 +1,7 @@
 extends State
 ## Roulade au sol : invulnérable pendant une partie de sa durée, fin ralentie.
-## On peut en sortir par un saut (qui garde l'élan) ou l'enchaîner avec une autre roulade.
+## On peut en sortir par un saut (qui garde l'élan), par Frappe (coup roulé) ou l'enchaîner
+## avec une autre roulade.
 
 var _elapsed: float = 0.0
 var _direction: Vector3 = Vector3.FORWARD
@@ -13,11 +14,13 @@ func enter(_previous: StringName) -> void:
 	_direction = hero.intended_direction()
 	hero.face_now(_direction)
 	hero.visual.play_roll(hero.tuning.roll_duration)
+	hero.visual.animator.show_roll()
 
 
 func exit() -> void:
 	hero.invulnerable = false
-	hero.visual.stop_roll()
+	hero.visual.stop_spin()
+	hero.end_roll()
 
 
 func physics_update(delta: float) -> void:
@@ -25,6 +28,9 @@ func physics_update(delta: float) -> void:
 	_elapsed += delta
 	var fraction: float = _elapsed / tuning.roll_duration
 	hero.invulnerable = HeroMotion.is_roll_invulnerable(fraction, tuning)
+	if hero.consume_press(&"attack"):
+		machine.transition_to(&"Attack")
+		return
 	if fraction >= tuning.roll_jump_from and hero.consume_press(&"jump"):
 		hero.set_horizontal_velocity(_direction * tuning.roll_jump_carry_speed)
 		hero.jump(tuning.jump_speed)

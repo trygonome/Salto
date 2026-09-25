@@ -1,5 +1,5 @@
 extends State
-## Au sol : course, saut et roulade. Quitter un bord sans sauter ouvre la tolérance de saut.
+## Au sol : course, saut, roulade et coups. Quitter un bord sans sauter ouvre la tolérance de saut.
 
 @onready var hero: Hero = owner as Hero
 
@@ -14,6 +14,9 @@ func physics_update(delta: float) -> void:
 	if hero.roll_cooldown_left <= 0.0 and hero.consume_press(&"dodge"):
 		machine.transition_to(&"Roll")
 		return
+	if hero.consume_press(&"attack"):
+		machine.transition_to(&"Attack")
+		return
 	var direction: Vector3 = hero.move_direction()
 	var rate: float = tuning.ground_brake_rate if direction.is_zero_approx() else tuning.ground_accel_rate
 	hero.approach_horizontal_velocity(direction * tuning.run_speed, rate, delta)
@@ -24,6 +27,7 @@ func physics_update(delta: float) -> void:
 	else:
 		hero.apply_gravity(delta)
 	hero.move(delta)
+	hero.visual.animator.show_ground(hero.horizontal_velocity().length())
 	if jumped:
 		machine.transition_to(&"Air")
 	elif not hero.is_on_floor():

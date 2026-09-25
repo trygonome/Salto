@@ -1,12 +1,23 @@
 class_name Hero
 extends CharacterBody3D
 ## Le héros : lit les commandes, garde la mémoire des appuis et délègue le mouvement
-## à sa machine à états (Ground, Air, Roll, AirDash). Les états utilisent les outils ci-dessous.
+## à sa machine à états (Ground, Air, Roll, AirDash, Attack, Dive). Les états utilisent les outils
+## ci-dessous ; les coups passent par la Hitbox et déclenchent les retours d'impact.
+
+## Un coup du héros a touché.
+signal hit_landed(hit: HitData)
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 
+## Groupe des Hurtbox que le héros peut frapper (orientation automatique).
+const TARGET_GROUP := &"enemy_hurtbox"
+
 ## Joystick tactile ; s'il n'est pas touché, on lit le clavier ou la manette.
 @export var joystick: FloatingJoystick
+## Effet d'étincelle posé au point d'impact.
+@export var spark_scene: PackedScene
+## Effet d'onde du plongeon.
+@export var shockwave_scene: PackedScene
 
 ## Faux dans les tests : les commandes sont alors fixées à la main (input_move, input_jump_held, press).
 var reads_player_input: bool = true
@@ -27,8 +38,20 @@ var coyote_left: float = 0.0
 var roll_cooldown_left: float = 0.0
 ## Vrai pendant les fenêtres d'invulnérabilité (roulade, élan aérien).
 var invulnerable: bool = false
+## Niveau du héros.
+var level: int = 0
+## Coups qui touchent à la suite.
+var combo: ComboCounter
+## Tirages des coups critiques (graine réglable dans les tests).
+var rng := RandomNumberGenerator.new()
+## Dernier coup qui a touché (mise au point).
+var last_hit: HitData
 
 var tuning: TuningData = Tuning.data
+
+var _combo_step: int = 0
+var _last_attack_end: float = -INF
+var _roll_end: float = -INF
 
 var _buffer: InputBuffer
 var _clock: float = 0.0
@@ -36,6 +59,7 @@ var _spawn: Transform3D
 
 @onready var state_machine: StateMachine = $StateMachine
 @onready var visual: HeroVisual = $Visual
+@onready var hitbox: Hitbox = $Hitbox
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 
@@ -47,7 +71,17 @@ func _ready() -> void:
 	capsule.radius = tuning.hero_radius
 	capsule.height = tuning.hero_height
 	_collision.position = Vector3.UP * tuning.hero_height / 2.0
-	visual.setup(tuning.hero_height, tuning.hero_radius)
+	visual.setup(tuning.hero_height, tuning.roll_pivot_height)
+	visual.trail.lifetime = tuning.trail_time
+	visual.trail.inner_reach = tuning.trail_inner_reach
+	visual.trail.outer_reach = tuning.trail_outer_reach
+	level = tuning.hero_start_level
+	combo = ComboCounter.new(tuning.combo_timeout)
+	rng.randomize()
+	var reach_shape: CollisionShape3D = $Hitbox/CollisionShape3D
+	(reach_shape.shape as SphereShape3D).radius = tuning.hitbox_radius
+	reach_shape.position = Vector3.UP * tuning.hero_height / 2.0
+	hitbox.landed.connect(_on_hit_landed)
 	add_to_group(&"debug_info")
 	state_machine.start()
 
@@ -56,9 +90,11 @@ func _physics_process(delta: float) -> void:
 	_clock += delta
 	coyote_left = maxf(coyote_left - delta, 0.0)
 	roll_cooldown_left = maxf(roll_cooldown_left - delta, 0.0)
+	combo.update(_clock)
 	if reads_player_input:
 		_read_player_input()
 	state_machine.physics_update(delta)
+	hitbox.update(delta)
 	visual.update_pose(facing_yaw, delta)
 	if global_position.y < _spawn.origin.y - tuning.respawn_fall_depth:
 		respawn()
@@ -151,6 +187,67 @@ func move(delta: float) -> void:
 	move_and_slide()
 
 
+## Temps de jeu écoulé depuis l'apparition du héros (s).
+func clock() -> float:
+	return _clock
+
+
+## Coup à jouer quand Frappe est appuyée au sol : le coup roulé pendant ou juste après une roulade,
+## sinon le coup suivant de l'enchaînement s'il est encore ouvert, sinon le premier.
+func next_attack(previous_state: StringName) -> AttackData:
+	if previous_state == &"Roll" or _clock - _roll_end <= tuning.rolling_kick_grace:
+		_combo_step = 0
+		return tuning.rolling_kick
+	if previous_state != &"Attack" and _clock - _last_attack_end > tuning.combo_chain_window:
+		_combo_step = 0
+	var attack: AttackData = tuning.combo_attacks[_combo_step]
+	_combo_step = (_combo_step + 1) % tuning.combo_attacks.size()
+	return attack
+
+
+## Note la fin d'un coup (pour savoir si l'enchaînement reste ouvert).
+func end_attack() -> void:
+	_last_attack_end = _clock
+
+
+## Note la fin d'une roulade (pour le coup roulé).
+func end_roll() -> void:
+	_roll_end = _clock
+
+
+## Direction du prochain coup : vers la cible la plus proche dans le cône d'orientation
+## automatique, sinon la direction demandée (ou le regard).
+func aim_direction() -> Vector3:
+	var forward: Vector3 = intended_direction()
+	var targets: Array[Node] = get_tree().get_nodes_in_group(TARGET_GROUP)
+	var positions := PackedVector3Array()
+	for target: Node in targets:
+		positions.append((target as Node3D).global_position)
+	var index: int = CombatMath.pick_target(global_position, forward, positions, tuning.auto_aim_range, tuning.auto_aim_cone_deg)
+	if index < 0:
+		return forward
+	var to_target: Vector3 = positions[index] - global_position
+	return Vector3(to_target.x, 0.0, to_target.z).normalized()
+
+
+## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant.
+func strike(attack: AttackData, direction: Vector3) -> void:
+	hitbox.activate(attack.reach, attack.arc_deg, direction, tuning.attack_active_time, _make_hit.bind(attack.damage_multiplier, attack.id))
+
+
+## Onde du plongeon à l'atterrissage, après une chute de `fall_height` mètres.
+func shockwave(fall_height: float) -> void:
+	var radius: float = CombatMath.dive_radius(fall_height, tuning)
+	var multiplier: float = CombatMath.dive_multiplier(fall_height, tuning)
+	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, _make_hit.bind(multiplier, &"dive"))
+	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
+	if shockwave_scene:
+		var wave: FadingBurst = shockwave_scene.instantiate() as FadingBurst
+		get_parent().add_child(wave)
+		wave.global_position = global_position
+		wave.play(tuning.shockwave_time, radius)
+
+
 ## Ramène le héros au point de départ.
 func respawn() -> void:
 	global_transform = _spawn
@@ -160,9 +257,9 @@ func respawn() -> void:
 	state_machine.transition_to(&"Air")
 
 
-## Ligne affichée par l'overlay de mise au point.
+## Lignes affichées par l'overlay de mise au point.
 func debug_text() -> String:
-	return "%s · sauts %d/%d · élans %d/%d%s" % [
+	var text: String = "%s · sauts %d/%d · élans %d/%d%s" % [
 		state_machine.current.name,
 		jumps_used,
 		tuning.max_jumps,
@@ -170,6 +267,37 @@ func debug_text() -> String:
 		tuning.air_dashes_per_jump,
 		" · invulnérable" if invulnerable else "",
 	]
+	text += "\ncombo %d" % combo.hits
+	if last_hit:
+		text += " · %s %.1f%s" % [last_hit.move, last_hit.damage, " critique" if last_hit.critical else ""]
+	return text
+
+
+func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName) -> HitData:
+	var hit := HitData.new()
+	hit.attacker = self
+	hit.move = move
+	hit.critical = rng.randf() < tuning.crit_chance
+	var attack: float = CombatMath.hero_attack(level, tuning)
+	hit.damage = CombatMath.damage(attack, multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
+	var to_target: Vector3 = hurtbox.global_position - global_position
+	to_target.y = 0.0
+	hit.direction = facing_direction() if to_target.is_zero_approx() else to_target.normalized()
+	hit.point = hurtbox.global_position - hit.direction * hurtbox.radius
+	return hit
+
+
+func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
+	combo.register_hit(_clock)
+	last_hit = hit
+	Feedback.hit_stop(tuning.hit_stop_hit)
+	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
+	if spark_scene:
+		var spark: FadingBurst = spark_scene.instantiate() as FadingBurst
+		get_parent().add_child(spark)
+		spark.global_position = hit.point
+		spark.play(tuning.spark_time, 1.0)
+	hit_landed.emit(hit)
 
 
 func _read_player_input() -> void:

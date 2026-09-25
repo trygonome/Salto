@@ -2,10 +2,16 @@ class_name CameraRig
 extends Node3D
 ## Caméra plongeante du jeu. Le nœud suit le point visé en douceur, un peu en avant du héros
 ## dans sa direction de course ; la Camera3D enfant recule et s'incline selon les réglages,
-## avec un cadrage différent en portrait et en paysage.
+## avec un cadrage différent en portrait et en paysage. Elle tremble quand Feedback le demande,
+## et se laisse pousser dans le sens du coup.
 
 ## Corps suivi (le héros).
 @export var target: CharacterBody3D
+
+var _base_offset: Vector3 = Vector3.ZERO
+var _trauma: float = 0.0
+var _push_direction: Vector3 = Vector3.ZERO
+var _rng := RandomNumberGenerator.new()
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -14,15 +20,36 @@ func _ready() -> void:
 	# Déplacée dans _process : la position lissée ne doit pas être interpolée une deuxième fois.
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	get_viewport().size_changed.connect(_apply_framing)
+	Feedback.shake_requested.connect(_on_shake_requested)
+	_rng.randomize()
 	_apply_framing()
 	if target:
 		global_position = _desired_position()
 
 
 func _process(delta: float) -> void:
+	var tuning: TuningData = Tuning.data
 	if target:
-		var weight: float = Smoothing.weight(Tuning.data.camera_follow_rate, delta)
+		var weight: float = Smoothing.weight(tuning.camera_follow_rate, delta)
 		global_position = global_position.lerp(_desired_position(), weight)
+	_trauma = maxf(_trauma - tuning.shake_decay * delta, 0.0)
+	_camera.position = _base_offset + shake_offset(_trauma, _push_direction, _random_unit(), tuning)
+
+
+## Décalage de la caméra pour une secousse `trauma` (0 à 1) : tremblement dans la direction
+## `jitter` (au hasard, longueur au plus 1), proportionnel au carré de la secousse, plus une poussée
+## dans la direction du coup.
+static func shake_offset(trauma: float, push_direction: Vector3, jitter: Vector3, tuning: TuningData) -> Vector3:
+	return jitter * trauma * trauma * tuning.shake_max_offset + push_direction * trauma * tuning.camera_push
+
+
+func _on_shake_requested(trauma: float, direction: Vector3) -> void:
+	_trauma = minf(_trauma + trauma, 1.0)
+	_push_direction = Vector3(direction.x, 0.0, direction.z).normalized()
+
+
+func _random_unit() -> Vector3:
+	return Vector3(_rng.randf_range(-1.0, 1.0), _rng.randf_range(-1.0, 1.0), _rng.randf_range(-1.0, 1.0)).limit_length(1.0)
 
 
 func _desired_position() -> Vector3:
@@ -36,7 +63,8 @@ func _apply_framing() -> void:
 	var tuning: TuningData = Tuning.data
 	var size: Vector2 = get_viewport().get_visible_rect().size
 	_camera.fov = fov_for(size, tuning)
-	_camera.position = offset_for(distance_for(size, tuning), tuning.camera_tilt_deg)
+	_base_offset = offset_for(distance_for(size, tuning), tuning.camera_tilt_deg)
+	_camera.position = _base_offset
 	_camera.rotation = Vector3(-deg_to_rad(tuning.camera_tilt_deg), 0.0, 0.0)
 
 

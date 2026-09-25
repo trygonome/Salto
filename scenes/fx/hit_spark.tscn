@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/fading_burst.gd" id="1_burst"]
+[ext_resource type="Texture2D" path="res://assets/fx/spark.svg" id="2_spark"]
+
+[node name="HitSpark" type="Node3D" node_paths=PackedStringArray("fading")]
+script = ExtResource("1_burst")
+start_scale = 0.35
+end_scale = 1.0
+fading = NodePath("Sprite")
+
+[node name="Sprite" type="Sprite3D" parent="."]
+cast_shadow = 0
+modulate = Color(1, 0.95, 0.72, 1)
+pixel_size = 0.009
+billboard = 1
+shaded = false
+texture = ExtResource("2_spark")
