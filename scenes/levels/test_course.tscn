@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="3_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="4_debug"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/training_dummy.tscn" id="5_dummy"]
+[ext_resource type="Script" path="res://scripts/levels/test_course.gd" id="6_course"]
 
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
@@ -77,6 +78,8 @@ radius = 0.15
 height = 0.3
 
 [node name="TestCourse" type="Node3D"]
+script = ExtResource("6_course")
+music_layers = 4
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_night")
