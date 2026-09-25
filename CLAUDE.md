@@ -31,6 +31,8 @@ Godot **4.7.2**. Les scripts de `tools/` tournent sous Linux (sessions cloud, CI
 Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (dossier réglable par `SALTO_TOOLS_DIR`).
 - **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
   (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
+  La scène principale est la nuit 1 (`scenes/levels/night_1.tscn`) ; le parcours d'essai
+  (`scenes/levels/test_course.tscn`) se lance depuis l'éditeur (F6).
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
   sans fenêtre ; code de sortie non nul si un test échoue.
 - **Exporter l'APK de test** : `tools/export_android.sh` → `build/android/salto-debug.apk`.
@@ -46,8 +48,8 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 res://
   scenes/   player/  enemies/  levels/  ui/  fx/
   scripts/  autoload/ (Tuning, Feedback, Rhythm, Game, Save)  components/  player/  combat/  enemies/
-            camera/  fx/  ui/  utils/  tuning_data.gd
-  data/     tuning.tres  items/  talents/
+            camera/  fx/  ui/  utils/  night/  items/  levels/ (props/)  tuning_data.gd
+  data/     tuning.tres  notebook.tres  items/  talents/
   assets/   models/  animations/  audio/  fonts/  fx/  ui/  LICENCES.md
   addons/   gut/ (tests, exclu de l'export)
   tests/

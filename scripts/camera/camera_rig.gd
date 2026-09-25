@@ -24,7 +24,14 @@ func _ready() -> void:
 	_rng.randomize()
 	_apply_framing()
 	if target:
-		global_position = _desired_position()
+		if target.has_signal(&"respawned"):
+			target.connect(&"respawned", snap)
+		snap()
+
+
+## Place la caméra tout de suite sur sa cible, sans glisser (départ, retour au village).
+func snap() -> void:
+	global_position = _desired_position()
 
 
 func _process(delta: float) -> void:
