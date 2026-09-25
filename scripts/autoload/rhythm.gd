@@ -69,11 +69,13 @@ func audible_layers() -> int:
 ## Rend `count` couches audibles (les autres se taisent), en fondu.
 func set_layers(count: int) -> void:
 	var tuning: TuningData = Tuning.data
+	_audible_layers = count
+	if _music == null:
+		return
 	for i: int in NIGHT_LAYERS.size():
 		var target: float = tuning.music_volume_db if i < count else tuning.music_silent_db
 		var set_volume: Callable = func(db: float) -> void: _music.set_sync_stream_volume(i, db)
 		create_tween().tween_method(set_volume, _music.get_sync_stream_volume(i), target, tuning.music_layer_fade_time)
-	_audible_layers = count
 
 
 ## Temps écoulé dans la musique depuis son début (s), tel qu'on l'entend.

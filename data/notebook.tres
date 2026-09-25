@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="NotebookData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/night/notebook_data.gd" id="1_notebook"]
+
+[resource]
+script = ExtResource("1_notebook")
+pages = PackedStringArray("Avant le Grand Silence, chaque Muet était un musicien du village. Leurs voix faisaient danser la jungle.", "Le Grand Silence est venu une nuit sans lune. Il a bu les voix d'abord, puis les couleurs.", "Ceux qui ont perdu leur voix ont perdu leur visage. Ils errent, bouche cousue, en cherchant un rythme à voler.", "Les tambours sont les derniers cœurs du village. Tant qu'ils battent, le Silence ne peut pas entrer.", "Les gongs des anciens sanctuaires gardent un morceau de chaque chanson. Rejoue-la, et ils se souviennent.", "Un Muet libéré retrouve sa voix d'un seul coup. Le premier son qu'il fait est toujours un rire.", "Les cornus portaient les grands tambours. Ils chargent encore, par habitude, vers le bruit qu'ils ont perdu.", "Les volants étaient les flûtistes. Écoute bien leurs ailes : elles sifflent encore un peu.", "Le Roi Muet fut le premier tambour du village. C'est lui qui a ouvert la porte au Silence, pour entendre ce qu'il y avait après la musique.", "Le Chef Taroum sait tout cela. Il n'en parle jamais, mais il danse plus fort chaque fois qu'un tambour revient.", "Quand les cinq nuits seront passées, le Silence ne partira pas. Il attendra, patient, qu'on oublie de jouer.", "Alors il faudra jouer encore, chaque nuit. C'est pour ça que les nuits sans fin existent.")

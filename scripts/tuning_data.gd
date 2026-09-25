@@ -409,3 +409,36 @@ extends Resource
 @export var boss_wave_range: float
 ## Hauteur des pieds au-dessus du sol à partir de laquelle l'onde passe sous le héros (m).
 @export var boss_wave_clearance: float
+
+@export_group("Nuit")
+## Tambours à rapporter pour accomplir la nuit (la tranche verticale n'a qu'un sanctuaire).
+@export var night_drums_required: int
+## Saturation des couleurs au début de la nuit, et une fois tous les tambours rapportés.
+@export var night_saturation_start: float
+@export var night_saturation_full: float
+## Durée du retour des couleurs après un tambour rapporté (s).
+@export var night_saturation_fade_time: float
+## Soin au village (PV/s).
+@export var village_heal_rate: float
+## Durée de la danse du Chef quand un tambour revient (s), et accélération par tambour.
+@export var chief_cheer_time: float
+@export var chief_cheer_speed_per_drum: float
+## Taille du Chef Taroum (m).
+@export var chief_height: float
+
+@export_group("Objets")
+## Multiplicateur de valeur par rareté (commun, rare, épique, légendaire).
+@export var item_rarity_multipliers: PackedFloat32Array
+## Nombre d'effets par rareté.
+@export var item_effects_per_rarity: PackedInt32Array
+## Valeur de base de chaque effet (fractions pour les pourcentages).
+@export var item_effect_bases: Dictionary[StringName, float]
+## Bonus de valeur par niveau d'objet (fraction).
+@export var item_level_bonus: float
+## Tirage de la valeur d'un effet (fractions).
+@export var item_roll_min: float
+@export var item_roll_max: float
+## Bonus par niveau de forge (fraction).
+@export var item_forge_bonus: float
+## Chances de rareté du butin du Grand Muet et des coffres (commun, rare, épique, légendaire).
+@export var loot_guaranteed_weights: PackedFloat32Array
