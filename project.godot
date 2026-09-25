@@ -12,8 +12,8 @@ config_version=5
 
 config/name="Salto"
 config/description="Salto : la jungle muette. Action acrobatique et rythmique en 3D."
-config/version="0.0.1"
-run/main_scene="res://scenes/levels/sandbox.tscn"
+config/version="0.1.0"
+run/main_scene="res://scenes/levels/test_course.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 boot_splash/bg_color=Color(0.06, 0.07, 0.17, 1)
 config/icon="res://icon.svg"
@@ -24,8 +24,8 @@ Tuning="*res://scripts/autoload/tuning.gd"
 
 [display]
 
-window/size/viewport_width=720
-window/size/viewport_height=720
+window/size/viewport_width=400
+window/size/viewport_height=400
 window/size/window_width_override=450
 window/size/window_height_override=800
 window/stretch/mode="canvas_items"
@@ -95,8 +95,13 @@ pause={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
 [physics]
 
+common/physics_interpolation=true
 3d/physics_engine="Jolt Physics"
 
 [rendering]

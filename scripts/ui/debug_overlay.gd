@@ -1,6 +1,7 @@
 extends Label
 ## Infos de mise au point, visibles seulement dans les versions de test :
-## images par seconde, moteur de rendu, taille de l'écran et orientation.
+## images par seconde, moteur de rendu, taille de l'écran, orientation, puis la ligne
+## `debug_text()` du premier nœud du groupe « debug_info » (le héros).
 
 
 func _ready() -> void:
@@ -21,3 +22,6 @@ func _process(_delta: float) -> void:
 		OS.get_model_name(),
 		Engine.get_version_info()["string"],
 	]
+	var source: Node = get_tree().get_first_node_in_group(&"debug_info")
+	if source:
+		text += "\n" + String(source.call(&"debug_text"))

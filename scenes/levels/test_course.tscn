@@ -1,0 +1,262 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/hero.tscn" id="1_hero"]
+[ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="2_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="3_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="4_debug"]
+
+[sub_resource type="Environment" id="Environment_night"]
+background_mode = 1
+background_color = Color(0.06, 0.07, 0.17, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.25, 0.42, 0.48, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 2
+glow_enabled = true
+glow_hdr_threshold = 1.0
+fog_enabled = true
+fog_light_color = Color(0.1, 0.12, 0.26, 1)
+fog_density = 0.01
+adjustment_enabled = true
+adjustment_saturation = 0.75
+
+[sub_resource type="Shader" id="Shader_grid"]
+code = "shader_type spatial;
+// Sol de test : quadrillage d'un mètre pour juger les échelles.
+
+uniform vec3 base_color : source_color = vec3(0.09, 0.15, 0.2);
+uniform vec3 line_color : source_color = vec3(0.2, 0.38, 0.42);
+uniform float cell_size = 1.0;
+
+void fragment() {
+	vec3 world = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec2 coord = world.xz / cell_size;
+	vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
+	float line = 1.0 - min(min(grid.x, grid.y), 1.0);
+	ALBEDO = mix(base_color, line_color, line);
+	ROUGHNESS = 0.95;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="Material_ground"]
+render_priority = 0
+shader = SubResource("Shader_grid")
+
+[sub_resource type="StandardMaterial3D" id="Material_block"]
+albedo_color = Color(0.2, 0.33, 0.38, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Material_rock"]
+albedo_color = Color(0.33, 0.31, 0.42, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.36, 0.25, 0.18, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_pole"]
+albedo_color = Color(0.25, 0.18, 0.14, 1)
+roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pole"]
+material = SubResource("Material_pole")
+top_radius = 0.04
+bottom_radius = 0.05
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="Material_lantern"]
+albedo_color = Color(1, 0.62, 0.25, 1)
+emission_enabled = true
+emission = Color(1, 0.55, 0.2, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_lantern"]
+material = SubResource("Material_lantern")
+radius = 0.15
+height = 0.3
+
+[node name="TestCourse" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_night")
+
+[node name="Moon" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, 35, 0)
+light_color = Color(0.72, 0.8, 1, 1)
+light_energy = 0.7
+shadow_enabled = true
+
+[node name="Ground" type="CSGBox3D" parent="."]
+position = Vector3(0, -0.5, -32)
+use_collision = true
+size = Vector3(24, 1, 84)
+material = SubResource("Material_ground")
+
+[node name="Course" type="Node3D" parent="."]
+
+[node name="Step1" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.05, -6)
+use_collision = true
+size = Vector3(3, 0.1, 6)
+material = SubResource("Material_block")
+
+[node name="Step2" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.1, -6.4)
+use_collision = true
+size = Vector3(3, 0.2, 5.2)
+material = SubResource("Material_block")
+
+[node name="Step3" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.15, -6.8)
+use_collision = true
+size = Vector3(3, 0.3, 4.4)
+material = SubResource("Material_block")
+
+[node name="HighStep" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.25, -10.5)
+use_collision = true
+size = Vector3(3, 0.5, 3)
+material = SubResource("Material_block")
+
+[node name="Rock1" type="CSGBox3D" parent="Course"]
+position = Vector3(-0.6, 0.25, -15)
+use_collision = true
+size = Vector3(1.6, 0.5, 1.6)
+material = SubResource("Material_rock")
+
+[node name="Rock2" type="CSGBox3D" parent="Course"]
+position = Vector3(0.4, 0.4, -18)
+use_collision = true
+size = Vector3(1.6, 0.8, 1.6)
+material = SubResource("Material_rock")
+
+[node name="Rock3" type="CSGBox3D" parent="Course"]
+position = Vector3(-0.3, 0.65, -21.5)
+use_collision = true
+size = Vector3(1.8, 1.3, 1.8)
+material = SubResource("Material_rock")
+
+[node name="Stair" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.25, -26.75)
+use_collision = true
+size = Vector3(3, 0.5, 1.5)
+material = SubResource("Material_block")
+
+[node name="Platform1" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.5, -29.5)
+use_collision = true
+size = Vector3(3, 1, 4)
+material = SubResource("Material_block")
+
+[node name="Platform2" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.5, -35.5)
+use_collision = true
+size = Vector3(3, 1, 3)
+material = SubResource("Material_block")
+
+[node name="Platform3" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 0.5, -43)
+use_collision = true
+size = Vector3(3, 1, 3)
+material = SubResource("Material_block")
+
+[node name="Pillar" type="CSGBox3D" parent="Course"]
+position = Vector3(0, 1.1, -46.3)
+use_collision = true
+size = Vector3(1.6, 2.2, 1.6)
+material = SubResource("Material_block")
+
+[node name="Perch1" type="CSGBox3D" parent="Course"]
+position = Vector3(-1, 0.3, -51)
+use_collision = true
+size = Vector3(1.2, 0.6, 1.2)
+material = SubResource("Material_wood")
+
+[node name="Perch2" type="CSGBox3D" parent="Course"]
+position = Vector3(0.2, 0.6, -53)
+use_collision = true
+size = Vector3(1.2, 1.2, 1.2)
+material = SubResource("Material_wood")
+
+[node name="Perch3" type="CSGBox3D" parent="Course"]
+position = Vector3(1.2, 0.9, -55)
+use_collision = true
+size = Vector3(1.2, 1.8, 1.2)
+material = SubResource("Material_wood")
+
+[node name="Perch4" type="CSGBox3D" parent="Course"]
+position = Vector3(0.2, 1.2, -57)
+use_collision = true
+size = Vector3(1.2, 2.4, 1.2)
+material = SubResource("Material_wood")
+
+[node name="Summit" type="CSGBox3D" parent="Course"]
+position = Vector3(-0.6, 1.2, -60)
+use_collision = true
+size = Vector3(3, 2.4, 3)
+material = SubResource("Material_block")
+
+[node name="Stump1" type="CSGCylinder3D" parent="Course"]
+position = Vector3(2.6, 0.35, -16.5)
+use_collision = true
+radius = 0.5
+height = 0.7
+sides = 10
+material = SubResource("Material_wood")
+
+[node name="Stump2" type="CSGCylinder3D" parent="Course"]
+position = Vector3(-2.6, 0.55, -19.5)
+use_collision = true
+radius = 0.45
+height = 1.1
+sides = 10
+material = SubResource("Material_wood")
+
+[node name="LanternStart" type="Node3D" parent="."]
+position = Vector3(1.8, 0, 1)
+
+[node name="Pole" type="MeshInstance3D" parent="LanternStart"]
+position = Vector3(0, 0.8, 0)
+mesh = SubResource("CylinderMesh_pole")
+
+[node name="Glow" type="MeshInstance3D" parent="LanternStart"]
+position = Vector3(0, 1.72, 0)
+mesh = SubResource("SphereMesh_lantern")
+
+[node name="Light" type="OmniLight3D" parent="LanternStart"]
+position = Vector3(0, 1.72, 0)
+light_color = Color(1, 0.62, 0.3, 1)
+light_energy = 1.5
+omni_range = 4.0
+
+[node name="LanternSummit" type="Node3D" parent="."]
+position = Vector3(0.3, 2.4, -60.8)
+
+[node name="Pole" type="MeshInstance3D" parent="LanternSummit"]
+position = Vector3(0, 0.8, 0)
+mesh = SubResource("CylinderMesh_pole")
+
+[node name="Glow" type="MeshInstance3D" parent="LanternSummit"]
+position = Vector3(0, 1.72, 0)
+mesh = SubResource("SphereMesh_lantern")
+
+[node name="Light" type="OmniLight3D" parent="LanternSummit"]
+position = Vector3(0, 1.72, 0)
+light_color = Color(1, 0.62, 0.3, 1)
+light_energy = 1.5
+omni_range = 4.0
+
+[node name="Hero" parent="." node_paths=PackedStringArray("joystick") instance=ExtResource("1_hero")]
+position = Vector3(0, 0, 2)
+joystick = NodePath("../TouchControls/Joystick")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("2_rig")
+target = NodePath("../Hero")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+
+[node name="TouchControls" parent="." instance=ExtResource("3_touch")]
+
+[node name="DebugOverlay" parent="." instance=ExtResource("4_debug")]

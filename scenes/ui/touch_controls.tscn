@@ -1,0 +1,77 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/floating_joystick.gd" id="1_joystick"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/attack.svg" id="2_attack"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/attack_pressed.svg" id="3_attack_pressed"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/jump.svg" id="4_jump"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/jump_pressed.svg" id="5_jump_pressed"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/dodge.svg" id="6_dodge"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/dodge_pressed.svg" id="7_dodge_pressed"]
+
+[sub_resource type="CircleShape2D" id="CircleShape_big"]
+radius = 120.0
+
+[sub_resource type="CircleShape2D" id="CircleShape_small"]
+radius = 90.0
+
+[node name="TouchControls" type="CanvasLayer"]
+layer = 10
+
+[node name="Joystick" type="Control" parent="."]
+layout_mode = 3
+anchor_right = 0.5
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_joystick")
+ring_color = Color(0.9, 0.94, 1, 0.55)
+knob_color = Color(0.96, 0.81, 0.48, 0.85)
+rest_color = Color(0.9, 0.94, 1, 0.18)
+ring_width = 3.0
+knob_ratio = 0.42
+
+[node name="RestPoint" type="Control" parent="Joystick"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 76.0
+offset_top = -84.0
+offset_right = 76.0
+offset_bottom = -84.0
+mouse_filter = 2
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Attack" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(-112, -120)
+scale = Vector2(0.333333, 0.333333)
+texture_normal = ExtResource("2_attack")
+texture_pressed = ExtResource("3_attack_pressed")
+shape = SubResource("CircleShape_big")
+action = "attack"
+visibility_mode = 1
+
+[node name="Jump" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(-190, -88)
+scale = Vector2(0.333333, 0.333333)
+texture_normal = ExtResource("4_jump")
+texture_pressed = ExtResource("5_jump_pressed")
+shape = SubResource("CircleShape_small")
+action = "jump"
+visibility_mode = 1
+
+[node name="Dodge" type="TouchScreenButton" parent="Buttons"]
+position = Vector2(-124, -198)
+scale = Vector2(0.333333, 0.333333)
+texture_normal = ExtResource("6_dodge")
+texture_pressed = ExtResource("7_dodge_pressed")
+shape = SubResource("CircleShape_small")
+action = "dodge"
+visibility_mode = 1

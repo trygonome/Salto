@@ -6,7 +6,7 @@ Chaque pack ou fichier externe est noté ici **avant** d'être importé, avec l'
 
 | Asset | Auteur | Source | Licence | Dossier | Échelle vérifiée |
 |---|---|---|---|---|---|
-| *aucun pour l'instant* | | | | | |
+| Pictogrammes des boutons tactiles (`ui/icons/*.svg`) | Salto | créés pour le projet | propriété du projet | `assets/ui/icons` | sans objet (interface) |
 
 ## Outils (non inclus dans le jeu exporté)
 
