@@ -1,0 +1,72 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/muet.gd" id="1_muet"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/muet_body.tscn" id="2_body"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="3_hurtbox"]
+[ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="4_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/health.gd" id="5_health"]
+[ext_resource type="Script" path="res://scripts/components/state_machine.gd" id="6_machine"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_stunned_state.gd" id="7_stunned"]
+[ext_resource type="Script" path="res://scripts/enemies/states/muet_freed_state.gd" id="8_freed"]
+[ext_resource type="PackedScene" path="res://scenes/fx/telegraph.tscn" id="9_telegraph"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/freed.wav" id="20_freed"]
+[ext_resource type="Script" path="res://scripts/enemies/states/hopper_hop_state.gd" id="30_hop"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_hurt"]
+
+[sub_resource type="SphereShape3D" id="SphereShape_reach"]
+radius = 3.0
+
+[node name="Hopper" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 5
+script = ExtResource("1_muet")
+species = &"hopper"
+guardian = false
+flies = false
+telegraph_scene = ExtResource("9_telegraph")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape_body")
+
+[node name="Body" parent="." instance=ExtResource("2_body")]
+
+[node name="Hurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health") groups=["enemy_hurtbox"]]
+collision_layer = 16
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../Health")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
+shape = SubResource("CapsuleShape_hurt")
+
+[node name="Hitbox" type="Area3D" parent="."]
+collision_layer = 32
+collision_mask = 64
+monitorable = false
+script = ExtResource("4_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("SphereShape_reach")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("5_health")
+
+[node name="FreedSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("20_freed")
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
+script = ExtResource("6_machine")
+initial_state = NodePath("Hop")
+
+[node name="Hop" type="Node" parent="StateMachine"]
+script = ExtResource("30_hop")
+
+[node name="Stunned" type="Node" parent="StateMachine"]
+script = ExtResource("7_stunned")
+
+[node name="Freed" type="Node" parent="StateMachine"]
+script = ExtResource("8_freed")
