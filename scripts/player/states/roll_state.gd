@@ -14,6 +14,7 @@ func enter(_previous: StringName) -> void:
 	_direction = hero.intended_direction()
 	hero.face_now(_direction)
 	hero.visual.play_roll(hero.tuning.roll_duration)
+	hero.play_move_sound(&"roll")
 	hero.visual.animator.show_roll()
 
 

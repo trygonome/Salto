@@ -61,6 +61,15 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="92_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="93_end"]
 [ext_resource type="Script" path="res://scripts/levels/nature_batcher.gd" id="94_batcher"]
+[ext_resource type="PackedScene" path="res://scenes/fx/fireflies.tscn" id="95_fireflies"]
+[ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="96_ambience"]
+[sub_resource type="Gradient" id="Gradient_grading"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.02, 0.035, 0.09, 1, 0.5, 0.52, 0.54, 1, 1, 0.97, 0.9, 1)
+
+[sub_resource type="GradientTexture1D" id="Texture_grading"]
+gradient = SubResource("Gradient_grading")
+
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
 background_color = Color(0.05, 0.06, 0.15, 1)
@@ -74,6 +83,8 @@ fog_enabled = true
 fog_light_color = Color(0.08, 0.1, 0.22, 1)
 fog_density = 0.012
 adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_color_correction = SubResource("Texture_grading")
 
 [sub_resource type="ShaderMaterial" id="Material_ground"]
 render_priority = 0
@@ -2651,3 +2662,28 @@ shape = SubResource("Shape_hint_wide")
 [node name="PauseMenu" parent="." instance=ExtResource("92_pause")]
 
 [node name="EndScreen" parent="." instance=ExtResource("93_end")]
+
+[node name="Ambience" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("96_ambience")
+volume_db = -4.0
+autoplay = true
+
+[node name="Fireflies" type="Node3D" parent="."]
+
+[node name="Swarm1" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -1)
+
+[node name="Swarm2" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.6, -21)
+
+[node name="Swarm3" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -44)
+
+[node name="Swarm4" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.8, -47)
+
+[node name="Swarm5" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2.2, -54)
+
+[node name="Swarm6" parent="Fireflies" instance=ExtResource("95_fireflies")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -85)

@@ -26,6 +26,7 @@ func enter(previous: StringName) -> void:
 	hero.visual.stop_spin()
 	hero.visual.animator.show_attack(attack)
 	hero.visual.trail.emitting = true
+	hero.play_move_sound(&"swing")
 
 
 func exit() -> void:

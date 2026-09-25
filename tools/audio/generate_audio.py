@@ -302,6 +302,139 @@ def sfx_bounce():
     return np.sin(2 * np.pi * np.cumsum(f * wobble) / RATE) * env(n, 0.003, 0.14)
 
 
+def band_noise(length, f_start, f_end, q=1.2):
+    """Bruit passé dans un filtre passe-bande dont la fréquence glisse de f_start à f_end."""
+    n = int(length * RATE)
+    noise = RNG.standard_normal(n)
+    freqs = np.geomspace(f_start, f_end, n)
+    out = np.zeros(n)
+    low = band = 0.0
+    damping = 1.0 / q
+    for i in range(n):
+        f = 2 * math.sin(math.pi * freqs[i] / RATE)
+        low += f * band
+        high = noise[i] - low - damping * band
+        band += f * high
+        out[i] = band
+    return out
+
+
+def whoosh(length, f_start, f_end, q=1.2):
+    """Souffle : bruit filtré qui glisse, qui enfle puis retombe."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    shape = np.sin(np.pi * t / t[-1]) ** 1.5
+    return band_noise(length, f_start, f_end, q) * shape
+
+
+def sfx_jump():
+    """Saut : un petit souffle qui monte."""
+    return whoosh(0.18, 350, 1300, 1.5)
+
+
+def sfx_salto():
+    """Salto : un souffle plus long qui tourne, et un reflet de carillon."""
+    n = int(0.42 * RATE)
+    t = np.arange(n) / RATE
+    air = whoosh(0.42, 500, 2600, 2.0)
+    shine = np.sin(2 * np.pi * degree(12, 0) * t) * env(n, 0.05, 0.12) * 0.15
+    return air + shine * np.max(np.abs(air))
+
+
+def sfx_land():
+    """Atterrissage : un petit choc sourd dans l'herbe."""
+    n = int(0.16 * RATE)
+    t = np.arange(n) / RATE
+    f = 55 + 60 * np.exp(-t / 0.02)
+    thump = np.sin(2 * np.pi * np.cumsum(f) / RATE) * env(n, 0.001, 0.05)
+    grass = band_noise(0.16, 1800, 900, 1.0) * env(n, 0.001, 0.03)
+    return thump + 0.25 * grass / max(np.max(np.abs(grass)), 1e-9)
+
+
+def sfx_roll():
+    """Roulade : un froissement qui roule."""
+    n = int(0.32 * RATE)
+    t = np.arange(n) / RATE
+    rustle = band_noise(0.32, 700, 400, 0.9)
+    tumble = 0.6 + 0.4 * np.sin(2 * np.pi * 14 * t)
+    return rustle * tumble * np.sin(np.pi * t / t[-1])
+
+
+def sfx_swing():
+    """Coup de pied dans le vide : un souffle bref qui descend."""
+    return whoosh(0.14, 1600, 500, 1.4)
+
+
+def sfx_slam():
+    """Frappe au sol du Grand Muet : un grondement profond."""
+    n = int(0.9 * RATE)
+    t = np.arange(n) / RATE
+    f = 38 + 50 * np.exp(-t / 0.05)
+    boom = np.sin(2 * np.pi * np.cumsum(f) / RATE) * env(n, 0.002, 0.3)
+    rumble = band_noise(0.9, 180, 60, 0.8) * env(n, 0.002, 0.25)
+    return np.tanh(1.5 * (boom + 0.5 * rumble / max(np.max(np.abs(rumble)), 1e-9)))
+
+
+def sfx_ui_click():
+    """Bouton de l'interface : un petit tic de bois."""
+    return marimba(degree(10, 0), 0.12)
+
+
+def sfx_title():
+    """Grand titre : un accord de marimba qui s'ouvre, en arpège rapide."""
+    out = np.zeros(int(1.6 * RATE))
+    for k, d in enumerate([0, 4, 7, 10]):
+        seg = marimba(degree(d, 0), 1.2)
+        i = int(0.06 * k * RATE)
+        out[i:i + len(seg)] += seg[: len(out) - i]
+    return out
+
+
+def ambience_night(length=16.0):
+    """Ambiance de la jungle la nuit, en boucle sans couture : grillons, grenouilles, vent."""
+    n = int(length * RATE)
+    buf = np.zeros(n)
+
+    def place(start, signal, gain):
+        idx = (int(start * RATE) + np.arange(len(signal))) % n
+        np.add.at(buf, idx, signal * gain)
+
+    # Vent : bruit mis en forme dans le domaine fréquentiel (donc périodique sur la boucle).
+    spectrum = np.fft.rfft(RNG.standard_normal(n))
+    freqs = np.fft.rfftfreq(n, 1 / RATE)
+    spectrum *= 1 / np.maximum(freqs, 40) * (freqs < 900)
+    wind = np.fft.irfft(spectrum, n)
+    wind /= np.max(np.abs(wind))
+    t = np.arange(n) / RATE
+    wind *= 0.6 + 0.4 * np.sin(2 * np.pi * t / length)
+    buf += 0.35 * wind
+    # Grillons : groupes de trilles aigus, chacun à son rythme.
+    for cricket in range(5):
+        carrier = RNG.uniform(3900, 5200)
+        period = RNG.uniform(0.55, 1.3)
+        pulses = int(RNG.integers(3, 6))
+        start = RNG.uniform(0, period)
+        gain = RNG.uniform(0.05, 0.12)
+        chirp_n = int(0.028 * RATE)
+        tc = np.arange(chirp_n) / RATE
+        chirp = np.sin(2 * np.pi * carrier * tc) * np.sin(np.pi * tc / tc[-1]) ** 2
+        time = start
+        while time < length:
+            for k in range(pulses):
+                place(time + k * 0.042, chirp, gain * RNG.uniform(0.7, 1.0))
+            time += period * RNG.uniform(0.85, 1.15)
+    # Grenouilles : quelques coassements graves.
+    for croak in range(4):
+        n_c = int(0.28 * RATE)
+        tc = np.arange(n_c) / RATE
+        f = RNG.uniform(260, 420)
+        ribbit = np.sin(2 * np.pi * f * tc) * (0.5 + 0.5 * np.sign(np.sin(2 * np.pi * 32 * tc)))
+        ribbit *= env(n_c, 0.01, 0.1)
+        ribbit = np.convolve(ribbit, np.ones(20) / 20, mode="same")
+        place(RNG.uniform(0, length), ribbit, 0.35)
+    return buf
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -337,6 +470,15 @@ def main():
     write(ROOT / "assets/audio/sfx/pickup.wav", sfx_pickup(), peak=0.6)
     write(ROOT / "assets/audio/sfx/drum_return.wav", sfx_drum_return(), peak=0.85)
     write(ROOT / "assets/audio/sfx/bounce.wav", sfx_bounce(), peak=0.6)
+    write(ROOT / "assets/audio/sfx/jump.wav", sfx_jump(), peak=0.35)
+    write(ROOT / "assets/audio/sfx/salto.wav", sfx_salto(), peak=0.45)
+    write(ROOT / "assets/audio/sfx/land.wav", sfx_land(), peak=0.5)
+    write(ROOT / "assets/audio/sfx/roll.wav", sfx_roll(), peak=0.4)
+    write(ROOT / "assets/audio/sfx/swing.wav", sfx_swing(), peak=0.35)
+    write(ROOT / "assets/audio/sfx/slam.wav", sfx_slam(), peak=0.85)
+    write(ROOT / "assets/audio/sfx/ui_click.wav", sfx_ui_click(), peak=0.4)
+    write(ROOT / "assets/audio/sfx/title.wav", sfx_title(), peak=0.5)
+    write(ROOT / "assets/audio/ambience/night_ambience.wav", ambience_night(), peak=0.5)
 
 
 if __name__ == "__main__":

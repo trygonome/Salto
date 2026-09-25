@@ -470,3 +470,11 @@ extends Resource
 @export var health_low_fraction: float
 ## Attente entre « Nuit accomplie » et l'écran de fin (s).
 @export var end_screen_delay: float
+
+@export_group("Finition")
+## Vitesse de chute à partir de laquelle l'atterrissage s'entend, puis soulève de la poussière (m/s).
+@export var land_sound_speed: float
+@export var land_dust_speed: float
+## Poussière d'atterrissage : durée (s) et taille (m).
+@export var land_dust_time: float
+@export var land_dust_size: float

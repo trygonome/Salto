@@ -10,6 +10,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="8_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="9_talisman"]
 [ext_resource type="PackedScene" path="res://scenes/fx/damage_number.tscn" id="10_number"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/title.wav" id="11_title"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="12_click"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
 
@@ -178,3 +180,10 @@ offset_right = 40.0
 offset_bottom = 23.0
 theme_type_variation = &"HintLabel"
 horizontal_alignment = 1
+
+[node name="TitleSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_title")
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("12_click")

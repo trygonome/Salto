@@ -315,3 +315,7 @@ damage_number_rise = 0.7
 health_bar_follow_rate = 8.0
 health_low_fraction = 0.3
 end_screen_delay = 3.9
+land_sound_speed = 3.0
+land_dust_speed = 5.0
+land_dust_time = 0.35
+land_dust_size = 0.9

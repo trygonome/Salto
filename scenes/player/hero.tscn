@@ -28,6 +28,11 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hurt.wav" id="26_hurt_sound"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/dodge.wav" id="27_dodge_sound"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="28_drum"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/jump.wav" id="29_jump"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/salto.wav" id="30_salto"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/land.wav" id="31_land"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/roll.wav" id="32_roll"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing.wav" id="33_swing"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
@@ -59,6 +64,7 @@ collision_mask = 5
 script = ExtResource("1_hero")
 spark_scene = ExtResource("18_spark")
 shockwave_scene = ExtResource("19_wave")
+land_dust_color = Color(0.42, 0.38, 0.32, 1)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape_body")
@@ -112,6 +118,21 @@ stream = ExtResource("26_hurt_sound")
 
 [node name="DodgeSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("27_dodge_sound")
+
+[node name="JumpSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("29_jump")
+
+[node name="SaltoSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("30_salto")
+
+[node name="LandSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("31_land")
+
+[node name="RollSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("32_roll")
+
+[node name="SwingSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("33_swing")
 
 [node name="Hurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health")]
 collision_layer = 64

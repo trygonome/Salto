@@ -50,6 +50,8 @@ func _ready() -> void:
 	_damage_numbers.toggled.connect(Game.set_damage_numbers)
 	_debug_info.toggled.connect(Game.set_debug_info)
 	_debug_info.visible = DebugOverlay.available()
+	for button: Node in find_children("*", "BaseButton", true, false):
+		(button as BaseButton).pressed.connect($ClickSound.play)
 
 
 ## Ouvre le menu et met le jeu en pause (sauf si le jeu est déjà arrêté : écran de fin).

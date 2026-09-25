@@ -4,6 +4,8 @@ extends MuetState
 
 ## Onde de choc de la phase 2.
 @export var wave_scene: PackedScene
+## Grondement de la frappe.
+@export var sound: AudioStreamPlayer3D
 
 var _left: float = 0.0
 
@@ -14,6 +16,8 @@ func enter(_previous: StringName) -> void:
 	var forward: Vector3 = Vector3.FORWARD.rotated(Vector3.UP, muet.body.rotation.y)
 	muet.strike(tuning.boss_slam_radius, CombatMath.FULL_CIRCLE_DEG, forward, tuning.attack_active_time, tuning.boss_slam_damage, true)
 	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
+	if sound:
+		sound.play()
 	if EnemyMath.boss_enraged(muet.health.current / muet.health.maximum, tuning):
 		var wave: Node3D = wave_scene.instantiate() as Node3D
 		muet.get_parent().add_child(wave)

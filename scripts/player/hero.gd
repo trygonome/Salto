@@ -24,8 +24,10 @@ const SEMITONES_PER_OCTAVE := 12.0
 @export var joystick: FloatingJoystick
 ## Effet d'étincelle posé au point d'impact.
 @export var spark_scene: PackedScene
-## Effet d'onde du plongeon.
+## Effet d'onde du plongeon (sert aussi à la poussière d'atterrissage).
 @export var shockwave_scene: PackedScene
+## Couleur de la poussière soulevée à l'atterrissage.
+@export var land_dust_color: Color
 
 ## Faux dans les tests : les commandes sont alors fixées à la main (input_move, input_jump_held, press).
 var reads_player_input: bool = true
@@ -84,6 +86,11 @@ var _spawn: Transform3D
 @onready var _chime: AudioStreamPlayer = $ChimeSound
 @onready var _hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var _dodge_sound: AudioStreamPlayer = $DodgeSound
+@onready var _jump_sound: AudioStreamPlayer = $JumpSound
+@onready var _salto_sound: AudioStreamPlayer = $SaltoSound
+@onready var _land_sound: AudioStreamPlayer = $LandSound
+@onready var _roll_sound: AudioStreamPlayer = $RollSound
+@onready var _swing_sound: AudioStreamPlayer = $SwingSound
 @onready var _carried_drum: Node3D = $Visual/CarriedDrum
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -219,6 +226,9 @@ func jump(speed: float) -> void:
 	coyote_left = 0.0
 	if jumps_used >= tuning.max_jumps:
 		visual.play_salto(tuning.salto_duration)
+		_salto_sound.play()
+	else:
+		_jump_sound.play()
 
 
 ## Saute en l'air s'il reste un saut : saut normal pendant la tolérance de bord, sinon salto.
@@ -239,8 +249,33 @@ func try_air_jump() -> bool:
 
 ## Déplace le corps selon `velocity`, en montant les petites marches.
 func move(delta: float) -> void:
+	var falling_speed: float = 0.0 if is_on_floor() else -velocity.y
 	_step_up(delta)
 	move_and_slide()
+	if falling_speed > 0.0 and is_on_floor():
+		_on_landed(falling_speed)
+
+
+## Son d'un mouvement : « roll » (roulade) ou « swing » (coup dans le vide).
+func play_move_sound(sound: StringName) -> void:
+	match sound:
+		&"roll":
+			_roll_sound.play()
+		&"swing":
+			_swing_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
+			_swing_sound.play()
+
+
+## Atterrissage à `speed` m/s : un bruit sourd, et de la poussière après une grande chute.
+func _on_landed(speed: float) -> void:
+	if speed >= tuning.land_sound_speed:
+		_land_sound.play()
+	if speed >= tuning.land_dust_speed and shockwave_scene:
+		var dust: FadingBurst = shockwave_scene.instantiate() as FadingBurst
+		get_parent().add_child(dust)
+		dust.global_position = global_position
+		dust.tint(land_dust_color)
+		dust.play(tuning.land_dust_time, tuning.land_dust_size)
 
 
 ## Temps de jeu écoulé depuis l'apparition du héros (s).

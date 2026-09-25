@@ -65,13 +65,17 @@ var _card_tween: Tween
 @onready var _card_icon: TextureRect = %CardIcon
 @onready var _card_name: Label = %CardName
 @onready var _hint_label: Label = %Hint
+@onready var _title_sound: AudioStreamPlayer = $TitleSound
+@onready var _click_sound: AudioStreamPlayer = $ClickSound
 
 
 func _ready() -> void:
 	add_to_group(&"hud")
 	for control: CanvasItem in [_message, _reply, _title, _card, _hint_label]:
 		control.visible = false
-	_pause_button.pressed.connect(func() -> void: get_tree().call_group(&"pause_menu", &"open"))
+	_pause_button.pressed.connect(func() -> void:
+		_click_sound.play()
+		get_tree().call_group(&"pause_menu", &"open"))
 	Game.night_started.connect(_on_night_started)
 	Game.drum_picked.connect(_on_drum_picked)
 	Game.drum_dropped.connect(_on_drum_dropped)
@@ -129,6 +133,7 @@ func show_title(over_title: String, title: String) -> void:
 	_title_text.text = title
 	_title.visible = true
 	_title.modulate.a = 0.0
+	_title_sound.play()
 	var tuning: TuningData = Tuning.data
 	var tween: Tween = create_tween()
 	tween.tween_property(_title, "modulate:a", 1.0, tuning.title_fade_in_time)

@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="2_anklets"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="3_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="4_talisman"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="90_click"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
@@ -179,3 +180,6 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 focus_mode = 0
 text = "Retour"
+
+[node name="ClickSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("90_click")

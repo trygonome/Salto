@@ -13,6 +13,7 @@ func _ready() -> void:
 	visible = false
 	%PlayAgain.text = GameTexts.PLAY_AGAIN
 	%PlayAgain.pressed.connect(_play_again)
+	%PlayAgain.pressed.connect($ClickSound.play)
 
 
 func open() -> void:
