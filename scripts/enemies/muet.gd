@@ -281,7 +281,13 @@ func move(horizontal: Vector3, delta: float) -> void:
 		flat = _knockback
 	velocity.x = flat.x
 	velocity.z = flat.z
+	var before: Vector3 = global_position
 	move_and_slide()
+	# Rarement, un Muet posé contre un obstacle sort du pas de physique avec une position non finie :
+	# il reste où il était.
+	if not global_position.is_finite() or not velocity.is_finite():
+		global_position = before
+		velocity = Vector3.ZERO
 	_keep_out_of_safe_zone()
 
 
