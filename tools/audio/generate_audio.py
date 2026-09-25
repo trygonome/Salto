@@ -245,6 +245,63 @@ def sfx_dodge():
     return (noise - smooth) * shape
 
 
+def sfx_gong():
+    """Gong des anciens : partiels inharmoniques, longue résonance (ré ; le jeu le transpose)."""
+    n = int(2.4 * RATE)
+    t = np.arange(n) / RATE
+    f = degree(0, 0)
+    partials = [(1.0, 1.0, 1.4), (2.76, 0.5, 0.9), (5.4, 0.25, 0.5), (8.9, 0.12, 0.25)]
+    tone = sum(a * np.sin(2 * np.pi * f * m * t) * np.exp(-t / d) for m, a, d in partials)
+    strike = RNG.standard_normal(n) * env(n, 0.0005, 0.01)
+    return tone * np.minimum(t / 0.004, 1.0) + 0.3 * strike
+
+
+def sfx_chest():
+    """Coffre qui s'ouvre : un grincement court puis une pluie de notes."""
+    out = np.zeros(int(1.0 * RATE))
+    n = int(0.25 * RATE)
+    t = np.arange(n) / RATE
+    creak = np.sin(2 * np.pi * np.cumsum(90 + 40 * np.sin(2 * np.pi * 7 * t)) / RATE) * env(n, 0.02, 0.1)
+    out[:n] += 0.6 * creak
+    for k, d in enumerate([7, 9, 10, 12, 14]):
+        seg = marimba(degree(d, 0), 0.5)
+        i = int((0.2 + 0.07 * k) * RATE)
+        out[i:i + len(seg)] += 0.5 * seg[: len(out) - i]
+    return out
+
+
+def sfx_pickup():
+    """Objet ramassé : deux notes brillantes."""
+    out = np.zeros(int(0.5 * RATE))
+    for k, d in enumerate([10, 12]):
+        seg = marimba(degree(d, 0), 0.4)
+        i = int(0.08 * k * RATE)
+        out[i:i + len(seg)] += seg
+    return out
+
+
+def sfx_drum_return():
+    """Tambour rapporté : un roulement de tambours qui monte, et un grand coup."""
+    out = np.zeros(int(1.6 * RATE))
+    for k in range(10):
+        seg = tom(150 + 12 * k, 0.3)
+        i = int(0.07 * k * RATE)
+        out[i:i + len(seg)] += (0.4 + 0.05 * k) * seg
+    big = tom(110, 0.9) + kick(0.9)
+    i = int(0.75 * RATE)
+    out[i:i + len(big)] += big[: len(out) - i]
+    return out
+
+
+def sfx_bounce():
+    """Champignon-trampoline : un « boïng » qui monte."""
+    n = int(0.35 * RATE)
+    t = np.arange(n) / RATE
+    f = 180 * np.exp(t / 0.18)
+    wobble = 1 + 0.08 * np.sin(2 * np.pi * 22 * t)
+    return np.sin(2 * np.pi * np.cumsum(f * wobble) / RATE) * env(n, 0.003, 0.14)
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -275,6 +332,11 @@ def main():
     write(ROOT / "assets/audio/sfx/boss_freed.wav", sfx_boss_freed(), peak=0.7)
     write(ROOT / "assets/audio/sfx/hurt.wav", sfx_hurt(), peak=0.8)
     write(ROOT / "assets/audio/sfx/dodge.wav", sfx_dodge(), peak=0.5)
+    write(ROOT / "assets/audio/sfx/gong.wav", sfx_gong(), peak=0.7)
+    write(ROOT / "assets/audio/sfx/chest.wav", sfx_chest(), peak=0.6)
+    write(ROOT / "assets/audio/sfx/pickup.wav", sfx_pickup(), peak=0.6)
+    write(ROOT / "assets/audio/sfx/drum_return.wav", sfx_drum_return(), peak=0.85)
+    write(ROOT / "assets/audio/sfx/bounce.wav", sfx_bounce(), peak=0.6)
 
 
 if __name__ == "__main__":
