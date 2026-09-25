@@ -187,6 +187,64 @@ def sfx_chime():
     return tone * env(n, 0.002, 0.22)
 
 
+def sfx_telegraph():
+    """Annonce d'une attaque : deux coups de cor graves, comme un tambour qui prévient."""
+    out = np.zeros(int(0.5 * RATE))
+    for k, start in enumerate((0.0, 0.2)):
+        n = int(0.22 * RATE)
+        t = np.arange(n) / RATE
+        f = note(-12 + (0 if k == 0 else -2))
+        tone = np.sign(np.sin(2 * np.pi * f * t)) * 0.4 + np.sin(2 * np.pi * f * t)
+        seg = np.tanh(tone * env(n, 0.01, 0.09))
+        i = int(start * RATE)
+        out[i:i + n] += seg
+    return out
+
+
+def sfx_freed():
+    """Muet libéré : le premier son qu'il fait est toujours un rire (arpège qui monte)."""
+    out = np.zeros(int(0.7 * RATE))
+    for k, d in enumerate([5, 7, 8, 10, 12]):
+        n = int(0.16 * RATE)
+        t = np.arange(n) / RATE
+        f = degree(d, 0)
+        wobble = 1 + 0.03 * np.sin(2 * np.pi * 18 * t)
+        seg = np.sin(2 * np.pi * np.cumsum(f * wobble) / RATE) * env(n, 0.004, 0.06)
+        i = int(k * 0.09 * RATE)
+        out[i:i + n] += seg
+    return out
+
+
+def sfx_boss_freed():
+    """Grand Muet libéré : sa voix revient, un long arpège qui s'ouvre."""
+    out = np.zeros(int(2.2 * RATE))
+    for k, d in enumerate([0, 2, 4, 5, 7, 9, 10, 12]):
+        seg = marimba(degree(d, -1), 0.9)
+        i = int(k * 0.14 * RATE)
+        out[i:i + len(seg)] += seg
+    return out
+
+
+def sfx_hurt():
+    """Héros touché : un choc sourd et une note qui descend."""
+    n = int(0.3 * RATE)
+    t = np.arange(n) / RATE
+    f = 330 * np.exp(-t / 0.15)
+    tone = np.sin(2 * np.pi * np.cumsum(f) / RATE) * env(n, 0.002, 0.12)
+    thud = kick(0.3)[:n]
+    return np.tanh(1.2 * (tone + thud))
+
+
+def sfx_dodge():
+    """Esquive parfaite : un souffle qui passe."""
+    n = int(0.35 * RATE)
+    t = np.arange(n) / RATE
+    noise = RNG.standard_normal(n)
+    smooth = np.convolve(noise, np.ones(8) / 8, mode="same")
+    shape = np.sin(np.pi * t / t[-1]) ** 2
+    return (noise - smooth) * shape
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -212,6 +270,11 @@ def main():
         write(ROOT / "assets/audio/music" / f"{name}.wav", buf / total_peak * 0.9, peak=np.max(np.abs(buf)) / total_peak * 0.9)
     write(ROOT / "assets/audio/sfx/hit.wav", sfx_hit())
     write(ROOT / "assets/audio/sfx/chime.wav", sfx_chime(), peak=0.7)
+    write(ROOT / "assets/audio/sfx/telegraph.wav", sfx_telegraph(), peak=0.7)
+    write(ROOT / "assets/audio/sfx/freed.wav", sfx_freed(), peak=0.6)
+    write(ROOT / "assets/audio/sfx/boss_freed.wav", sfx_boss_freed(), peak=0.7)
+    write(ROOT / "assets/audio/sfx/hurt.wav", sfx_hurt(), peak=0.8)
+    write(ROOT / "assets/audio/sfx/dodge.wav", sfx_dodge(), peak=0.5)
 
 
 if __name__ == "__main__":
