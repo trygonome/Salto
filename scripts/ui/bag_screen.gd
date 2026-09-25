@@ -8,6 +8,8 @@ extends ScreenLayer
 ## Couleur de chaque rareté (commun, rare, épique, légendaire), pictogramme de chaque emplacement.
 @export var rarity_colors: Array[Color]
 @export var slot_icons: Array[Texture2D]
+## Couleur du nom d'un emplacement vide.
+@export var empty_slot_color: Color
 ## Taille des pictogrammes (px) ; largeur visée d'une tuile du sac (px).
 @export var icon_size: float
 @export var tile_width: float
@@ -81,7 +83,7 @@ func _tile(slot: ItemData.Slot, item: ItemData, worn: bool) -> TileButton:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tile.add(icon)
 	var title: Label = tile.add(_label(GameTexts.item_name(item) if item else GameTexts.SLOT_NAMES[slot], &"TileTitle")) as Label
-	title.modulate = rarity_colors[item.rarity] if item else Color(1, 1, 1, 0.7)
+	title.modulate = rarity_colors[item.rarity] if item else empty_slot_color
 	if worn:
 		tile.add(_label("\n".join(GameTexts.item_lines(item)) if item else GameTexts.SLOT_EMPTY, &"TileSmall"))
 	elif item.is_new:

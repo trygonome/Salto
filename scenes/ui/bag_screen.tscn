@@ -14,6 +14,7 @@ layer = 30
 script = ExtResource("1_screen")
 rarity_colors = Array[Color]([Color(0.851, 0.831, 0.902, 1), Color(0.31, 0.702, 1, 1), Color(0.78, 0.49, 1, 1), Color(1, 0.761, 0.2, 1)])
 slot_icons = Array[Texture2D]([ExtResource("5_anklets"), ExtResource("6_mask"), ExtResource("7_talisman")])
+empty_slot_color = Color(1, 1, 1, 0.7)
 icon_size = 24.0
 tile_width = 104.0
 max_width = 560.0

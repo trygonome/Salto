@@ -144,11 +144,12 @@ func _process(delta: float) -> void:
 	_pause_button.theme_type_variation = &"IconBadge" if _needs_attention() else &"IconButton"
 
 
-## Bannière au centre : surtitre, titre, précision. Une à la fois ; au plus trois attendent.
-func show_banner(small: String, title: String, detail: String = "") -> void:
-	if _banners.size() > 2:
+## Bannière au centre : surtitre, titre, précision ; `chime` : elle sonne. Une à la fois ; au plus
+## trois attendent.
+func show_banner(small: String, title: String, detail: String = "", chime: bool = true) -> void:
+	if _banners.size() >= Tuning.data.banner_queue_max:
 		_banners.pop_front()
-	_banners.append(PackedStringArray([small, title, detail]))
+	_banners.append(PackedStringArray([small, title, detail, "1" if chime else ""]))
 	if not _banner_busy:
 		_next_banner()
 
@@ -245,7 +246,7 @@ func _update_me() -> void:
 		var returned: bool = i < progress.returned.size() and progress.returned[i]
 		var carried: bool = progress.carrying.has(i)
 		_drums[i].theme_type_variation = &"DrumOn" if returned or carried else &"DrumOff"
-		_drums[i].modulate.a = lerpf(0.45, 1.0, pulse) if carried else 1.0
+		_drums[i].modulate.a = lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse) if carried else 1.0
 
 
 ## Objectif : il bat quand il change ; pendant une sortie, une bannière l'annonce.
@@ -262,7 +263,7 @@ func _update_quest() -> void:
 		_fit(_quest_sub, _view_width() * quest_max_fraction)
 		_pulse_quest()
 		if announce:
-			show_banner(GameTexts.BANNER_NEW_OBJECTIVE, key, goal[&"sub"])
+			show_banner(GameTexts.BANNER_NEW_OBJECTIVE, key, goal[&"sub"], false)
 	var progress: NightProgress = Game.progress
 	_challenge.visible = progress.challenge != &""
 	if _challenge.visible:
@@ -283,8 +284,8 @@ func _pulse_quest() -> void:
 	_quest.theme_type_variation = &"QuestFlash"
 	var tween: Tween = create_tween()
 	for i: int in tuning.quest_pulses:
-		tween.tween_property(_quest, "scale", Vector2.ONE * tuning.quest_pulse_scale, tuning.quest_pulse_time * 0.35)
-		tween.tween_property(_quest, "scale", Vector2.ONE, tuning.quest_pulse_time * 0.65)
+		tween.tween_property(_quest, "scale", Vector2.ONE * tuning.quest_pulse_scale, tuning.quest_pulse_time * tuning.quest_pulse_rise)
+		tween.tween_property(_quest, "scale", Vector2.ONE, tuning.quest_pulse_time * (1.0 - tuning.quest_pulse_rise))
 	tween.tween_callback(func() -> void: _quest.theme_type_variation = &"QuestPanel")
 
 
@@ -445,7 +446,8 @@ func _next_banner() -> void:
 	_banner.pivot_offset = _banner.size / 2.0
 	_banner.scale = Vector2.ONE * tuning.banner_start_scale
 	_banner.modulate.a = 0.0
-	_banner_sound.play()
+	if entry[3] != "":
+		_banner_sound.play()
 	var total: float = tuning.banner_time
 	var rise: float = _banner.position.y - _banner.size.y * tuning.banner_rise
 	var tween: Tween = create_tween()

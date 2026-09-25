@@ -1130,6 +1130,12 @@ extends Resource
 @export var quest_pulses: int
 @export var quest_pulse_scale: float
 @export var quest_pulse_time: float
+## Part du battement où l'objectif grossit (le reste : il revient).
+@export var quest_pulse_rise: float
+## Tambour porté dans le HUD : il bat entre cette transparence et l'opaque.
+@export var drum_pulse_min_alpha: float
+## Bannières qui attendent au plus.
+@export var banner_queue_max: int
 ## Le combo qui monte grossit puis revient (taille, s).
 @export var combo_pop_scale: float
 @export var combo_pop_time: float
