@@ -6,7 +6,10 @@ Chaque pack ou fichier externe est noté ici **avant** d'être importé, avec l'
 
 | Asset | Auteur | Source | Licence | Dossier | Échelle vérifiée |
 |---|---|---|---|---|---|
+| KayKit Adventurers 2.0 (gratuit) : Rogue (héros) | Kay Lousberg | https://kaylousberg.itch.io/kaykit-adventurers | CC0 — `models/kaykit/LICENSE_KayKit_Adventurers.txt` | `assets/models/kaykit` | oui : mis à 1,8 m au chargement (hauteur d'origine 2,18) |
+| KayKit Character Animations 1.1 (gratuit) : clips Rig_Medium, mannequin | Kay Lousberg | https://kaylousberg.itch.io/kaykit-character-animations | CC0 — `animations/kaykit/LICENSE_KayKit_Character_Animations.txt` | `assets/animations/kaykit`, `assets/models/kaykit` | mannequin mis à 1,1 m (taille des plus grands Muets) |
 | Pictogrammes des boutons tactiles (`ui/icons/*.svg`) | Salto | créés pour le projet | propriété du projet | `assets/ui/icons` | sans objet (interface) |
+| Étincelle d'impact (`fx/spark.svg`) | Salto | créée pour le projet | propriété du projet | `assets/fx` | sans objet (effet) |
 
 ## Outils (non inclus dans le jeu exporté)
 
