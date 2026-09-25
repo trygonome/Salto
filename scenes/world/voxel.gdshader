@@ -1,10 +1,10 @@
 shader_type spatial;
-// Matériau voxel du prototype. Chaque cube porte dans INSTANCE_CUSTOM sa couleur codée
-// (mode + teinte, saturation, luminosité). Modes : 0 monde (teinte qui ondule, bue par le silence,
-// pulse au temps) · 1 vif (ondule) · 2 fixe · 3 arc-en-ciel · 4 teinte fixe bue par le silence.
+// Matériau voxel du prototype pour les assemblages de cubes (MultiMesh) : chaque cube porte dans
+// INSTANCE_CUSTOM sa couleur codée (voir salto_voxel.gdshaderinc).
 render_mode unshaded, cull_back;
 
 #include "res://scenes/world/salto_world.gdshaderinc"
+#include "res://scenes/world/salto_voxel.gdshaderinc"
 
 // Décor statique : devient pointillé entre la caméra et le héros pour qu'on le voie toujours.
 uniform bool cutaway = false;
@@ -38,31 +38,6 @@ void fragment() {
 			discard;
 		}
 	}
-	float mode = floor(v_color.x + 0.001);
-	float h = v_color.x - mode;
-	float s = v_color.y;
-	float l = v_color.z;
-	float wob = sin(w.x * 0.05 + w.z * 0.07 + salto_time * 0.35) * 0.07;
-	float zone = salto_zone(w.xz);
-	if (mode < 0.5) {
-		h = fract(h + salto_time * 0.04 + wob);
-		s *= zone * salto_sat;
-		l += salto_beat * 0.06 * salto_sat;
-	} else if (mode < 1.5) {
-		h = fract(h + salto_time * 0.04 + wob);
-		s *= zone;
-	} else if (mode < 2.5) {
-	} else if (mode < 3.5) {
-		h = fract(h + salto_time * 0.1 + w.y * 0.03);
-	} else {
-		s *= zone * salto_sat;
-	}
-	vec3 c = salto_hsl2rgb(vec3(h, clamp(s, 0.0, 1.0), clamp(l, 0.0, 1.0)));
-	vec3 n = normalize(v_normal);
-	float d = max(dot(n, normalize(vec3(0.35, 1.0, 0.55))), 0.0);
-	c = c * (0.66 + 0.52 * d) + vec3(0.035, 0.02, 0.06);
-	float rim = pow(1.0 - max(dot(n, normalize(CAMERA_POSITION_WORLD - v_world)), 0.0), 3.0);
-	c += rim * vec3(0.16, 0.13, 0.2);
-	c *= mix(0.72, 1.0, smoothstep(0.0, 1.3, w.y));
+	vec3 c = salto_voxel_color(v_color, v_world, v_normal, CAMERA_POSITION_WORLD, 0.0);
 	ALBEDO = salto_output(salto_fog(c, -VERTEX.z));
 }

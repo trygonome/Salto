@@ -67,3 +67,25 @@ func test_l_ombre_est_un_disque_plein() -> void:
 	for v: Vector3 in vertices:
 		assert_eq(v.y, 0.0)
 		assert_lt(v.length(), 1.0001)
+
+
+func test_un_assemblage_articule_tient_en_un_seul_maillage() -> void:
+	var rig := VoxelRig.new()
+	var cells := PackedFloat32Array()
+	VoxelMesh.add(cells, 0.0, 0.0, 0.0, Vector3(2.5, 0.5, 0.5))
+	VoxelMesh.add(cells, 1.0, 0.0, 0.0, Vector3(2.5, 0.5, 0.5))
+	var arm := PackedFloat32Array()
+	VoxelMesh.add(arm, 0.0, -1.0, 0.0, Vector3(2.1, 0.5, 0.5))
+	rig.add_part(&"body", &"", Vector3.ZERO, cells)
+	rig.add_part(&"arm", &"body", Vector3(0.0, 2.0, 0.0), arm)
+	rig.build(null)
+	add_child_autofree(rig)
+	assert_eq(rig.skeleton.get_bone_count(), 2)
+	assert_eq(rig.skeleton.get_bone_parent(rig.bone(&"arm")), rig.bone(&"body"))
+	var mesh: ArrayMesh = rig.mesh_instance.mesh as ArrayMesh
+	assert_eq(mesh.get_surface_count(), 1, "un seul appel de dessin")
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	assert_eq(vertices.size(), 3 * 24, "trois cubes de 24 sommets")
+	var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+	assert_eq(bones[bones.size() - 4], rig.bone(&"arm"), "le dernier cube suit le bras")

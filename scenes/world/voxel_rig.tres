@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://scenes/world/voxel_rig.gdshader" id="1_rig"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_rig")
+shader_parameter/flash = 0.0
+shader_parameter/vivid = 0.0
+shader_parameter/rage = 0.0

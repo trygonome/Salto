@@ -543,6 +543,8 @@ extends Resource
 @export_group("Personnages voxel")
 ## Côté d'un voxel des personnages (unités du prototype) : 20,6 voxels font les 7 u du héros.
 @export var character_voxel: float
+## Marge ajoutée à la boîte d'un assemblage articulé pour qu'il ne disparaisse pas en bougeant (m).
+@export var voxel_rig_cull_margin: float
 ## Clignement des yeux : intervalle au hasard (s), durée (s), yeux écrasés à cette hauteur.
 @export var blink_min: float
 @export var blink_max: float

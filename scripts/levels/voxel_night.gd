@@ -105,14 +105,14 @@ func _place_villagers() -> void:
 		dancer.name = "Dancer%d" % (i + 1)
 		dancer.position = to_world(p)
 		village.add_child(dancer)
-		dancer.setup(VoxelStyles.dancer(i), 1.0, atan2(-p.x, -p.y), i * tuning.villager_phase_step,
+		dancer.setup(VoxelStyles.dancer(i), "dancer%d" % i, 1.0, atan2(-p.x, -p.y), i * tuning.villager_phase_step,
 			tuning.villager_first_flip + i * tuning.villager_first_flip_step, character_material, character_shadow_material, tuning.villager_shadow_radius)
 	var chief := Villager.new()
 	chief.name = "Chief"
 	chief.is_chief = true
 	chief.position = to_world(WorldGen.CHIEF)
 	village.add_child(chief)
-	chief.setup(VoxelStyles.chief(), tuning.chief_scale, 0.0, tuning.chief_phase, INF, character_material, character_shadow_material, tuning.chief_shadow_radius)
+	chief.setup(VoxelStyles.chief(), "chief", tuning.chief_scale, 0.0, tuning.chief_phase, INF, character_material, character_shadow_material, tuning.chief_shadow_radius)
 
 
 func _add_shadow(target: Node3D, radius: float) -> void:

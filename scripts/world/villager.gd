@@ -30,9 +30,9 @@ var _time: float = 0.0
 var _rng := RandomNumberGenerator.new()
 
 
-## Prépare le villageois : style (VoxelStyles), taille, orientation de repos, décalage de la
+## Prépare le villageois : style (VoxelStyles) et sa clé (maillage partagé), taille, orientation de repos, décalage de la
 ## danse (en temps de musique) et instant de son premier salto de fête (s).
-func setup(style: Dictionary, size: float, base_yaw: float, phase: float, first_flip: float, voxel_material: Material, shadow_material: Material, shadow_radius: float) -> void:
+func setup(style: Dictionary, key: String, size: float, base_yaw: float, phase: float, first_flip: float, voxel_material: Material, shadow_material: Material, shadow_radius: float) -> void:
 	_rng.randomize()
 	_base_yaw = base_yaw
 	_phase = phase
@@ -42,7 +42,7 @@ func setup(style: Dictionary, size: float, base_yaw: float, phase: float, first_
 	_body.name = "Body"
 	_body.material = voxel_material
 	add_child(_body)
-	_body.build(style, size)
+	_body.build(style, size, key)
 	var shadow := BlobShadow.new()
 	shadow.name = "Shadow"
 	shadow.radius = shadow_radius

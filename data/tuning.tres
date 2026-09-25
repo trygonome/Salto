@@ -356,6 +356,7 @@ shadow_shrink_max = 0.6
 bounce_pad_thickness = 0.2
 world_saturation_pulse_decay = 0.6
 character_voxel = 0.34
+voxel_rig_cull_margin = 1.0
 blink_min = 2.0
 blink_max = 5.0
 blink_time = 0.12
