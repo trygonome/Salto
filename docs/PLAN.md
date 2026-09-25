@@ -43,3 +43,36 @@ Chaque jalon se termine jouable sur téléphone.
 - Tests automatiques de la logique pure (fenêtres de rythme, dégâts, combos, XP), avec un addon de tests pour Godot
   choisi au jalon 0.
 - Pour chaque jalon, une courte liste de vérifications à faire sur le téléphone.
+
+## Phase 2 : au niveau du prototype
+Constat (jalon 7) : la tranche verticale Godot est en recul sur le prototype
+(`docs/prototype/salto-rpg.html`, à ouvrir dans un navigateur) : identité visuelle, densité du monde,
+guidage, progression. Décisions :
+- **Style « mélange »** : décor, Muets et villageois en **voxels générés comme dans le prototype**
+  (couleurs qui ondulent, décor qui pulse au rythme, zones de silence qui boivent les couleurs) ;
+  le héros reste le personnage KayKit animé.
+- **Échelle du prototype** : 1 u = 0,26 m. Monde compact et dense (rayon ≈ 22 m), village au centre,
+  trois sanctuaires à ≈ 15 m, une trentaine de Muets par nuit.
+- **D'abord la nuit 1 au niveau du prototype**, puis les nuits 2 à 5, jalon par jalon.
+
+Jalons :
+8. **Monde voxel** — matériau voxel (couleurs animées, pulsation au temps, zones de silence, brouillard
+   coloré, transparence entre la caméra et le héros), sol à dalles et chemins dorés, ciel animé, ombres
+   rondes ; génération du monde du prototype (village, trois sanctuaires, arbres, rochers, perchoirs,
+   souches, champignons-trampolines, fleurs, troncs couchés) avec ses collisions.
+   *Test : le monde ressemble au prototype et reste fluide.*
+9. **Personnages voxel** — Muets du prototype (sautillant, volant, cornu, Grands Muets ; bouclier et
+   cracheur prêts), villageois qui dansent au rythme et Chef ; effets du prototype (cubes qui jaillissent,
+   anneaux, étincelles, chiffres qui montent).
+   *Test : les Muets sont lisibles et vivants ; le village danse.*
+10. **Interface du prototype** — police Bungee, écran titre (saga des cinq nuits), HUD (niveau, PV, XP,
+    tambours, pause), bannière d'objectif, boutons colorés avec libellés, anneau de rythme, bannières,
+    conseils près des boutons, bulles des villageois, pause et résumé de sortie.
+    *Test : on comprend tout sans explication.*
+11. **La nuit 1 complète** — trois sanctuaires et leurs Grands Muets, plusieurs tambours portés,
+    objectif avec flèche, repère au bord de l'écran et chemin doré, sorties (tomber ramène au village,
+    les tambours rapportés restent), défis et plumes, perchoirs, fruits, Muets errants.
+    *Test : une nuit entière de bout en bout.*
+12. **Progression** — niveaux et expérience, talents (trois voies), butin, sac, équipement, forge et recyclage.
+    *Test : on devient plus fort d'une sortie à l'autre.*
+13. **Nuits 2 à 5 et nuits sans fin** — porte-bouclier, cracheur, Roi Muet.
