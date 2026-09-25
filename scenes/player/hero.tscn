@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -22,10 +22,17 @@
 [ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hit.wav" id="21_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/chime.wav" id="22_chime"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="23_hurtbox"]
+[ext_resource type="Script" path="res://scripts/components/health.gd" id="24_health"]
+[ext_resource type="Script" path="res://scripts/player/states/hurt_state.gd" id="25_hurt"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/hurt.wav" id="26_hurt_sound"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/dodge.wav" id="27_dodge_sound"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 
 [sub_resource type="SphereShape3D" id="SphereShape_reach"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_hurt"]
 
 [sub_resource type="StandardMaterial3D" id="Material_trail"]
 transparency = 1
@@ -96,6 +103,25 @@ stream = ExtResource("21_hit")
 [node name="ChimeSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("22_chime")
 
+[node name="HurtSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("26_hurt_sound")
+
+[node name="DodgeSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("27_dodge_sound")
+
+[node name="Hurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+collision_layer = 64
+collision_mask = 0
+monitoring = false
+script = ExtResource("23_hurtbox")
+health = NodePath("../Health")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
+shape = SubResource("CapsuleShape_hurt")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("24_health")
+
 [node name="Hitbox" type="Area3D" parent="."]
 collision_layer = 8
 collision_mask = 16
@@ -126,3 +152,6 @@ script = ExtResource("8_attack")
 
 [node name="Dive" type="Node" parent="StateMachine"]
 script = ExtResource("9_dive")
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("25_hurt")

@@ -1,5 +1,6 @@
 extends State
-## Plongeon (Frappe en l'air) : chute droite et rapide ; à l'atterrissage, une onde frappe tout
+## Plongeon (Frappe en l'air) : un coup de pied touche d'abord ce qui est à hauteur du héros
+## (un volant, par exemple), puis chute droite et rapide ; à l'atterrissage, une onde frappe tout
 ## autour, d'autant plus large et forte que la chute était haute. Court temps de reprise au sol,
 ## que le saut et l'esquive peuvent interrompre.
 ## Jauge de groove pleine : Salto arc-en-ciel. Bond et salto d'abord, puis plongeon géant dont
@@ -80,6 +81,8 @@ func _start_fall() -> void:
 	hero.visual.stop_spin()
 	hero.visual.animator.show_pose(tuning.dive_animation, tuning.dive_pose_time)
 	hero.visual.set_pitch_deg(tuning.dive_pitch_deg)
+	# Le coup de pied ne touche qu'à son instant : la chute rapide ne doit pas l'emmener au sol.
+	hero.strike(tuning.air_kick, hero.facing_direction(), _judgement, get_physics_process_delta_time())
 
 
 func _land() -> void:

@@ -9,6 +9,7 @@ const RUN := &"basic/Running_A"
 const AIR := &"basic/Jump_Idle"
 const ROLL := &"advanced/Crouching"
 const DASH := &"advanced/Dodge_Forward"
+const HURT := &"general/Hit_A"
 const LOOPING: Array[StringName] = [IDLE, RUN, AIR, ROLL]
 
 var _speed: float = 1.0
@@ -43,6 +44,11 @@ func show_roll() -> void:
 ## Élan aérien : le clip d'esquive vers l'avant, joué sur `duration` secondes.
 func show_dash(duration: float) -> void:
 	_show(DASH, get_animation(DASH).length / duration)
+
+
+## Coup reçu : le clip de réaction, joué sur la durée où le héros encaisse.
+func show_hurt() -> void:
+	_show(HURT, get_animation(HURT).length / Tuning.data.hero_hurt_time)
 
 
 ## Coup : le clip suit ensuite le temps donné par set_attack_time().

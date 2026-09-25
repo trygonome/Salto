@@ -40,7 +40,8 @@ var air_dashes_used: int = 0
 var coyote_left: float = 0.0
 ## Temps restant avant de pouvoir relancer une roulade (s).
 var roll_cooldown_left: float = 0.0
-## Vrai pendant les fenêtres d'invulnérabilité (roulade, élan aérien).
+## Vrai pendant les fenêtres d'invulnérabilité des esquives (roulade, élan aérien, Salto
+## arc-en-ciel) : un coup qui arrive alors est une esquive parfaite.
 var invulnerable: bool = false
 ## Niveau du héros.
 var level: int = 0
@@ -60,6 +61,8 @@ var tuning: TuningData = Tuning.data
 var _combo_step: int = 0
 var _judgements: Dictionary[StringName, RhythmMath.Judgement] = {}
 var _pending_groove: float = 0.0
+var _hurt_invuln_left: float = 0.0
+var _next_hit_critical: bool = false
 var _last_attack_end: float = -INF
 var _roll_end: float = -INF
 
@@ -70,9 +73,13 @@ var _spawn: Transform3D
 @onready var state_machine: StateMachine = $StateMachine
 @onready var visual: HeroVisual = $Visual
 @onready var hitbox: Hitbox = $Hitbox
+@onready var hurtbox: Hurtbox = $Hurtbox
+@onready var health: Health = $Health
 @onready var beat_ring: BeatRing = $BeatRing
 @onready var _hit_sound: AudioStreamPlayer = $HitSound
 @onready var _chime: AudioStreamPlayer = $ChimeSound
+@onready var _hurt_sound: AudioStreamPlayer = $HurtSound
+@onready var _dodge_sound: AudioStreamPlayer = $DodgeSound
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 
@@ -95,7 +102,16 @@ func _ready() -> void:
 	var reach_shape: CollisionShape3D = $Hitbox/CollisionShape3D
 	(reach_shape.shape as SphereShape3D).radius = tuning.hitbox_radius
 	reach_shape.position = Vector3.UP * tuning.hero_height / 2.0
+	hitbox.vertical_reach = tuning.attack_vertical_reach
 	hitbox.landed.connect(_on_hit_landed)
+	var body_shape: CollisionShape3D = $Hurtbox/CollisionShape3D
+	(body_shape.shape as CapsuleShape3D).radius = tuning.hero_radius
+	(body_shape.shape as CapsuleShape3D).height = tuning.hero_height
+	body_shape.position = Vector3.UP * tuning.hero_height / 2.0
+	hurtbox.radius = tuning.hero_radius
+	health.setup(CombatMath.hero_max_health(level, tuning))
+	hurtbox.hurt.connect(_on_hurt)
+	hurtbox.dodged.connect(_on_dodged)
 	add_to_group(&"debug_info")
 	add_to_group(&"hero")
 	state_machine.start()
@@ -105,12 +121,15 @@ func _physics_process(delta: float) -> void:
 	_clock += delta
 	coyote_left = maxf(coyote_left - delta, 0.0)
 	roll_cooldown_left = maxf(roll_cooldown_left - delta, 0.0)
+	_hurt_invuln_left = maxf(_hurt_invuln_left - delta, 0.0)
 	combo.update(_clock)
 	if reads_player_input:
 		_read_player_input()
 	state_machine.physics_update(delta)
+	hurtbox.can_be_hit = not invulnerable and _hurt_invuln_left <= 0.0
 	hitbox.update(delta)
 	visual.update_pose(facing_yaw, delta)
+	visual.visible = _hurt_invuln_left <= 0.0 or fposmod(_hurt_invuln_left, tuning.hurt_blink_period) < tuning.hurt_blink_period / 2.0
 	if global_position.y < _spawn.origin.y - tuning.respawn_fall_depth:
 		respawn()
 
@@ -257,11 +276,13 @@ func aim_direction() -> Vector3:
 	return Vector3(to_target.x, 0.0, to_target.z).normalized()
 
 
-## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant.
-func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement) -> void:
+## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant,
+## pendant `active_time` secondes (par défaut attack_active_time).
+func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0) -> void:
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier, attack.id, judgement, 0.0)
-	hitbox.activate(attack.reach, attack.arc_deg, direction, tuning.attack_active_time, make_hit)
+	var duration: float = active_time if active_time >= 0.0 else tuning.attack_active_time
+	hitbox.activate(attack.reach, attack.arc_deg, direction, duration, make_hit)
 
 
 ## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
@@ -281,13 +302,24 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 		wave.play(tuning.shockwave_time, radius * (i + 1) / colors.size())
 
 
-## Ramène le héros au point de départ.
+## Ramène le héros au point de départ, avec tous ses points de vie.
 func respawn() -> void:
 	global_transform = _spawn
 	velocity = Vector3.ZERO
 	_buffer.clear()
+	health.restore()
 	reset_physics_interpolation()
 	state_machine.transition_to(&"Air")
+
+
+## Un Muet vient d'être libéré (appelé par le Muet sur le groupe « hero »).
+func on_enemy_freed(_muet: Node) -> void:
+	groove.add(tuning.groove_enemy_freed)
+
+
+## Une onde de choc est passée sous le héros en l'air.
+func on_wave_jumped() -> void:
+	groove.add(tuning.groove_wave_jumped)
 
 
 ## Lignes affichées par l'overlay de mise au point.
@@ -300,7 +332,7 @@ func debug_text() -> String:
 		tuning.air_dashes_per_jump,
 		" · invulnérable" if invulnerable else "",
 	]
-	text += "\ncombo %d · groove %.1f/%.0f" % [combo.hits, groove.value, groove.maximum]
+	text += "\nPV %.0f/%.0f · combo %d · groove %.1f/%.0f" % [health.current, health.maximum, combo.hits, groove.value, groove.maximum]
 	if last_hit:
 		text += " · %s %.1f%s" % [last_hit.move, last_hit.damage, " critique" if last_hit.critical else ""]
 	return text
@@ -312,7 +344,8 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 	hit.move = move
 	hit.judgement = judgement
 	hit.stun_time = stun_time
-	hit.critical = rng.randf() < tuning.crit_chance
+	hit.critical = _next_hit_critical or rng.randf() < tuning.crit_chance
+	_next_hit_critical = false
 	var attack: float = CombatMath.hero_attack(level, tuning)
 	var move_multiplier: float = multiplier * RhythmMath.damage_multiplier(judgement, tuning)
 	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
@@ -340,6 +373,34 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 		spark.global_position = hit.point
 		spark.play(tuning.spark_time, tuning.perfect_spark_scale if perfect else 1.0)
 	hit_landed.emit(hit)
+
+
+## Coup reçu : le combo est perdu, le héros est repoussé, clignote et devient intouchable un
+## moment. À zéro point de vie, retour au point de départ.
+func _on_hurt(hit: HitData) -> void:
+	combo.reset()
+	_hurt_invuln_left = tuning.hero_hurt_invuln
+	Feedback.hit_stop(tuning.hit_stop_hero)
+	Feedback.shake(tuning.shake_trauma_hurt, hit.direction)
+	_hurt_sound.play()
+	if health.is_depleted():
+		respawn()
+		return
+	var recoil: float = tuning.hero_recoil_big_speed if hit.big else tuning.hero_recoil_speed
+	set_horizontal_velocity(hit.direction * recoil)
+	state_machine.transition_to(&"Hurt")
+
+
+## Coup arrivé pendant une invulnérabilité : pendant une esquive, c'est une esquive parfaite
+## (ralenti, prochain coup critique, groove). Après un coup reçu, rien de spécial.
+func _on_dodged(_hit: HitData) -> void:
+	if not invulnerable:
+		return
+	Feedback.slow_motion(tuning.perfect_dodge_slow_time, tuning.perfect_dodge_time_scale)
+	_next_hit_critical = true
+	groove.add(tuning.groove_perfect_dodge)
+	beat_ring.flash(RhythmMath.Judgement.PERFECT)
+	_dodge_sound.play()
 
 
 ## Retour immédiat d'un appui jugé : carillon (qui monte avec le combo) et éclat de l'anneau.
