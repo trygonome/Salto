@@ -1,23 +1,35 @@
 class_name CameraRig
 extends Node3D
-## Caméra plongeante du jeu. Le nœud se place sur le point visé ; la Camera3D enfant
-## recule et s'incline selon les réglages, avec un cadrage différent en portrait et en paysage.
-## Le suivi lissé et l'anticipation arrivent au jalon 1.
+## Caméra plongeante du jeu. Le nœud suit le point visé en douceur, un peu en avant du héros
+## dans sa direction de course ; la Camera3D enfant recule et s'incline selon les réglages,
+## avec un cadrage différent en portrait et en paysage.
 
-## Nœud suivi (le héros).
-@export var target: Node3D
+## Corps suivi (le héros).
+@export var target: CharacterBody3D
 
 @onready var _camera: Camera3D = $Camera3D
 
 
 func _ready() -> void:
+	# Déplacée dans _process : la position lissée ne doit pas être interpolée une deuxième fois.
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	get_viewport().size_changed.connect(_apply_framing)
 	_apply_framing()
-
-
-func _process(_delta: float) -> void:
 	if target:
-		global_position = target.global_position + Vector3.UP * Tuning.data.camera_target_height
+		global_position = _desired_position()
+
+
+func _process(delta: float) -> void:
+	if target:
+		var weight: float = Smoothing.weight(Tuning.data.camera_follow_rate, delta)
+		global_position = global_position.lerp(_desired_position(), weight)
+
+
+func _desired_position() -> Vector3:
+	var tuning: TuningData = Tuning.data
+	var feet: Vector3 = target.get_global_transform_interpolated().origin
+	var running: Vector3 = Vector3(target.velocity.x, 0.0, target.velocity.z)
+	return feet + Vector3.UP * tuning.camera_target_height + lookahead_for(running, tuning)
 
 
 func _apply_framing() -> void:
@@ -47,3 +59,10 @@ static func fov_for(size: Vector2, tuning: TuningData) -> float:
 static func offset_for(distance: float, tilt_deg: float) -> Vector3:
 	var tilt: float = deg_to_rad(tilt_deg)
 	return Vector3(0.0, sin(tilt), cos(tilt)) * distance
+
+
+## Décalage du point visé dans la direction de course : camera_lookahead à pleine vitesse,
+## proportionnel en dessous, jamais plus.
+static func lookahead_for(horizontal_velocity: Vector3, tuning: TuningData) -> Vector3:
+	var offset: Vector3 = horizontal_velocity / tuning.run_speed * tuning.camera_lookahead
+	return offset.limit_length(tuning.camera_lookahead)
