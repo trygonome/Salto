@@ -1,0 +1,181 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="2_anklets"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="3_mask"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="4_talisman"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+script = ExtResource("1_pause")
+rarity_colors = Array[Color]([Color(0.86, 0.89, 0.96, 1), Color(0.38, 0.72, 1, 1), Color(0.78, 0.5, 1, 1), Color(1, 0.74, 0.28, 1)])
+slot_icons = Array[Texture2D]([ExtResource("2_anklets"), ExtResource("3_mask"), ExtResource("4_talisman")])
+icon_size = 30.0
+list_margin = 170.0
+list_max_height = 440.0
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.08, 0.62)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(310, 0)
+layout_mode = 2
+
+[node name="Views" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+
+[node name="Main" type="VBoxContainer" parent="Center/Panel/Views"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"OverTitleLabel"
+text = "Pause"
+horizontal_alignment = 1
+
+[node name="Resume" type="Button" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Reprendre"
+
+[node name="Notebook" type="Button" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Carnet"
+
+[node name="Bag" type="Button" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Sac"
+
+[node name="Settings" type="Button" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Réglages"
+
+[node name="Restart" type="Button" parent="Center/Panel/Views/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Recommencer la nuit"
+
+[node name="NotebookView" type="VBoxContainer" parent="Center/Panel/Views"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="NotebookHeader" type="Label" parent="Center/Panel/Views/NotebookView"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"OverTitleLabel"
+text = "Carnet"
+horizontal_alignment = 1
+
+[node name="NotebookScroll" type="ScrollContainer" parent="Center/Panel/Views/NotebookView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="NotebookList" type="VBoxContainer" parent="Center/Panel/Views/NotebookView/NotebookScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="NotebookBack" type="Button" parent="Center/Panel/Views/NotebookView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Retour"
+
+[node name="BagView" type="VBoxContainer" parent="Center/Panel/Views"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BagHeader" type="Label" parent="Center/Panel/Views/BagView"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"OverTitleLabel"
+text = "Sac"
+horizontal_alignment = 1
+
+[node name="BagScroll" type="ScrollContainer" parent="Center/Panel/Views/BagView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="BagList" type="VBoxContainer" parent="Center/Panel/Views/BagView/BagScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BagBack" type="Button" parent="Center/Panel/Views/BagView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Retour"
+
+[node name="SettingsView" type="VBoxContainer" parent="Center/Panel/Views"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SettingsHeader" type="Label" parent="Center/Panel/Views/SettingsView"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"OverTitleLabel"
+text = "Réglages"
+horizontal_alignment = 1
+
+[node name="DamageNumbers" type="CheckButton" parent="Center/Panel/Views/SettingsView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+focus_mode = 0
+text = "Chiffres de dégâts"
+
+[node name="DebugInfo" type="CheckButton" parent="Center/Panel/Views/SettingsView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+focus_mode = 0
+text = "Infos techniques"
+
+[node name="SettingsBack" type="Button" parent="Center/Panel/Views/SettingsView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+focus_mode = 0
+text = "Retour"

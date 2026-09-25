@@ -58,6 +58,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="90_hud"]
 [ext_resource type="Script" path="res://scripts/levels/props/hint_zone.gd" id="91_hint"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="92_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="93_end"]
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
 background_color = Color(0.05, 0.06, 0.15, 1)
@@ -2637,3 +2639,7 @@ text = "Esquive au dernier moment"
 shape = SubResource("Shape_hint_wide")
 
 [node name="HUD" parent="." instance=ExtResource("90_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("92_pause")]
+
+[node name="EndScreen" parent="." instance=ExtResource("93_end")]

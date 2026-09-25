@@ -1,8 +1,11 @@
 extends "res://tests/hero_test_base.gd"
-## Interface : un seul message à la fois, aides contextuelles, carte d'objet, chiffres de dégâts.
+## Interface : un seul message à la fois, aides contextuelles, carte d'objet, chiffres de dégâts,
+## menu pause, écran de fin.
 
 const HudScene: PackedScene = preload("res://scenes/ui/hud.tscn")
 const ControlsScene: PackedScene = preload("res://scenes/ui/touch_controls.tscn")
+const PauseScene: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
+const EndScene: PackedScene = preload("res://scenes/ui/end_screen.tscn")
 const HintZoneScript: GDScript = preload("res://scripts/levels/props/hint_zone.gd")
 
 var hud: Hud
@@ -15,6 +18,9 @@ func before_each() -> void:
 	hud = HudScene.instantiate() as Hud
 	world.add_child(hud)
 
+
+func after_each() -> void:
+	get_tree().paused = false
 
 
 func test_un_seul_message_a_la_fois() -> void:
@@ -93,3 +99,30 @@ func test_les_chiffres_de_degats_se_desactivent() -> void:
 	await _step(30)
 	assert_eq(world.find_children("*", "DamageNumber", true, false).size(), 0)
 
+
+func test_la_pause_arrete_le_jeu_et_revient_en_arriere() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	menu.open()
+	assert_true(get_tree().paused)
+	menu.call(&"_show_notebook")
+	menu.back()
+	assert_true(menu.is_open(), "retour : de la page au menu")
+	menu.back()
+	assert_false(menu.is_open(), "retour : du menu au jeu")
+	assert_false(get_tree().paused)
+
+
+func test_l_ecran_de_fin_montre_le_temps_et_le_record() -> void:
+	var screen: EndScreen = EndScene.instantiate() as EndScreen
+	world.add_child(screen)
+	Game.progress.advance(125.0)
+	Game.pick_drum()
+	Game.return_drum()
+	screen.open()
+	assert_true(get_tree().paused)
+	var texts: Array[String] = []
+	for label: Node in screen.get_node("%Stats").get_children():
+		texts.append((label as Label).text)
+	assert_has(texts, "2:05")
+	assert_has(texts, GameTexts.END_NEW_RECORD)

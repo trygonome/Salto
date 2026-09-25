@@ -2,7 +2,8 @@ extends Node
 ## Horloge musicale. Joue la musique en couches, toutes synchronisées : la base est toujours
 ## audible et chaque tambour rapporté en ajoute une. Donne la position exacte dans la musique,
 ## corrigée de la latence audio (méthode documentée par Godot : position de lecture + temps
-## depuis le dernier mixage − latence de sortie), et émet `beat` à chaque temps.
+## depuis le dernier mixage − latence de sortie), et émet `beat` à chaque temps (sauf pendant
+## une pause du jeu).
 
 ## Un nouveau temps commence (numéro depuis le début de la musique).
 signal beat(index: int)
@@ -106,6 +107,10 @@ func _process(_delta: float) -> void:
 	if not is_playing():
 		return
 	var index: int = floori(song_time() / beat_length())
+	if get_tree().paused:
+		# La musique continue pendant la pause, mais le monde arrêté ne reçoit pas de temps.
+		_last_beat = index
+		return
 	while _last_beat < index:
 		_last_beat += 1
 		beat.emit(_last_beat)
