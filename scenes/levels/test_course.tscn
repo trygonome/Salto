@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="2_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="3_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="4_debug"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/training_dummy.tscn" id="5_dummy"]
 
 [sub_resource type="Environment" id="Environment_night"]
 background_mode = 1
@@ -241,6 +242,43 @@ position = Vector3(0, 1.72, 0)
 mesh = SubResource("SphereMesh_lantern")
 
 [node name="Light" type="OmniLight3D" parent="LanternSummit"]
+position = Vector3(0, 1.72, 0)
+light_color = Color(1, 0.62, 0.3, 1)
+light_energy = 1.5
+omni_range = 4.0
+
+[node name="Dojo" type="Node3D" parent="."]
+
+[node name="Dummy1" parent="Dojo" instance=ExtResource("5_dummy")]
+position = Vector3(-6.00, 0, 0.80)
+rotation_degrees = Vector3(0, 180.0, 0)
+
+[node name="Dummy2" parent="Dojo" instance=ExtResource("5_dummy")]
+position = Vector3(-4.87, 0, -1.15)
+rotation_degrees = Vector3(0, -60.0, 0)
+
+[node name="Dummy3" parent="Dojo" instance=ExtResource("5_dummy")]
+position = Vector3(-7.13, 0, -1.15)
+rotation_degrees = Vector3(0, 60.0, 0)
+
+[node name="DiveRock" type="CSGBox3D" parent="Dojo"]
+position = Vector3(-6.0, 0.6, 2.9)
+use_collision = true
+size = Vector3(1.6, 1.2, 1.6)
+material = SubResource("Material_rock")
+
+[node name="LanternDojo" type="Node3D" parent="Dojo"]
+position = Vector3(-8.2, 0, 1.1)
+
+[node name="Pole" type="MeshInstance3D" parent="Dojo/LanternDojo"]
+position = Vector3(0, 0.8, 0)
+mesh = SubResource("CylinderMesh_pole")
+
+[node name="Glow" type="MeshInstance3D" parent="Dojo/LanternDojo"]
+position = Vector3(0, 1.72, 0)
+mesh = SubResource("SphereMesh_lantern")
+
+[node name="Light" type="OmniLight3D" parent="Dojo/LanternDojo"]
 position = Vector3(0, 1.72, 0)
 light_color = Color(1, 0.62, 0.3, 1)
 light_energy = 1.5
