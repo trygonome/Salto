@@ -30,6 +30,8 @@ enum Priority { REPLY, INFO }
 @export var damage_number_height: float
 ## Largeur d'une réplique (px) : les longues passent à la ligne.
 @export var reply_width: float
+## Une réplique dont celui qui parle sort de l'écran de plus que cette marge (px) se cache.
+@export var reply_offscreen_margin: float
 ## Écart entre la carte d'objet et le bas de l'écran : en portrait, au-dessus des boutons ;
 ## en paysage, tout en bas entre le joystick et les boutons (px).
 @export var card_bottom_portrait: float
@@ -240,8 +242,12 @@ func _place_reply() -> void:
 	if camera.is_position_behind(world):
 		_reply.visible = false
 		return
-	_reply.visible = true
 	var point: Vector2 = camera.unproject_position(world)
+	var screen: Vector2 = _reply.get_viewport_rect().size
+	var margin: float = reply_offscreen_margin
+	_reply.visible = point.x > -margin and point.x < screen.x + margin and point.y > 0.0 and point.y < screen.y + margin
+	if not _reply.visible:
+		return
 	_reply.size = Vector2(reply_width, 0.0)
 	_reply.size = Vector2(reply_width, _reply.get_combined_minimum_size().y)
 	# Jamais sur la barre du haut (PV, tambours, pause) : au plus haut, à la place des messages.
