@@ -35,7 +35,10 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
   (`scenes/levels/test_course.tscn`) se lance depuis l'éditeur (F6).
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
   sans fenêtre ; code de sortie non nul si un test échoue.
-- **Exporter l'APK de test** : `tools/export_android.sh` → `build/android/salto-debug.apk`.
+- **Exporter l'APK de test** : `tools/export_android.sh` → `build/android/salto-debug.apk` ;
+  `tools/export_android.sh --release` → `build/android/salto-release.apk` (moteur optimisé : plus léger
+  et plus rapide ; c'est celle qu'on envoie sur le téléphone). Les exports portent la marque `test_build`
+  (infos de mise au point visibles).
   Signée avec `tools/android/debug.keystore` (alias `androiddebugkey`, mot de passe `android`) :
   toutes les APK de test ont la même signature et s'installent par-dessus la précédente.
   Depuis l'éditeur sur PC, régler *Paramètres de l'éditeur > Export > Android > Debug Keystore* sur ce fichier

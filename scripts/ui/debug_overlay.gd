@@ -1,11 +1,12 @@
 extends Label
-## Infos de mise au point, visibles seulement dans les versions de test :
+## Infos de mise au point, visibles seulement dans les versions de test (éditeur, ou export
+## marqué « test_build », en débogage comme en version optimisée) :
 ## images par seconde, moteur de rendu, taille de l'écran, orientation, puis la ligne
 ## `debug_text()` du premier nœud du groupe « debug_info » (le héros).
 
 
 func _ready() -> void:
-	visible = OS.is_debug_build()
+	visible = OS.is_debug_build() or OS.has_feature("test_build")
 	set_process(visible)
 
 
