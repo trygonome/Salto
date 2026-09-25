@@ -26,6 +26,7 @@ func _ready() -> void:
 func _on_guardian_freed(_muet: Muet) -> void:
 	_bubble.visible = false
 	_available = true
+	Game.free_sanctuary()
 
 
 func _on_body_entered(body: Node3D) -> void:

@@ -169,6 +169,7 @@ size = Vector3(50, 40, 1)
 
 [node name="Night1" type="Node3D"]
 script = ExtResource("5_night_level")
+night = 1
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_night")

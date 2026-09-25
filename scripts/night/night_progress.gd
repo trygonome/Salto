@@ -1,6 +1,7 @@
 class_name NightProgress
 extends RefCounted
-## Progression d'une nuit : tambours rapportés, tambour porté, pages du carnet, objets trouvés.
+## Progression d'une nuit : tambours rapportés, tambour porté, pages et objets trouvés cette
+## nuit, Muets libérés, temps écoulé.
 ## Tomber ramène au village : on garde ce qui a été rapporté, le tambour porté est perdu
 ## (il retourne à son sanctuaire).
 
@@ -8,9 +9,12 @@ extends RefCounted
 var drums_required: int
 var drums_returned: int = 0
 var carrying_drum: bool = false
-## Pages du carnet trouvées (numéros à partir de 1).
+## Pages du carnet trouvées cette nuit (numéros à partir de 1).
 var pages: Array[int] = []
 var items: Array[ItemData] = []
+var muets_freed: int = 0
+## Temps de jeu de la nuit (s), arrêté quand elle est accomplie.
+var elapsed: float = 0.0
 
 
 func _init(required: int) -> void:
@@ -61,3 +65,9 @@ func add_page(page: int) -> bool:
 
 func add_item(item: ItemData) -> void:
 	items.append(item)
+
+
+## Fait avancer le temps de la nuit tant qu'elle n'est pas accomplie.
+func advance(delta: float) -> void:
+	if not is_complete():
+		elapsed += delta

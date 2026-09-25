@@ -13,6 +13,7 @@ const GrandMuet: PackedScene = preload("res://scenes/enemies/grand_muet.tscn")
 
 func before_each() -> void:
 	super.before_each()
+	Game.profile = Profile.new()
 	Game.start_night()
 
 
@@ -114,6 +115,19 @@ func test_le_coffre_donne_une_page_et_un_objet() -> void:
 	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
 	await _step(10)
 	assert_eq(Game.progress.items.size(), 1, "l'objet est ramassé")
+
+
+func test_un_coffre_deja_trouve_est_ouvert_et_vide() -> void:
+	Game.profile.add_page(5)
+	await _spawn_on_flat_ground()
+	var chest: Node3D = Chest.instantiate() as Node3D
+	chest.set(&"page", 5)
+	chest.position = Vector3(0.0, 0.0, -2.0)
+	world.add_child(chest)
+	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
+	await _step(10)
+	assert_eq(Game.progress.pages.size(), 0)
+	assert_eq(world.find_children("LootDrop*", "Node3D", true, false).size(), 0, "pas de nouvel objet")
 
 
 func test_le_village_soigne() -> void:

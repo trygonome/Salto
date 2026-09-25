@@ -189,4 +189,5 @@ func release() -> void:
 	_freed_sound.play()
 	body.play_freed(Tuning.data.muet_freed_time)
 	get_tree().call_group(&"hero", &"on_enemy_freed", self)
+	Game.on_muet_freed(self)
 	freed.emit(self)

@@ -1,6 +1,7 @@
 extends Node3D
 ## Coffre : le toucher l'ouvre. Il donne une page du carnet, et un objet jaillit.
-## Un coffre caché peut n'apparaître qu'une fois révélé (cercle des gongs).
+## Un coffre caché peut n'apparaître qu'une fois révélé (cercle des gongs). Si sa page est
+## déjà dans le carnet, il est ouvert et vide.
 
 ## Page du carnet qu'il contient (numéro à partir de 1).
 @export var page: int
@@ -25,6 +26,10 @@ var _opened: bool = false
 
 func _ready() -> void:
 	_zone.body_entered.connect(_on_body_entered)
+	if Game.profile.has_page(page):
+		# Déjà trouvé lors d'une nuit précédente : il attend, ouvert et vide.
+		_opened = true
+		_lid.rotation.x = deg_to_rad(-lid_open_deg)
 	if hidden:
 		visible = false
 		_body.set_deferred(&"disabled", true)
