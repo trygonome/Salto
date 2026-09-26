@@ -1,6 +1,6 @@
 class_name GameTexts
 ## Textes du jeu, repris du prototype (docs/prototype/salto-rpg.html) : nuits de la saga, objectifs,
-## bannières, conseils, bulles des villageois, défis, objets, talents, écrans. Les petits mots qui
+## bannières, conseils, bulles des villageois, objets, talents, écrans. Les petits mots qui
 ## montent près de leur source restent courts (charte des retours à l'écran, docs/GDD.md §12).
 
 ## Nuits de la saga : titre, Muets rencontrés, réplique du Chef au départ, phrase de fin.
@@ -85,8 +85,6 @@ const BANNER_NIGHT_DONE := "Nuit accomplie"
 const BANNER_NIGHT_DONE_TITLE := "La jungle danse !"
 
 ## Messages éphémères (toast).
-const TOAST_BAG_FULL := "Sac plein : +%d plumes"
-const TOAST_CHALLENGE := "Défi réussi : +%d plumes"
 const TOAST_SECOND_WIND := "Second souffle !"
 const TOAST_FAINT := "Tu t'es évanoui…"
 
@@ -94,10 +92,8 @@ const TOAST_FAINT := "Tu t'es évanoui…"
 const WORD_BLOCKED := "Bloqué"
 const WORD_STUNNED := "Étourdi !"
 const WORD_PERFECT_DODGE := "Esquive parfaite !"
-const WORD_MULTI_HIT := "×%d !"
-const WORD_PLUMES := "+%d plumes"
 const WORD_HEAL := "+%d"
-const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_MULTI_HIT, WORD_PLUMES, WORD_HEAL]
+const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL]
 
 ## Conseils près des boutons (apprentissage par le jeu) : identifiant → texte.
 const HINTS: Dictionary[StringName, String] = {
@@ -111,17 +107,6 @@ const HINTS: Dictionary[StringName, String] = {
 	&"beat": "Frappe quand l'anneau se referme",
 	&"special": "Jauge pleine : frappe !",
 }
-
-## Défis d'une sortie (%d : objectif).
-const CHALLENGES: Dictionary[StringName, String] = {
-	&"perfect": "Réussis %d coups parfaits",
-	&"combo": "Atteins un combo de %d",
-	&"multi": "Touche %d Muets d'un seul coup",
-	&"dodge": "Réussis %d esquives parfaites",
-	&"dive": "Vaincs %d Muets d'un coup plongeant",
-}
-const CHALLENGE_PROGRESS := "Défi : %s (%d/%d)"
-const CHALLENGE_DONE := "Défi réussi : %s"
 
 ## Boutons tactiles, HUD.
 const PAD_ATTACK := "Frappe"
@@ -141,8 +126,7 @@ const NEW_GAME_CONFIRM := "Touche encore pour tout effacer"
 const TITLE_PITCH := "Cinq nuits pour rendre ses couleurs à la jungle."
 const TITLE_DRUMS := "%s sur 3 au village"
 const TITLE_SORTIES := ", %s cette nuit"
-const RECORDS := "Meilleur score : %s. Meilleur combo : %d."
-const BAG_BUTTON := "Sac et forge (%d plumes)"
+const BAG_BUTTON := "Sac"
 const TALENTS_BUTTON := "Talents"
 const TALENTS_BUTTON_POINTS := "Talents (%s)"
 
@@ -173,25 +157,17 @@ const SUMMARY_BANKED_MANY := "%s restent au village : il en manque %d."
 const SUMMARY_NONE := "Repars : la jungle ne bouge pas tant que la nuit dure."
 const SUMMARY_DRUMS := "Tambours de la nuit"
 const SUMMARY_MUETS := "Muets libérés"
-const SUMMARY_COMBO := "Combo max"
-const SUMMARY_PERFECTS := "Coups parfaits"
-const SUMMARY_DODGES := "Esquives parfaites"
 const SUMMARY_LEVEL := "Niveau atteint"
 const SUMMARY_TIME := "Temps"
-const SUMMARY_SCORE := "Score"
-const SUMMARY_PLUMES := "+%s"
-const SUMMARY_CHALLENGE_DONE := "Défi réussi : +%d"
-const SUMMARY_CHALLENGE_MISSED := "Défi manqué"
-const SUMMARY_RECORD := "Nouveau record !"
 const AGAIN := "Repartir"
 const NEXT_NIGHT := "Nuit suivante"
 const ENDLESS_NIGHT := "Nuit sans fin"
 const HOME := "Accueil"
 const BACK := "Retour"
 
-## Sac et forge.
-const BAG_TITLE := "Sac et forge"
-const BAG_SUB := "%s · %d/%d objets"
+## Sac.
+const BAG_TITLE := "Sac"
+const BAG_SUB := "%d/%d objets"
 const BAG_EMPTY := "Les Muets libérés laissent parfois un objet. Les Grands Muets en laissent toujours un."
 const SLOT_EMPTY := "Vide"
 const ITEM_NEW := "nouveau"
@@ -199,8 +175,6 @@ const ITEM_INFO := "%s · %s · niveau %d"
 const ITEM_WORN := " · porté"
 const ITEM_COMPARE := "Comparé à ton objet porté :"
 const EQUIP := "Équiper"
-const FORGE := "Forger +%d (%d plumes)"
-const RECYCLE := "Recycler (+%d plumes)"
 const RARITY_NAMES: PackedStringArray = ["Commun", "Rare", "Épique", "Légendaire"]
 ## Emplacements : nom, et matières par rareté.
 const SLOT_NAMES: PackedStringArray = ["Chevillières", "Masque", "Talisman"]
@@ -270,8 +244,7 @@ const TALENT_EFFECTS: Dictionary[StringName, String] = {
 	&"second": "Une fois par sortie, relève-toi à 40 % PV.",
 }
 
-## Pluriels simples : « 1 plume », « 3 plumes ».
-const PLUME := "plume"
+## Pluriels simples : « 1 tambour », « 3 tambours ».
 const DRUM := "tambour"
 const POINT := "point"
 const SORTIE := "sortie"
@@ -286,32 +259,17 @@ static func night_name(night: int) -> String:
 	return night_info(night)[&"title"]
 
 
-## « 1 plume », « 3 plumes ».
+## « 1 tambour », « 3 tambours ».
 static func plural(count: int, word: String) -> String:
 	return "%d %s%s" % [count, word, "s" if absi(count) > 1 else ""]
 
 
-## Nombre avec espaces entre les milliers : « 12 450 ».
-static func number(value: int) -> String:
-	var digits: String = str(absi(value))
-	var out: String = ""
-	while digits.length() > 3:
-		out = " " + digits.right(3) + out
-		digits = digits.left(digits.length() - 3)
-	return ("-" if value < 0 else "") + digits + out
-
-
-## Nom d'un objet : légendaire, ou emplacement et matière selon la rareté ; « +2 » s'il est forgé.
-static func item_name(item: ItemData, with_forge: bool = true) -> String:
-	var base: String
+## Nom d'un objet : légendaire, ou emplacement et matière selon la rareté.
+static func item_name(item: ItemData) -> String:
 	if item.legendary != &"":
-		base = LEGENDARY_NAMES[item.legendary]
-	else:
-		var materials: Array = SLOT_MATERIALS[item.slot]
-		base = "%s %s" % [SLOT_NAMES[item.slot], materials[item.rarity]]
-	if with_forge and item.forge > 0:
-		base += " +%d" % item.forge
-	return base
+		return LEGENDARY_NAMES[item.legendary]
+	var materials: Array = SLOT_MATERIALS[item.slot]
+	return "%s %s" % [SLOT_NAMES[item.slot], materials[item.rarity]]
 
 
 ## Valeur affichée d'un effet : points, ou pour cent.
@@ -381,11 +339,6 @@ static func talent_effect(id: StringName, rank: int, tuning: TuningData) -> Stri
 		&"bark":
 			value = tuning.talent_bark_resistance * 100.0 * r
 	return text.replace("%d", str(roundi(value)))
-
-
-## Texte du défi `id` pour l'objectif `target`.
-static func challenge_text(id: StringName, target: int) -> String:
-	return CHALLENGES.get(id, "%d") % target
 
 
 ## Durée en minutes et secondes : « 4:07 ».

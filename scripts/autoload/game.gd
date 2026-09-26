@@ -1,12 +1,12 @@
 extends Node
 ## État du jeu, comme la saga du prototype : le profil gardé d'une partie à l'autre (nuit en
-## cours, tambours déjà rapportés, niveau, talents, sac, plumes, records, réglages) et la sortie
-## en cours (sanctuaires, tambours portés, défi, score). Une sortie se termine quand la nuit est
+## cours, tambours déjà rapportés, niveau, talents, sac, réglages) et la sortie en cours
+## (sanctuaires, tambours portés, Muets libérés). Une sortie se termine quand la nuit est
 ## accomplie, quand le héros s'évanouit ou quand il rentre au village depuis la pause ; les
 ## tambours rapportés restent au village jusqu'à la fin de la nuit. Sauvegardé à chaque étape.
 ## Les éléments du niveau et l'interface écoutent ses signaux.
 
-## La nuit `night` est prête (monde, tambours déjà rapportés, défi).
+## La nuit `night` est prête (monde, tambours déjà rapportés).
 signal night_started(night: int)
 ## Une sortie commence (le héros part du village).
 signal sortie_started
@@ -21,24 +21,16 @@ signal night_completed
 signal muet_freed(muet: Node3D)
 ## Une page arrive dans le carnet pour la première fois.
 signal page_found(page: int)
-## Un objet est trouvé ; `stored` faux : sac plein, il a été recyclé en plumes.
+## Un objet est trouvé (il va dans le sac).
 signal item_found(item: ItemData)
 signal settings_changed
 ## Expérience gagnée ; niveau gagné.
 signal xp_changed
 signal level_up(level: int)
-## Le défi de la sortie avance, ou vient d'être réussi.
-signal challenge_changed
-signal challenge_done(reward: int)
-## Les plumes ont changé (gain en jeu, forge, recyclage).
-signal plumes_changed
 ## Niveau, talents ou équipement ont changé : les forces du héros sont recalculées.
 signal stats_changed
 ## La sortie est finie ; `summary` : voir end_sortie().
 signal sortie_ended(summary: Dictionary)
-
-## Défis possibles d'une sortie (un tiré au sort).
-const CHALLENGES: Array[StringName] = [&"perfect", &"combo", &"multi", &"dodge", &"dive"]
 
 ## Numéro de la nuit de la sortie en cours.
 var night: int = 1
@@ -49,8 +41,6 @@ var stats: HeroStats
 var playing: bool = false
 ## La prochaine scène de nuit lance la sortie tout de suite (Repartir, Nuit suivante).
 var start_on_load: bool = false
-## Vrai si la dernière nuit accomplie a battu le record de temps.
-var new_record: bool = false
 var rng := RandomNumberGenerator.new()
 
 
@@ -70,16 +60,12 @@ func _process(delta: float) -> void:
 		progress.advance(delta)
 
 
-## Prépare la nuit `number` : sanctuaires dont le tambour est déjà au village, défi (le profil
-## n'est pas modifié ; voir start_sortie).
+## Prépare la nuit `number` : sanctuaires dont le tambour est déjà au village (le profil n'est
+## pas modifié ; voir start_sortie).
 func start_night(number: int = 1) -> void:
 	night = number
 	var banked: Array[bool] = profile.banked if number == profile.night else [] as Array[bool]
 	progress = NightProgress.new(Tuning.data.night_drums_required, banked)
-	var tuning: TuningData = Tuning.data
-	var id: StringName = CHALLENGES[rng.randi_range(0, CHALLENGES.size() - 1)]
-	progress.set_challenge(id, tuning.challenge_targets[id], tuning.challenge_reward)
-	new_record = false
 	night_started.emit(night)
 
 
@@ -117,8 +103,6 @@ func return_drum() -> void:
 	save()
 	drum_returned.emit(progress.drums_returned)
 	if progress.is_complete():
-		new_record = profile.complete_night(night, progress.elapsed)
-		save()
 		night_completed.emit()
 
 
@@ -137,7 +121,7 @@ func free_sanctuary(index: int = -1) -> void:
 	sanctuary_freed.emit()
 
 
-## Un Muet vient d'être libéré (appelé par le Muet) : expérience et score.
+## Un Muet vient d'être libéré (appelé par le Muet) : expérience.
 func on_muet_freed(muet: Node3D) -> void:
 	progress.muets_freed += 1
 	var tuning: TuningData = Tuning.data
@@ -166,40 +150,6 @@ func add_xp(amount: float) -> void:
 		level_up.emit(profile.level)
 
 
-## Coup parfait, combo, Muets touchés d'un coup, esquive parfaite, Muet vaincu d'un plongeon :
-## ce qui compte pour le score et les défis.
-func on_perfect() -> void:
-	progress.perfects += 1
-	_challenge(&"perfect", 1)
-
-
-func on_combo(hits: int) -> void:
-	progress.max_combo = maxi(progress.max_combo, hits)
-	_challenge(&"combo", 0, hits)
-
-
-func on_multi_hit(count: int) -> void:
-	progress.best_multi_hit = maxi(progress.best_multi_hit, count)
-	_challenge(&"multi", 0, count)
-
-
-func on_perfect_dodge() -> void:
-	progress.perfect_dodges += 1
-	_challenge(&"dodge", 1)
-
-
-func on_dive_kill() -> void:
-	progress.dive_kills += 1
-	_challenge(&"dive", 1)
-
-
-## Plumes trouvées en jeu (perchoirs).
-func add_plumes(amount: int) -> void:
-	profile.plumes += amount
-	save()
-	plumes_changed.emit()
-
-
 func add_page(page: int) -> void:
 	progress.add_page(page)
 	if profile.add_page(page):
@@ -207,23 +157,19 @@ func add_page(page: int) -> void:
 		page_found.emit(page)
 
 
-## Un objet trouvé va dans le sac (s'il est plein, il est recyclé en plumes).
-func add_item(item: ItemData) -> bool:
+## Un objet trouvé va dans le sac (s'il est plein, le plus faible des objets non portés s'en va).
+func add_item(item: ItemData) -> void:
 	progress.add_item(item)
-	var stored: bool = profile.add_item(item)
+	profile.add_item(item)
 	save()
 	item_found.emit(item)
-	if not stored:
-		plumes_changed.emit()
-	return stored
 
 
-## Équipement, forge, recyclage, talents : le profil a changé depuis le sac ou les talents.
+## Équipement ou talents : le profil a changé depuis le sac ou les talents.
 func profile_changed() -> void:
 	refresh_stats()
 	save()
 	stats_changed.emit()
-	plumes_changed.emit()
 
 
 func refresh_stats() -> void:
@@ -231,21 +177,12 @@ func refresh_stats() -> void:
 
 
 ## Fin de la sortie : `kind` vaut &"night" (nuit accomplie), &"faint" (évanoui) ou &"quit" (rentré
-## au village). Calcule le score et les plumes, met les records et la saga à jour, sauvegarde et
-## renvoie le résumé : kind, night (nuit jouée), next_night, finale (la saga s'achève), banked
-## (tambours au village), score, record, plumes, challenge (réussi ou non), stats (lignes).
+## au village). Met la saga à jour, sauvegarde et renvoie le résumé : kind, night (nuit jouée),
+## next_night, finale (la saga s'achève), banked (tambours au village), muets (libérés pendant la
+## sortie), level, time.
 func end_sortie(kind: StringName) -> Dictionary:
-	var tuning: TuningData = Tuning.data
 	playing = false
 	var played: int = night
-	var multiplier_score: float = ProgressionMath.night_multiplier(tuning.score_per_night, played)
-	var multiplier_plumes: float = ProgressionMath.night_multiplier(tuning.plumes_per_night, played)
-	var score: int = progress.score(profile.level, multiplier_score, tuning)
-	var plumes: int = progress.plumes(multiplier_plumes, tuning)
-	var record: bool = score > profile.best_score and profile.total_sorties > 1
-	profile.plumes += plumes
-	profile.best_score = maxi(profile.best_score, score)
-	profile.best_combo = maxi(profile.best_combo, progress.max_combo)
 	var finale: bool = false
 	if kind == &"night":
 		finale = profile.complete_current_night()
@@ -253,12 +190,8 @@ func end_sortie(kind: StringName) -> Dictionary:
 	var summary: Dictionary = {
 		&"kind": kind, &"night": played, &"next_night": profile.night, &"finale": finale,
 		&"banked": progress.drums_returned if kind == &"night" else profile.banked_count(),
-		&"score": score, &"record": record, &"plumes": plumes,
-		&"challenge": progress.challenge, &"challenge_done": progress.challenge_done, &"challenge_reward": progress.challenge_reward,
-		&"muets": progress.muets_freed, &"max_combo": progress.max_combo, &"perfects": progress.perfects,
-		&"dodges": progress.perfect_dodges, &"level": profile.level, &"time": progress.elapsed,
+		&"muets": progress.muets_freed, &"level": profile.level, &"time": progress.elapsed,
 	}
-	plumes_changed.emit()
 	sortie_ended.emit(summary)
 	return summary
 
@@ -312,14 +245,3 @@ func music_layers() -> int:
 func _apply_settings() -> void:
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(&"Master"), profile.muted)
 
-
-func _challenge(id: StringName, amount: int, value: int = -1) -> void:
-	if progress.challenge != id or progress.challenge_done:
-		return
-	var done: bool = progress.advance_challenge(id, amount, value)
-	challenge_changed.emit()
-	if done:
-		profile.plumes += progress.challenge_reward
-		save()
-		plumes_changed.emit()
-		challenge_done.emit(progress.challenge_reward)

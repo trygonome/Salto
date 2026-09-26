@@ -79,8 +79,6 @@ var _roll_end: float = -INF
 var _buffer: InputBuffer
 var _clock: float = 0.0
 var _spawn: Transform3D
-## Muets touchés par le coup en cours (défi « plusieurs Muets d'un coup »).
-var _strike_hits: int = 0
 ## Point le plus haut atteint depuis le dernier contact avec le sol (m) : hauteur de chute.
 var _air_peak: float = 0.0
 
@@ -355,7 +353,6 @@ func aim_direction() -> Vector3:
 ## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant,
 ## pendant `active_time` secondes (par défaut attack_active_time).
 func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0) -> void:
-	_strike_hits = 0
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier, attack.id, judgement, 0.0)
 	var duration: float = active_time if active_time >= 0.0 else tuning.attack_active_time
@@ -365,7 +362,6 @@ func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgem
 ## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
 ## `colors` : une onde par couleur, de plus en plus grande (une seule pour le plongeon normal).
 func shockwave(radius: float, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, colors: Array[Color]) -> void:
-	_strike_hits = 0
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time)
 	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
@@ -477,10 +473,6 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
-	_strike_hits += 1
-	Game.on_combo(combo.hits)
-	if _strike_hits >= 2:
-		Game.on_multi_hit(_strike_hits)
 	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
 	if _pending_groove > 0.0:
@@ -526,7 +518,6 @@ func _on_dodged(_hit: HitData) -> void:
 		fx.word(GameTexts.WORD_PERFECT_DODGE, global_position + Vector3.UP * tuning.hero_height, fx.cyan, true)
 	_next_hit_critical = true
 	groove.add(tuning.groove_perfect_dodge * stats.groove)
-	Game.on_perfect_dodge()
 	if stats.shadow:
 		quake(tuning.shadow_quake_radius, tuning.shadow_quake_damage, &"shadow")
 	beat_ring.flash(RhythmMath.Judgement.PERFECT)
@@ -537,8 +528,6 @@ func _on_dodged(_hit: HitData) -> void:
 func _on_judged(judgement: RhythmMath.Judgement) -> void:
 	judged.emit(judgement)
 	beat_ring.flash(judgement)
-	if judgement == RhythmMath.Judgement.PERFECT:
-		Game.on_perfect()
 	if judgement == RhythmMath.Judgement.MISS:
 		return
 	var notes: PackedFloat32Array = tuning.chime_scale_semitones

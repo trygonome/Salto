@@ -605,23 +605,14 @@ extends Resource
 ## Tirage de la valeur d'un effet (fractions).
 @export var item_roll_min: float
 @export var item_roll_max: float
-## Bonus par niveau de forge (fraction).
-@export var item_forge_bonus: float
 ## Chances de rareté du butin (commun, rare, épique, légendaire) : Muet ordinaire, Grand Muet (et
 ## coffres), Roi Muet ; chance qu'un Muet ordinaire laisse un objet.
 @export var loot_muet_weights: PackedFloat32Array
 @export var loot_boss_weights: PackedFloat32Array
 @export var loot_king_weights: PackedFloat32Array
 @export var loot_muet_chance: float
-## Sac : objets au plus (au-delà, un objet trouvé est recyclé), forge au plus.
+## Sac : objets au plus (au-delà, le plus faible des objets non portés laisse sa place).
 @export var item_inventory_max: int
-@export var item_forge_max: int
-## Plumes : prix de la forge (× niveau de forge suivant × rang de rareté), recyclage (de base et par
-## rang de rareté, × niveau de l'objet ; plus par niveau de forge).
-@export var item_forge_cost: int
-@export var item_recycle_base: int
-@export var item_recycle_per_rarity: int
-@export var item_recycle_per_forge: int
 
 @export_group("Interface")
 ## Durée d'un message éphémère (s) et de ses fondus (s).
@@ -976,27 +967,9 @@ extends Resource
 @export_group("Sorties")
 ## Nombre de nuits de la saga (la dernière l'achève ; ensuite, les nuits sans fin).
 @export var saga_nights: int
-## Défis : objectif de chacun (coups parfaits, combo, Muets d'un coup, esquives parfaites, Muets
-## vaincus d'un plongeon) et plumes gagnées.
-@export var challenge_targets: Dictionary[StringName, int]
-@export var challenge_reward: int
-## Score d'une sortie : par Muet, Grand Muet, tambour, coup parfait, point de combo, esquive
-## parfaite, niveau ; en plus par nuit (part).
-@export var score_per_muet: float
-@export var score_per_boss: float
-@export var score_per_drum: float
-@export var score_per_perfect: float
-@export var score_per_combo: float
-@export var score_per_dodge: float
-@export var score_per_level: float
-@export var score_per_night: float
-## Plumes d'une sortie : par Muet, Grand Muet, tambour ; en plus par nuit (part).
-@export var plumes_per_muet: float
-@export var plumes_per_boss: float
-@export var plumes_per_drum: float
-@export var plumes_per_night: float
-## Plume posée sur chaque perchoir (plumes, hauteur m, portée m).
-@export var perch_plumes: int
+## Plume arc-en-ciel au sommet de chaque perchoir : part de la jauge de groove remplie, portée
+## (m), hauteur (m).
+@export var perch_groove: float
 @export var perch_pickup_radius: float
 @export var perch_pickup_height: float
 ## Fruits : chance qu'un Muet en laisse un, part des PV rendus, durée (s) dont clignotement à la
@@ -1054,10 +1027,9 @@ extends Resource
 @export var fruit_float_height: float
 @export var fruit_blink_rate: float
 @export var fruit_pickup_height: float
-## Gerbes : plume prise (cubes, m/s, hauteur du mot m), fruit mangé (cubes, m/s, teinte).
+## Gerbes : plume prise (cubes, m/s), fruit mangé (cubes, m/s, teinte).
 @export var fx_plume_cubes: int
 @export var fx_plume_speed: float
-@export var fx_plume_word_height: float
 @export var fx_fruit_cubes: int
 @export var fx_fruit_speed: float
 @export var fx_fruit_hue: float

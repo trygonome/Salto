@@ -19,18 +19,8 @@ func _item() -> ItemData:
 	item.slot = ItemData.Slot.MASK
 	item.rarity = ItemData.Rarity.EPIC
 	item.level = 2
-	item.forge = 1
 	item.rolls.assign({&"damage": 0.9, &"health": 1.1})
 	return item
-
-
-func test_un_record_ne_compte_que_s_il_est_meilleur() -> void:
-	var profile := Profile.new()
-	assert_eq(profile.best_time(1), -1.0, "jamais accomplie")
-	assert_true(profile.complete_night(1, 300.0), "première fois")
-	assert_false(profile.complete_night(1, 320.0))
-	assert_true(profile.complete_night(1, 280.0))
-	assert_eq(profile.best_time(1), 280.0)
 
 
 func test_une_aide_suivie_ne_revient_pas() -> void:
@@ -47,7 +37,6 @@ func test_le_profil_survit_a_la_sauvegarde() -> void:
 	profile.add_page(1)
 	profile.add_item(_item())
 	profile.mark_hint_done(&"move")
-	profile.complete_night(1, 251.5)
 	profile.damage_numbers = false
 	profile.debug_info = true
 	profile.night_seed = 4242
@@ -61,11 +50,9 @@ func test_le_profil_survit_a_la_sauvegarde() -> void:
 	assert_eq(item.slot, ItemData.Slot.MASK)
 	assert_eq(item.rarity, ItemData.Rarity.EPIC)
 	assert_eq(item.level, 2)
-	assert_eq(item.forge, 1)
 	assert_almost_eq(item.rolls[&"damage"], 0.9, 0.0001)
 	assert_almost_eq(item.rolls[&"health"], 1.1, 0.0001)
 	assert_true(loaded.is_hint_done(&"move"))
-	assert_eq(loaded.best_time(1), 251.5)
 	assert_false(loaded.damage_numbers)
 	assert_true(loaded.debug_info)
 	assert_eq(loaded.night_seed, 4242)
@@ -102,18 +89,18 @@ func test_une_page_trouvee_est_sauvegardee_une_seule_fois() -> void:
 	assert_true(Save.load_profile().has_page(4))
 
 
-func test_une_nuit_accomplie_garde_son_record_et_ouvre_la_suivante() -> void:
+func test_une_nuit_accomplie_ouvre_la_suivante() -> void:
 	Game.start_sortie()
 	Game.progress.advance(42.0)
 	for i: int in tuning.night_drums_required:
 		Game.pick_drum(i)
 		Game.return_drum()
-	assert_true(Game.new_record)
-	assert_almost_eq(Save.load_profile().best_time(1), 42.0, 0.001)
 	Game.progress.advance(10.0)
 	assert_almost_eq(Game.progress.elapsed, 42.0, 0.001, "le temps s'arrête une fois la nuit accomplie")
 	var summary: Dictionary = Game.end_sortie(&"night")
 	assert_eq(summary[&"kind"], &"night")
+	assert_almost_eq(summary[&"time"], 42.0, 0.001)
+	assert_false(summary.has(&"score"), "ni score ni record : la nuit se raconte en tambours et en Muets")
 	assert_eq(Game.profile.nights_done, 1)
 	assert_eq(Game.profile.night, 2)
 	assert_eq(Game.profile.night_seed, 0, "la nuit suivante aura un nouveau monde")
@@ -148,33 +135,6 @@ func test_la_cinquieme_nuit_acheve_la_saga() -> void:
 	assert_eq(GameTexts.night_name(Game.profile.night), GameTexts.ENDLESS[&"title"])
 
 
-func test_la_fin_de_sortie_rapporte_des_plumes_et_le_defi() -> void:
-	Game.start_sortie()
-	var id: StringName = Game.progress.challenge
-	assert_true(Game.CHALLENGES.has(id))
-	var target: int = Game.progress.challenge_target
-	var before: int = Game.profile.plumes
-	for i: int in target:
-		match id:
-			&"perfect":
-				Game.on_perfect()
-			&"dodge":
-				Game.on_perfect_dodge()
-			&"dive":
-				Game.on_dive_kill()
-			&"combo":
-				Game.on_combo(target)
-			&"multi":
-				Game.on_multi_hit(target)
-	assert_true(Game.progress.challenge_done)
-	assert_eq(Game.profile.plumes, before + tuning.challenge_reward)
-	Game.progress.muets_freed = 5
-	var summary: Dictionary = Game.end_sortie(&"quit")
-	assert_true(summary[&"challenge_done"])
-	assert_eq(summary[&"plumes"], roundi(5 * tuning.plumes_per_muet))
-	assert_eq(Game.profile.plumes, before + tuning.challenge_reward + summary[&"plumes"])
-
-
 func test_l_experience_fait_gagner_des_niveaux() -> void:
 	Game.start_sortie()
 	watch_signals(Game)
@@ -191,7 +151,7 @@ func test_les_mots_qui_montent_restent_courts() -> void:
 	assert_eq(GameTexts.word_count("Tambour perdu !"), 2, "la ponctuation isolée ne compte pas")
 
 
-func test_chaque_objet_effet_talent_et_defi_a_son_texte() -> void:
+func test_chaque_objet_effet_et_talent_a_son_texte() -> void:
 	for slot: int in ItemData.Slot.size():
 		for rarity: int in ItemData.Rarity.size():
 			var item := ItemData.new()
@@ -205,8 +165,6 @@ func test_chaque_objet_effet_talent_et_defi_a_son_texte() -> void:
 	for t: Dictionary in TalentTree.TALENTS:
 		assert_true(GameTexts.TALENT_NAMES.has(t[&"id"]), String(t[&"id"]))
 		assert_false(GameTexts.talent_effect(t[&"id"], 1, tuning).contains("%d"), "valeur remplie")
-	for id: StringName in Game.CHALLENGES:
-		assert_true(GameTexts.challenge_text(id, 3).contains("3"), String(id))
 	for n: int in range(1, tuning.saga_nights + 2):
 		assert_ne(GameTexts.night_name(n), "")
 
@@ -215,9 +173,8 @@ func test_lignes_d_effet_nombres_et_durees() -> void:
 	assert_eq(GameTexts.effect_line(&"damage", 0.06), "+6 % de dégâts")
 	assert_eq(GameTexts.effect_line(&"health", 12.4), "+12 PV max")
 	assert_eq(GameTexts.talent_effect(&"breath", 2, tuning), "+%d PV max" % roundi(2.0 * tuning.talent_breath_health))
-	assert_eq(GameTexts.plural(1, GameTexts.PLUME), "1 plume")
-	assert_eq(GameTexts.plural(3, GameTexts.PLUME), "3 plumes")
-	assert_eq(GameTexts.number(12450), "12 450")
+	assert_eq(GameTexts.plural(1, GameTexts.DRUM), "1 tambour")
+	assert_eq(GameTexts.plural(3, GameTexts.DRUM), "3 tambours")
 	assert_eq(GameTexts.duration(247.9), "4:07")
 	assert_eq(GameTexts.duration(59.0), "0:59")
 
@@ -249,22 +206,23 @@ func test_la_sauvegarde_garde_la_progression() -> void:
 	profile.xp = 12.5
 	profile.talent_points = 2
 	profile.talents[&"drum"] = 2
-	profile.plumes = 77
 	profile.banked[2] = true
-	profile.perch_taken.append(3)
-	profile.best_score = 900
 	var mask: ItemData = profile.equipped_item(ItemData.Slot.MASK)
-	mask.forge = 3
 	var loaded: Profile = Profile.from_dict(JSON.parse_string(JSON.stringify(profile.to_dict())))
 	assert_eq(loaded.level, 5)
 	assert_almost_eq(loaded.xp, 12.5, 0.001)
 	assert_eq(loaded.talent_points, 2)
 	assert_eq(loaded.talent_rank(&"drum"), 2)
-	assert_eq(loaded.plumes, 77)
 	assert_true(loaded.banked[2])
-	assert_eq(loaded.perch_taken, [3] as Array[int])
-	assert_eq(loaded.best_score, 900)
-	assert_eq(loaded.equipped_item(ItemData.Slot.MASK).forge, 3, "l'objet porté est retrouvé")
+	assert_eq(loaded.equipped_item(ItemData.Slot.MASK).id, mask.id, "l'objet porté est retrouvé")
+
+
+func test_une_sauvegarde_d_avant_la_symbiose_se_relit() -> void:
+	var profile: Profile = Profile.from_dict({"version": 2, "plumes": 300, "best_score": 900, "perch_taken": [1.0],
+		"items": [{"id": 1.0, "slot": 0.0, "rarity": 1.0, "level": 2.0, "forge": 3.0, "rolls": {"damage": 1.0}}]})
+	assert_eq(profile.items.size(), 1, "les objets forgés sont repris")
+	assert_eq(profile.to_dict()["version"], Profile.VERSION)
+	assert_false(profile.to_dict().has("plumes"), "les plumes n'existent plus")
 
 
 func test_le_monde_de_la_nuit_garde_sa_graine() -> void:

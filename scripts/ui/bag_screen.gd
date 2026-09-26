@@ -1,9 +1,8 @@
 class_name BagScreen
 extends ScreenLayer
-## Sac et forge du prototype : les trois objets portés (chevillières, masque, talisman), le sac
-## (le plus rare d'abord, « nouveau » sur ceux pas encore regardés) et, pour l'objet choisi, ses
-## effets, la comparaison avec l'objet porté, Équiper, Forger (+1 à +5, contre des plumes) et
-## Recycler (en plumes).
+## Sac du prototype : les trois objets portés (chevillières, masque, talisman), le sac (le plus
+## rare d'abord, « nouveau » sur ceux pas encore regardés) et, pour l'objet choisi, ses effets, la
+## comparaison avec l'objet porté et Équiper.
 
 ## Couleur de chaque rareté (commun, rare, épique, légendaire), pictogramme de chaque emplacement.
 @export var rarity_colors: Array[Color]
@@ -26,7 +25,6 @@ var _selected: ItemData
 @onready var _actions: HFlowContainer = %Actions
 @onready var _inventory: GridContainer = %Inventory
 @onready var _empty: Label = %Empty
-@onready var _forge_sound: AudioStreamPlayer = $ForgeSound
 
 
 func _ready() -> void:
@@ -50,7 +48,7 @@ func open(back: Callable = Callable()) -> void:
 func _render() -> void:
 	var profile: Profile = Game.profile
 	var tuning: TuningData = Tuning.data
-	_sub.text = GameTexts.BAG_SUB % [GameTexts.plural(profile.plumes, GameTexts.PLUME), profile.items.size(), tuning.item_inventory_max]
+	_sub.text = GameTexts.BAG_SUB % [profile.items.size(), tuning.item_inventory_max]
 	_clear(_equipped)
 	for slot: int in ItemData.Slot.values():
 		var item: ItemData = profile.equipped_item(slot as ItemData.Slot)
@@ -109,7 +107,6 @@ func _render_panel() -> void:
 	if not _panel.visible:
 		return
 	var profile: Profile = Game.profile
-	var tuning: TuningData = Tuning.data
 	var worn: ItemData = profile.equipped_item(item.slot)
 	var equipped: bool = profile.is_equipped(item)
 	_item_name.text = GameTexts.item_name(item)
@@ -128,20 +125,6 @@ func _render_panel() -> void:
 	if not equipped:
 		_action(GameTexts.EQUIP, &"BuyButton", func() -> void:
 			profile.equip(item)
-			Game.profile_changed()
-			_render())
-	if item.forge < tuning.item_forge_max:
-		var cost: int = ItemMath.forge_cost(item, tuning)
-		var forge: Button = _action(GameTexts.FORGE % [item.forge + 1, cost], &"BuyButton", func() -> void:
-			if profile.forge(item):
-				_forge_sound.play()
-				Game.profile_changed()
-				_render())
-		forge.disabled = profile.plumes < cost
-	if not equipped:
-		_action(GameTexts.RECYCLE % ItemMath.recycle_value(item, tuning), &"SmallButton", func() -> void:
-			profile.recycle(item)
-			_selected = null
 			Game.profile_changed()
 			_render())
 

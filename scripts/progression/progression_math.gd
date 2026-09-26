@@ -1,6 +1,6 @@
 class_name ProgressionMath
 ## Règles de progression sans état, comme dans le prototype : expérience demandée par niveau,
-## expérience d'un Muet libéré, score et plumes d'une sortie.
+## expérience d'un Muet libéré.
 
 
 ## Expérience à gagner au niveau `level` pour passer au suivant.
@@ -29,7 +29,3 @@ static func muet_xp(species: StringName, tier: int, king: bool, tuning: TuningDa
 		return roundf(xp * (tuning.king_health_factor if king else 1.0))
 	return float(tuning.xp_per_species.get(species, 0.0)) + tuning.xp_per_tier * tier
 
-
-## Multiplicateur du score et des plumes à la nuit `night` (les nuits suivantes rapportent plus).
-static func night_multiplier(per_night: float, night: int) -> float:
-	return 1.0 + per_night * maxi(night - 1, 0)

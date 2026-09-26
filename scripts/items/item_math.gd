@@ -1,7 +1,7 @@
 class_name ItemMath
 ## Règles des objets sans état, comme dans le prototype : effets possibles par emplacement,
-## légendaires, rareté tirée au sort, valeur d'un effet, objet complet, objets de départ, forge
-## et recyclage.
+## légendaires, rareté tirée au sort, valeur d'un effet, objet complet, objets de départ, objet
+## le plus faible.
 
 ## Effets possibles par emplacement.
 const SLOT_EFFECTS := {
@@ -37,12 +37,11 @@ static func rarity_for(roll: float, weights: PackedFloat32Array) -> ItemData.Rar
 	return (weights.size() - 1) as ItemData.Rarity
 
 
-## Valeur de l'effet `effect` de `item` : base × niveau × rareté × tirage × forge, arrondie
-## (au moins 1 PV ou 1 %).
+## Valeur de l'effet `effect` de `item` : base × niveau × rareté × tirage, arrondie (au moins
+## 1 PV ou 1 %).
 static func effect_value(item: ItemData, effect: StringName, tuning: TuningData) -> float:
 	var level_factor: float = 1.0 + tuning.item_level_bonus * (item.level - 1)
-	var forge_factor: float = 1.0 + tuning.item_forge_bonus * item.forge
-	var raw: float = tuning.item_effect_bases[effect] * level_factor * tuning.item_rarity_multipliers[item.rarity] * item.rolls.get(effect, 1.0) * forge_factor
+	var raw: float = tuning.item_effect_bases[effect] * level_factor * tuning.item_rarity_multipliers[item.rarity] * item.rolls.get(effect, 1.0)
 	if FLAT_EFFECTS.has(effect):
 		return maxf(1.0, roundf(raw))
 	return maxf(PERCENT_STEP, snappedf(raw, PERCENT_STEP))
@@ -80,14 +79,9 @@ static func starter_items() -> Array[ItemData]:
 	return items
 
 
-## Plumes rendues en recyclant `item`.
-static func recycle_value(item: ItemData, tuning: TuningData) -> int:
-	return (tuning.item_recycle_base + tuning.item_recycle_per_rarity * item.rarity) * item.level + tuning.item_recycle_per_forge * item.forge
-
-
-## Plumes que coûte le prochain niveau de forge de `item`.
-static func forge_cost(item: ItemData, tuning: TuningData) -> int:
-	return tuning.item_forge_cost * (item.forge + 1) * (item.rarity + 1)
+## Vrai si `a` est plus faible que `b` : rareté moindre, puis niveau moindre.
+static func weaker(a: ItemData, b: ItemData) -> bool:
+	return a.rarity < b.rarity or (a.rarity == b.rarity and a.level < b.level)
 
 
 ## Somme des effets de plusieurs objets.

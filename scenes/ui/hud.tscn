@@ -254,18 +254,6 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"QuestSub"
 
-[node name="Challenge" type="PanelContainer" parent="SafeArea/Top"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 4
-mouse_filter = 2
-theme_type_variation = &"ChallengePanel"
-
-[node name="ChallengeLabel" type="Label" parent="SafeArea/Top/Challenge"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"ChallengeLabel"
-
 [node name="Boss" type="VBoxContainer" parent="SafeArea/Top"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 0)

@@ -1,12 +1,13 @@
 class_name VoxelNight
 extends Node3D
 ## Une nuit dans le monde voxel du prototype. Génère le monde de la nuit (graine gardée d'une
-## sortie à l'autre), pose le village, les trois sanctuaires et leurs tambours, les plumes des
-## perchoirs. À l'écran titre, le village danse et le héros attend ; une sortie peuple la jungle
-## (gardiens et Grand Muet de chaque sanctuaire dont le tambour n'est pas rentré, errants qui
-## reviennent après leur libération), suit l'objectif (bannière, repère, flèche, colonne de
-## lumière, chemin doré), fait parler les villageois, donne les conseils près des boutons et se
-## termine par le résumé : nuit accomplie, héros évanoui ou rentré au village depuis la pause.
+## sortie à l'autre), pose le village, les trois sanctuaires et leurs tambours, les plumes
+## arc-en-ciel des perchoirs. À l'écran titre, le village danse et le héros attend ; une sortie
+## peuple la jungle (gardiens et Grand Muet de chaque sanctuaire dont le tambour n'est pas rentré,
+## errants qui reviennent après leur libération), suit l'objectif (bannière, repère, flèche,
+## colonne de lumière, chemin doré), fait parler les villageois, donne les conseils près des
+## boutons et se termine par le résumé : nuit accomplie, héros évanoui ou rentré au village depuis
+## la pause.
 
 ## Muets à faire apparaître, par espèce.
 @export var hopper_scene: PackedScene
@@ -296,13 +297,10 @@ func _place_drum(index: int) -> void:
 	drums.append(drum)
 
 
-## Une plume au sommet de chaque perchoir, sauf celles déjà prises cette nuit.
+## Une plume arc-en-ciel au sommet de chaque perchoir.
 func _place_perches() -> void:
 	for i: int in gen.pickups.size():
-		if Game.profile.perch_taken.has(i):
-			continue
 		var plume: PlumePickup = plume_scene.instantiate() as PlumePickup
-		plume.perch = i
 		var p: Vector3 = gen.pickups[i]
 		plume.position = Vector3(p.x, p.y, p.z) * _unit
 		pickups.add_child(plume)

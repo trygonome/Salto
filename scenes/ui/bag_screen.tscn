@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/bag_screen.gd" id="1_screen"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="5_anklets"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="6_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="7_talisman"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/chime.wav" id="8_forge"]
 
 [node name="BagScreen" type="CanvasLayer"]
 layer = 30
@@ -150,7 +149,3 @@ theme_type_variation = &"CtaButton"
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]
 process_mode = 3
 stream = ExtResource("4_click")
-
-[node name="ForgeSound" type="AudioStreamPlayer" parent="."]
-process_mode = 3
-stream = ExtResource("8_forge")

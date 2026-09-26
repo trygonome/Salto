@@ -480,7 +480,5 @@ func release() -> void:
 	if fx:
 		fx.muet_freed(global_position, body.height, is_boss())
 	get_tree().call_group(&"hero", &"on_enemy_freed", self)
-	if EnemyMath.goes_over_shield(_last_hit_move):
-		Game.on_dive_kill()
 	Game.on_muet_freed(self)
 	freed.emit(self)

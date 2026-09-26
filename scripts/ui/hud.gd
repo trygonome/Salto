@@ -2,8 +2,8 @@ class_name Hud
 extends CanvasLayer
 ## Interface en jeu du prototype :
 ## - en haut : niveau, PV et expérience ; tambours rapportés et bouton de pause (il brille quand un
-##   point de talent ou un objet nouveau attend) ; objectif (il bat quand il change) ; défi de la
-##   sortie ; barre du Grand Muet qui se bat ;
+##   point de talent ou un objet nouveau attend) ; objectif (il bat quand il change) ; barre du
+##   Grand Muet qui se bat ;
 ## - combo à droite ; repère de l'objectif (au bord de l'écran s'il est hors champ, avec la
 ##   distance) ;
 ## - bannières au centre (une à la fois, les suivantes attendent), message court sous l'objectif,
@@ -74,7 +74,6 @@ var _reply_index: int = 0
 var _shown_level: int = -1
 var _shown_health := Vector2i(-1, -1)
 var _shown_drums: String = ""
-var _shown_challenge := Vector3i(-1, -1, -1)
 var _shown_boss: Muet
 var _attention_left: float = 0.0
 var _card_tween: Tween
@@ -91,8 +90,6 @@ var _card_tween: Tween
 @onready var _quest_icon: TextureRect = %QuestIcon
 @onready var _quest_title: Label = %QuestTitle
 @onready var _quest_sub: Label = %QuestSub
-@onready var _challenge: PanelContainer = %Challenge
-@onready var _challenge_label: Label = %ChallengeLabel
 @onready var _boss: Control = %Boss
 @onready var _boss_name: Label = %BossName
 @onready var _boss_bar: ProgressBar = %BossBar
@@ -131,7 +128,6 @@ func _ready() -> void:
 		show_banner(GameTexts.BANNER_SANCTUARY, GameTexts.BANNER_SANCTUARY_TITLE, GameTexts.BANNER_SANCTUARY_DETAIL))
 	Game.item_found.connect(_on_item_found)
 	Game.level_up.connect(func(_level: int) -> void: _pulse_level())
-	Game.challenge_done.connect(func(reward: int) -> void: show_toast(GameTexts.TOAST_CHALLENGE % reward))
 	Game.sortie_started.connect(func() -> void: _quest_key = "")
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -285,17 +281,11 @@ func _update_quest() -> void:
 		_fit(_quest_title, _view_width() * quest_max_fraction)
 		_fit(_quest_sub, _view_width() * quest_max_fraction)
 		_pulse_quest()
-	# Le défi ne s'affiche pas en jeu (pause et résumé) : un message court quand il est réussi.
-	_challenge.visible = false
 
 
 ## Objectif du moment (vide hors sortie ou nuit accomplie).
 func _goal() -> Dictionary:
 	return _night.current_goal() if _night and _night.in_sortie else {}
-
-
-func _challenge_text() -> String:
-	return GameTexts.challenge_text(Game.progress.challenge, Game.progress.challenge_target)
 
 
 func _pulse_quest() -> void:
@@ -497,11 +487,10 @@ func _needs_attention() -> bool:
 func _layout() -> void:
 	var portrait: bool = CameraRig.is_portrait(get_viewport().get_visible_rect().size)
 	_quest.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if portrait else Control.SIZE_SHRINK_BEGIN
-	_challenge.size_flags_horizontal = _quest.size_flags_horizontal
 	_quest_sub.visible = portrait
 
 
-## Haut de la place des messages : sous l'objectif, le défi et la barre du Grand Muet.
+## Haut de la place des messages : sous l'objectif et la barre du Grand Muet.
 func _message_top() -> float:
 	return _top.get_global_rect().end.y - _safe.get_global_rect().position.y + message_gap
 
@@ -560,11 +549,8 @@ func _on_hero_hurt(_hit: HitData) -> void:
 	create_tween().tween_property(_flash, "modulate:a", 0.0, tuning.hurt_flash_time)
 
 
-## Objet trouvé : petite carte en bas (charte des retours à l'écran) ; sac plein : il est recyclé.
+## Objet trouvé : petite carte en bas (charte des retours à l'écran).
 func _on_item_found(item: ItemData) -> void:
-	if item.id == 0:
-		show_toast(GameTexts.TOAST_BAG_FULL % ItemMath.recycle_value(item, Tuning.data))
-		return
 	var tuning: TuningData = Tuning.data
 	_card_icon.texture = slot_icons[item.slot]
 	_card_name.text = GameTexts.item_name(item)

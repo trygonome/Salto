@@ -1,8 +1,8 @@
 class_name TitleScreen
 extends ScreenLayer
 ## Écran titre du prototype, par-dessus le village qui danse : SALTO, la saga des cinq nuits (faites,
-## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac et
-## forge, Talents, Nouvelle partie (touchée deux fois), et les records.
+## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
+## Talents, Nouvelle partie (touchée deux fois).
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
@@ -16,7 +16,6 @@ var _reset_armed: bool = false
 @onready var _bag: Button = %Bag
 @onready var _talents: Button = %Talents
 @onready var _new_game: Button = %NewGame
-@onready var _records: Label = %Records
 
 
 func _ready() -> void:
@@ -72,10 +71,8 @@ func refresh() -> void:
 	_new_game.visible = profile.started
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME
-	_bag.text = GameTexts.BAG_BUTTON % profile.plumes
+	_bag.text = GameTexts.BAG_BUTTON
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
-	_records.text = GameTexts.RECORDS % [GameTexts.number(profile.best_score), profile.best_combo] if profile.total_sorties > 0 else ""
-	_records.visible = _records.text != ""
 
 
 func _on_play() -> void:

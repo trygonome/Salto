@@ -1,7 +1,7 @@
 extends GutTest
 ## Logique pure de la progression, comme dans le prototype : une sortie (sanctuaires, tambours
-## portés, rapportés et déjà au village), défi, score et plumes ; objets (rareté, effets, forge,
-## recyclage) ; niveaux et talents ; forces du héros ; mélodie des gongs et carnet.
+## portés, rapportés et déjà au village) ; objets (rareté, effets, sac plein) ; niveaux et
+## talents ; forces du héros ; mélodie des gongs et carnet.
 
 var tuning: TuningData = Tuning.data
 
@@ -38,13 +38,12 @@ func test_les_tambours_d_une_sortie_precedente_sont_deja_au_village() -> void:
 	var night := NightProgress.new(3, [true, false, false] as Array[bool])
 	assert_eq(night.drums_returned, 1)
 	assert_true(night.freed[0])
-	assert_eq(night.new_drums(), 0)
-	assert_eq(night.bosses_freed(), 0)
+	assert_true(night.banked_at_start[0])
 	night.free_sanctuary(1)
 	night.pick_drum(1)
 	night.return_drums()
-	assert_eq(night.new_drums(), 1, "seul le nouveau compte pour le score")
-	assert_eq(night.bosses_freed(), 1)
+	assert_eq(night.drums_returned, 2)
+	assert_false(night.banked_at_start[1], "rapporté pendant cette sortie")
 
 
 func test_la_nuit_est_accomplie_avec_tous_les_tambours() -> void:
@@ -68,46 +67,6 @@ func test_chaque_tambour_ajoute_une_couche_de_musique() -> void:
 	night.pick_drum(2)
 	night.return_drums()
 	assert_eq(night.music_layers(3), 3, "pas plus de couches qu'il n'y en a")
-
-
-func test_un_defi_se_reussit_une_seule_fois() -> void:
-	var night := NightProgress.new(3)
-	night.set_challenge(&"perfect", 3, 15)
-	assert_false(night.advance_challenge(&"dodge"), "un autre défi n'avance pas")
-	assert_false(night.advance_challenge(&"perfect"))
-	assert_false(night.advance_challenge(&"perfect"))
-	assert_true(night.advance_challenge(&"perfect"), "réussi au troisième")
-	assert_false(night.advance_challenge(&"perfect"), "déjà réussi")
-	assert_eq(night.challenge_progress, 3)
-
-
-func test_un_defi_de_record_prend_la_meilleure_valeur() -> void:
-	var night := NightProgress.new(3)
-	night.set_challenge(&"combo", 15, 15)
-	night.advance_challenge(&"combo", 0, 9)
-	assert_eq(night.challenge_progress, 9)
-	night.advance_challenge(&"combo", 0, 4)
-	assert_eq(night.challenge_progress, 9, "un combo plus court ne fait pas reculer")
-	assert_true(night.advance_challenge(&"combo", 0, 16))
-	assert_eq(night.challenge_progress, 15)
-
-
-func test_score_et_plumes_d_une_sortie() -> void:
-	var night := NightProgress.new(3)
-	night.muets_freed = 10
-	night.free_sanctuary(0)
-	night.pick_drum(0)
-	night.return_drums()
-	night.perfects = 4
-	night.max_combo = 12
-	night.perfect_dodges = 2
-	var raw: float = 10 * tuning.score_per_muet + tuning.score_per_boss + tuning.score_per_drum + 4 * tuning.score_per_perfect \
-		+ 12 * tuning.score_per_combo + 2 * tuning.score_per_dodge + 3 * tuning.score_per_level
-	assert_eq(night.score(3, 1.5, tuning), roundi(raw * 1.5))
-	var plumes: float = 10 * tuning.plumes_per_muet + tuning.plumes_per_boss + tuning.plumes_per_drum
-	assert_eq(night.plumes(1.2, tuning), roundi(plumes * 1.2))
-	assert_eq(ProgressionMath.night_multiplier(tuning.score_per_night, 1), 1.0)
-	assert_almost_eq(ProgressionMath.night_multiplier(tuning.score_per_night, 3), 1.0 + 2.0 * tuning.score_per_night, 0.0001)
 
 
 func test_la_melodie_se_rejoue_dans_l_ordre() -> void:
@@ -135,15 +94,14 @@ func test_rarete_selon_les_poids() -> void:
 
 
 func test_valeur_d_un_effet_selon_les_reglages() -> void:
-	# base × (1 + 0,35 × (niveau − 1)) × rareté × tirage × (1 + 0,15 × forge), arrondi.
+	# base × (1 + 0,35 × (niveau − 1)) × rareté × tirage, arrondi.
 	var item := ItemData.new()
 	item.rarity = ItemData.Rarity.EPIC
 	item.level = 3
-	item.forge = 2
 	item.rolls.assign({&"health": 1.1, &"damage": 1.0})
-	var health: float = tuning.item_effect_bases[&"health"] * (1.0 + tuning.item_level_bonus * 2.0) * tuning.item_rarity_multipliers[2] * 1.1 * (1.0 + tuning.item_forge_bonus * 2.0)
+	var health: float = tuning.item_effect_bases[&"health"] * (1.0 + tuning.item_level_bonus * 2.0) * tuning.item_rarity_multipliers[2] * 1.1
 	assert_eq(ItemMath.effect_value(item, &"health", tuning), roundf(health), "les PV sont entiers")
-	var damage: float = tuning.item_effect_bases[&"damage"] * (1.0 + tuning.item_level_bonus * 2.0) * tuning.item_rarity_multipliers[2] * (1.0 + tuning.item_forge_bonus * 2.0)
+	var damage: float = tuning.item_effect_bases[&"damage"] * (1.0 + tuning.item_level_bonus * 2.0) * tuning.item_rarity_multipliers[2]
 	assert_almost_eq(ItemMath.effect_value(item, &"damage", tuning), snappedf(damage, 0.01), 0.0001, "les pour cent sont entiers")
 
 
@@ -163,16 +121,6 @@ func test_un_objet_tire_a_autant_d_effets_que_sa_rarete_le_permet() -> void:
 			assert_eq(item.slot, ItemMath.LEGENDARIES[item.legendary], "un légendaire a son emplacement")
 
 
-func test_forge_et_recyclage_coutent_et_rapportent_des_plumes() -> void:
-	var item := ItemData.new()
-	item.rarity = ItemData.Rarity.RARE
-	item.level = 3
-	assert_eq(ItemMath.forge_cost(item, tuning), tuning.item_forge_cost * 1 * 2)
-	item.forge = 2
-	assert_eq(ItemMath.forge_cost(item, tuning), tuning.item_forge_cost * 3 * 2)
-	assert_eq(ItemMath.recycle_value(item, tuning), (tuning.item_recycle_base + tuning.item_recycle_per_rarity) * 3 + tuning.item_recycle_per_forge * 2)
-
-
 func test_un_nouveau_profil_porte_les_objets_de_depart() -> void:
 	var profile: Profile = Profile.create()
 	assert_eq(profile.items.size(), ItemData.Slot.size())
@@ -182,39 +130,38 @@ func test_un_nouveau_profil_porte_les_objets_de_depart() -> void:
 		assert_eq(item.rolls.keys(), [ItemMath.STARTER[item.slot]])
 
 
-func test_equiper_forger_recycler() -> void:
+func test_equiper_un_objet() -> void:
 	var profile: Profile = Profile.create()
 	var item := ItemData.new()
 	item.slot = ItemData.Slot.MASK
 	item.rarity = ItemData.Rarity.EPIC
 	item.rolls.assign({&"health": 1.0})
-	assert_true(profile.add_item(item))
+	profile.add_item(item)
 	assert_gt(item.id, 0, "il reçoit un numéro")
 	var old: ItemData = profile.equipped_item(ItemData.Slot.MASK)
 	profile.equip(item)
 	assert_true(profile.is_equipped(item))
 	assert_false(profile.is_equipped(old))
-	assert_false(profile.forge(item), "pas assez de plumes")
-	profile.plumes = 100
-	var cost: int = ItemMath.forge_cost(item, tuning)
-	assert_true(profile.forge(item))
-	assert_eq(item.forge, 1)
-	assert_eq(profile.plumes, 100 - cost)
-	assert_eq(profile.recycle(item), 0, "on ne recycle pas l'objet porté")
-	var value: int = ItemMath.recycle_value(old, tuning)
-	assert_eq(profile.recycle(old), value)
-	assert_false(profile.items.has(old))
-	assert_eq(profile.plumes, 100 - cost + value)
 
 
-func test_sac_plein_l_objet_est_recycle() -> void:
-	var profile := Profile.new()
-	for i: int in tuning.item_inventory_max:
-		assert_true(profile.add_item(ItemData.new()))
+func test_sac_plein_le_plus_faible_laisse_sa_place() -> void:
+	var profile: Profile = Profile.create()
+	var weakest := ItemData.new()
+	weakest.level = 1
+	profile.add_item(weakest)
+	while profile.items.size() < tuning.item_inventory_max:
+		var filler := ItemData.new()
+		filler.rarity = ItemData.Rarity.RARE
+		profile.add_item(filler)
+	var starters: Array[ItemData] = profile.equipped_items()
 	var extra := ItemData.new()
-	assert_false(profile.add_item(extra))
+	extra.rarity = ItemData.Rarity.EPIC
+	profile.add_item(extra)
 	assert_eq(profile.items.size(), tuning.item_inventory_max)
-	assert_eq(profile.plumes, ItemMath.recycle_value(extra, tuning))
+	assert_true(profile.items.has(extra), "le nouvel objet est rangé")
+	assert_false(profile.items.has(weakest), "le plus faible des objets non portés s'en va")
+	for item: ItemData in starters:
+		assert_true(profile.items.has(item), "un objet porté ne s'en va jamais")
 
 
 func test_experience_demandee_par_niveau() -> void:

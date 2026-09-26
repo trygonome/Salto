@@ -153,18 +153,17 @@ func test_l_objectif_mene_au_sanctuaire_puis_ramene_le_tambour() -> void:
 	assert_eq(goal[&"index"], 0, "le chemin doré part de son sanctuaire")
 
 
-func test_une_plume_attend_sur_chaque_perchoir_pas_encore_visite() -> void:
-	Game.profile.perch_taken.append(0)
+func test_une_plume_arc_en_ciel_sur_chaque_perchoir_remplit_la_jauge() -> void:
 	await _open_level()
+	await _start()
 	var plumes: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is PlumePickup)
-	assert_eq(plumes.size(), level.gen.pickups.size() - 1, "sauf celle déjà prise")
-	var before: int = Game.profile.plumes
+	assert_eq(plumes.size(), level.gen.pickups.size(), "une par perchoir, à chaque sortie")
+	hero.groove.empty()
 	var plume: PlumePickup = plumes[0] as PlumePickup
 	hero.global_position = plume.global_position - Vector3.UP * tuning.perch_pickup_height
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	assert_eq(Game.profile.plumes, before + tuning.perch_plumes)
-	assert_true(Game.profile.perch_taken.has(plume.perch), "elle ne reviendra pas cette nuit")
+	assert_true(hero.groove.is_full(), "de quoi lancer le Salto arc-en-ciel")
 
 
 func test_rentrer_au_village_ouvre_le_resume() -> void:

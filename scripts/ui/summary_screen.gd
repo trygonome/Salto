@@ -1,8 +1,8 @@
 class_name SummaryScreen
 extends ScreenLayer
 ## Résumé d'une sortie, comme dans le prototype : titre (nuit accomplie, saga achevée, retour au
-## village, évanoui), ce qui reste à faire, les chiffres de la sortie, les plumes gagnées et le
-## défi ; Repartir (ou Nuit suivante), Sac et forge, Talents, Accueil.
+## village, évanoui), ce qui reste à faire, les chiffres de la sortie (tambours, Muets libérés,
+## niveau, temps) ; Repartir (ou Nuit suivante), Sac, Talents, Accueil.
 
 var _summary: Dictionary = {}
 
@@ -61,12 +61,8 @@ func _fill() -> void:
 	var rows: Array = [
 		[GameTexts.SUMMARY_DRUMS, "%d / %d" % [drums if night else s.get(&"banked", 0), drums]],
 		[GameTexts.SUMMARY_MUETS, str(s.get(&"muets", 0))],
-		[GameTexts.SUMMARY_COMBO, str(s.get(&"max_combo", 0))],
-		[GameTexts.SUMMARY_PERFECTS, str(s.get(&"perfects", 0))],
-		[GameTexts.SUMMARY_DODGES, str(s.get(&"dodges", 0))],
 		[GameTexts.SUMMARY_LEVEL, str(s.get(&"level", 1))],
 		[GameTexts.SUMMARY_TIME, GameTexts.duration(s.get(&"time", 0.0))],
-		[GameTexts.SUMMARY_SCORE, GameTexts.number(s.get(&"score", 0))],
 	]
 	for row: Array in rows:
 		var name_label := Label.new()
@@ -78,15 +74,11 @@ func _fill() -> void:
 		value.theme_type_variation = &"StatValue"
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_stats.add_child(value)
-	var gain: PackedStringArray = [GameTexts.SUMMARY_PLUMES % GameTexts.plural(s.get(&"plumes", 0), GameTexts.PLUME)]
-	if s.get(&"challenge", &"") != &"":
-		gain.append(GameTexts.SUMMARY_CHALLENGE_DONE % s[&"challenge_reward"] if s.get(&"challenge_done", false) else GameTexts.SUMMARY_CHALLENGE_MISSED)
-	if s.get(&"record", false):
-		gain.append(GameTexts.SUMMARY_RECORD)
-	_gain.text = "\n".join(gain)
+	_gain.text = ""
+	_gain.visible = false
 	_again.text = (GameTexts.ENDLESS_NIGHT if finale else GameTexts.NEXT_NIGHT) if night else GameTexts.AGAIN
 	var profile: Profile = Game.profile
-	_bag.text = GameTexts.BAG_BUTTON % profile.plumes
+	_bag.text = GameTexts.BAG_BUTTON
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
 
 

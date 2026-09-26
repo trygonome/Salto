@@ -1,9 +1,7 @@
 class_name NightProgress
 extends RefCounted
 ## Une sortie dans la nuit, comme dans le prototype : sanctuaires libérés, tambours pris, portés
-## et rapportés (ceux des sorties précédentes restent au village), défi de la sortie, et ce qui
-## compte pour le score (Muets libérés, Grands Muets, coups parfaits, combo, esquives parfaites,
-## Muets vaincus d'un plongeon), temps écoulé.
+## et rapportés (ceux des sorties précédentes restent au village), Muets libérés, temps écoulé.
 ## S'évanouir met fin à la sortie : les tambours portés retournent à leurs sanctuaires.
 
 ## Tambours à rapporter pour accomplir la nuit (un par sanctuaire).
@@ -26,19 +24,8 @@ var carrying_drum: bool:
 ## Pages du carnet et objets trouvés pendant la sortie.
 var pages: Array[int] = []
 var items: Array[ItemData] = []
-## Pour le score et les défis.
+## Muets libérés pendant la sortie.
 var muets_freed: int = 0
-var perfects: int = 0
-var max_combo: int = 0
-var perfect_dodges: int = 0
-var dive_kills: int = 0
-var best_multi_hit: int = 0
-## Défi de la sortie : identifiant, objectif, avancée, récompense, réussi.
-var challenge: StringName = &""
-var challenge_target: int = 0
-var challenge_progress: int = 0
-var challenge_reward: int = 0
-var challenge_done: bool = false
 ## Temps de jeu de la sortie (s), arrêté quand la nuit est accomplie.
 var elapsed: float = 0.0
 
@@ -96,60 +83,9 @@ func is_complete() -> bool:
 	return drums_returned >= drums_required
 
 
-## Tambours rapportés pendant cette sortie (pas ceux des sorties précédentes).
-func new_drums() -> int:
-	var count: int = 0
-	for i: int in drums_required:
-		if returned[i] and not banked_at_start[i]:
-			count += 1
-	return count
-
-
-## Grands Muets libérés pendant cette sortie.
-func bosses_freed() -> int:
-	var count: int = 0
-	for i: int in drums_required:
-		if freed[i] and not banked_at_start[i]:
-			count += 1
-	return count
-
-
 ## Couches de musique audibles : la base, plus une par tambour rapporté (au plus `layer_count`).
 func music_layers(layer_count: int) -> int:
 	return mini(1 + drums_returned, layer_count)
-
-
-## Choisit le défi de la sortie.
-func set_challenge(id: StringName, target: int, reward: int) -> void:
-	challenge = id
-	challenge_target = target
-	challenge_progress = 0
-	challenge_reward = reward
-	challenge_done = false
-
-
-## Fait avancer le défi `id` de `amount` (ou le porte à `value` au moins, pour un record comme le
-## combo). Renvoie vrai si le défi vient d'être réussi.
-func advance_challenge(id: StringName, amount: int = 1, value: int = -1) -> bool:
-	if challenge != id or challenge_done:
-		return false
-	challenge_progress = mini(challenge_target, maxi(challenge_progress + amount, value) if value >= 0 else challenge_progress + amount)
-	if challenge_progress >= challenge_target:
-		challenge_done = true
-		return true
-	return false
-
-
-## Score de la sortie (avec le niveau atteint et le multiplicateur de la nuit).
-func score(level: int, multiplier: float, tuning: TuningData) -> int:
-	var raw: float = muets_freed * tuning.score_per_muet + bosses_freed() * tuning.score_per_boss + new_drums() * tuning.score_per_drum \
-		+ perfects * tuning.score_per_perfect + max_combo * tuning.score_per_combo + perfect_dodges * tuning.score_per_dodge + level * tuning.score_per_level
-	return roundi(raw * multiplier)
-
-
-## Plumes gagnées pendant la sortie (sans le défi).
-func plumes(multiplier: float, tuning: TuningData) -> int:
-	return roundi((muets_freed * tuning.plumes_per_muet + bosses_freed() * tuning.plumes_per_boss + new_drums() * tuning.plumes_per_drum) * multiplier)
 
 
 ## Ajoute une page ; renvoie faux si elle était déjà trouvée.

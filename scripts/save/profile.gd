@@ -1,12 +1,13 @@
 class_name Profile
 extends RefCounted
 ## Ce qui se garde d'une sortie à l'autre et d'une partie à l'autre, comme la saga du prototype :
-## la nuit en cours (graine du monde, tambours déjà rapportés, perchoirs visités, sorties), les
-## nuits accomplies, le niveau, l'expérience et les talents, les plumes, le sac et l'équipement,
-## les records, les aides déjà suivies, les réglages. S'écrit et se relit en dictionnaire.
+## la nuit en cours (graine du monde, tambours déjà rapportés, sorties), les nuits accomplies, le
+## niveau, l'expérience et les talents, le sac et l'équipement, les aides déjà suivies, les
+## réglages. S'écrit et se relit en dictionnaire.
 
-## Version du format de sauvegarde (la version 1 se relit : ses champs sont repris).
-const VERSION := 2
+## Version du format de sauvegarde (les versions précédentes se relisent : leurs champs sont
+## repris, ceux qui n'existent plus sont ignorés).
+const VERSION := 3
 ## Tambours par nuit (un par sanctuaire).
 const DRUMS := 3
 
@@ -22,8 +23,6 @@ var nights_done: int = 0
 var finished: bool = false
 ## Tambours déjà rapportés au village cette nuit, par sanctuaire : ils y restent.
 var banked: Array[bool] = [false, false, false]
-## Perchoirs dont la plume a été prise cette nuit (indices).
-var perch_taken: Array[int] = []
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -32,17 +31,10 @@ var level: int = 1
 var xp: float = 0.0
 var talent_points: int = 0
 var talents: Dictionary[StringName, int] = {}
-## Monnaie de la forge.
-var plumes: int = 0
 ## Sac (objets portés compris) et objet porté à chaque emplacement (numéro, 0 : aucun).
 var items: Array[ItemData] = []
 var equipped: Dictionary[int, int] = {}
 var next_item_id: int = 1
-## Records.
-var best_score: int = 0
-var best_combo: int = 0
-## Meilleur temps de chaque nuit accomplie (numéro de la nuit → secondes).
-var best_times: Dictionary[int, float] = {}
 ## Pages du carnet trouvées (numéros à partir de 1), dans l'ordre où on les a trouvées.
 var pages: Array[int] = []
 ## Aides contextuelles déjà suivies : elles ne reviennent plus.
@@ -72,17 +64,19 @@ func has_page(page: int) -> bool:
 	return pages.has(page)
 
 
-## Range un objet dans le sac et renvoie vrai ; sac plein : l'objet est recyclé en plumes et la
-## fonction renvoie faux.
-func add_item(item: ItemData) -> bool:
-	var tuning: TuningData = Tuning.data
-	if items.size() >= tuning.item_inventory_max:
-		plumes += ItemMath.recycle_value(item, tuning)
-		return false
+## Range un objet dans le sac ; s'il est plein, le plus faible des objets non portés lui laisse
+## sa place.
+func add_item(item: ItemData) -> void:
+	if items.size() >= Tuning.data.item_inventory_max:
+		var weakest: ItemData = null
+		for other: ItemData in items:
+			if not is_equipped(other) and (weakest == null or ItemMath.weaker(other, weakest)):
+				weakest = other
+		if weakest:
+			items.erase(weakest)
 	item.id = next_item_id
 	next_item_id += 1
 	items.append(item)
-	return true
 
 
 func item_by_id(id: int) -> ItemData:
@@ -113,27 +107,6 @@ func is_equipped(item: ItemData) -> bool:
 func equip(item: ItemData) -> void:
 	equipped[item.slot] = item.id
 	item.is_new = false
-
-
-## Recycle un objet non porté ; renvoie les plumes gagnées (0 si c'est impossible).
-func recycle(item: ItemData) -> int:
-	if is_equipped(item) or not items.has(item):
-		return 0
-	var value: int = ItemMath.recycle_value(item, Tuning.data)
-	items.erase(item)
-	plumes += value
-	return value
-
-
-## Forge l'objet d'un niveau de plus si les plumes suffisent ; renvoie vrai si c'est fait.
-func forge(item: ItemData) -> bool:
-	var tuning: TuningData = Tuning.data
-	var cost: int = ItemMath.forge_cost(item, tuning)
-	if item.forge >= tuning.item_forge_max or plumes < cost:
-		return false
-	plumes -= cost
-	item.forge += 1
-	return true
 
 
 ## Donne les objets de départ (sac vide) et les porte.
@@ -194,23 +167,8 @@ func complete_current_night() -> bool:
 	night += 1
 	night_seed = 0
 	banked = [false, false, false]
-	perch_taken.clear()
 	sortie = 0
 	return finale
-
-
-## Enregistre la nuit `number` accomplie en `time` secondes ; renvoie vrai si c'est un record
-## (ou la première fois).
-func complete_night(number: int, time: float) -> bool:
-	if best_times.has(number) and best_times[number] <= time:
-		return false
-	best_times[number] = time
-	return true
-
-
-## Meilleur temps de la nuit `number` (s), ou -1 si elle n'a jamais été accomplie.
-func best_time(number: int) -> float:
-	return best_times.get(number, -1.0)
 
 
 ## Note une aide comme suivie ; renvoie faux si elle l'était déjà.
@@ -232,9 +190,6 @@ func to_dict() -> Dictionary:
 	var saved_hints: Array = []
 	for hint: StringName in hints_done:
 		saved_hints.append(String(hint))
-	var saved_times: Dictionary = {}
-	for number: int in best_times:
-		saved_times[str(number)] = best_times[number]
 	var saved_talents: Dictionary = {}
 	for id: StringName in talents:
 		saved_talents[String(id)] = talents[id]
@@ -244,11 +199,10 @@ func to_dict() -> Dictionary:
 	return {
 		"version": VERSION,
 		"started": started, "night": night, "night_seed": night_seed, "nights_done": nights_done,
-		"finished": finished, "banked": banked.duplicate(), "perch_taken": perch_taken.duplicate(),
+		"finished": finished, "banked": banked.duplicate(),
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
-		"plumes": plumes, "items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
-		"best_score": best_score, "best_combo": best_combo, "best_times": saved_times,
+		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
 		"pages": pages.duplicate(), "hints_done": saved_hints,
 		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted},
 	}
@@ -268,8 +222,6 @@ static func from_dict(data: Dictionary) -> Profile:
 	if saved_banked is Array:
 		for i: int in mini((saved_banked as Array).size(), DRUMS):
 			profile.banked[i] = bool(saved_banked[i])
-	for index: Variant in data.get("perch_taken", []):
-		profile.perch_taken.append(int(index))
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))
@@ -280,7 +232,6 @@ static func from_dict(data: Dictionary) -> Profile:
 		for id: Variant in saved_talents:
 			if not TalentTree.talent(StringName(str(id))).is_empty():
 				profile.talents[StringName(str(id))] = int(saved_talents[id])
-	profile.plumes = int(data.get("plumes", 0))
 	for item: Variant in data.get("items", []):
 		if item is Dictionary:
 			profile.items.append(ItemData.from_dict(item))
@@ -298,12 +249,6 @@ static func from_dict(data: Dictionary) -> Profile:
 				profile.equipped[int(slot)] = item.id
 	if profile.items.is_empty():
 		profile.give_starter_items()
-	profile.best_score = int(data.get("best_score", 0))
-	profile.best_combo = int(data.get("best_combo", 0))
-	var times: Variant = data.get("best_times", {})
-	if times is Dictionary:
-		for number: Variant in times:
-			profile.best_times[int(number)] = float(times[number])
 	for page: Variant in data.get("pages", []):
 		profile.add_page(int(page))
 	for hint: Variant in data.get("hints_done", []):

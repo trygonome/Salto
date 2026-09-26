@@ -57,15 +57,11 @@ func test_trois_grands_titres_seulement_le_reste_parle_ailleurs() -> void:
 	var card: Control = hud.get_node("%LootCard") as Control
 	assert_true(card.visible, "l'objet trouvé : une petite carte en bas")
 	assert_eq((hud.get_node("%CardName") as Label).text, "Masque de corail")
-	Game.progress.set_challenge(&"perfect", 1, 15)
-	Game.on_perfect()
-	assert_eq(hud.current_toast(), GameTexts.TOAST_CHALLENGE % 15, "le défi réussi : un message court")
 
 
 func test_le_haut_de_l_ecran_montre_niveau_pv_et_tambours() -> void:
 	await _spawn_on_flat_ground()
 	Game.profile.level = 3
-	Game.progress.set_challenge(&"perfect", 10, 15)
 	Game.pick_drum(0)
 	Game.return_drum()
 	await _step(2)
@@ -73,7 +69,6 @@ func test_le_haut_de_l_ecran_montre_niveau_pv_et_tambours() -> void:
 	assert_eq((hud.get_node("%HpText") as Label).text, GameTexts.HEALTH % [roundi(hero.health.current), roundi(hero.health.maximum)])
 	assert_eq((hud.get_node("%Drum1") as Control).theme_type_variation, &"DrumOn", "le tambour rapporté s'allume")
 	assert_eq((hud.get_node("%Drum2") as Control).theme_type_variation, &"DrumOff")
-	assert_false((hud.get_node("%Challenge") as Control).visible, "le défi reste dans la pause et le résumé")
 
 
 func test_une_bulle_au_dessus_de_qui_parle() -> void:
@@ -155,7 +150,7 @@ func test_rentrer_au_village_se_confirme() -> void:
 	assert_true(menu.is_open())
 
 
-func test_le_sac_equipe_forge_et_recycle() -> void:
+func test_le_sac_equipe_un_objet() -> void:
 	var bag: BagScreen = BagScene.instantiate() as BagScreen
 	world.add_child(bag)
 	var item := ItemData.new()
@@ -163,19 +158,16 @@ func test_le_sac_equipe_forge_et_recycle() -> void:
 	item.rarity = ItemData.Rarity.EPIC
 	item.rolls.assign({&"xp": 1.0})
 	Game.profile.add_item(item)
-	Game.profile.plumes = 200
 	bag.open()
 	assert_eq((bag.get_node("%Equipped") as Control).get_child_count(), ItemData.Slot.size())
 	assert_eq((bag.get_node("%Inventory") as Control).get_child_count(), 1, "l'objet non porté est dans le sac")
 	bag.call(&"_select", item)
 	assert_false(item.is_new, "regardé")
 	var actions: Array[Node] = bag.get_node("%Actions").get_children()
-	assert_eq(actions.size(), 3, "équiper, forger, recycler")
+	assert_eq(actions.size(), 1, "équiper, rien d'autre")
 	(actions[0] as Button).pressed.emit()
 	assert_true(Game.profile.is_equipped(item))
-	actions = bag.get_node("%Actions").get_children()
-	(actions[0] as Button).pressed.emit()
-	assert_eq(item.forge, 1)
+	assert_eq(bag.get_node("%Actions").get_child_count(), 0, "porté : plus rien à faire")
 	assert_true(Game.stats.xp > 1.0, "le héros profite de l'objet porté")
 
 

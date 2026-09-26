@@ -1,8 +1,8 @@
 class_name ItemData
 extends RefCounted
-## Un objet du prototype : emplacement (chevillières, masque, talisman), rareté, niveau, forge
-## (+1 à +5), effets tirés au sort (effet → tirage, la valeur découle aussi du niveau, de la
-## rareté et de la forge) et, pour un objet légendaire, son effet unique.
+## Un objet du prototype : emplacement (chevillières, masque, talisman), rareté, niveau, effets
+## tirés au sort (effet → tirage, la valeur découle aussi du niveau et de la rareté) et, pour un
+## objet légendaire, son effet unique.
 
 enum Slot { ANKLETS, MASK, TALISMAN }
 enum Rarity { COMMON, RARE, EPIC, LEGENDARY }
@@ -12,8 +12,6 @@ var id: int = 0
 var slot: Slot = Slot.ANKLETS
 var rarity: Rarity = Rarity.COMMON
 var level: int = 1
-## Niveau de forge (de 0 à Tuning.item_forge_max).
-var forge: int = 0
 ## Tirage de chaque effet (autour de 1).
 var rolls: Dictionary[StringName, float] = {}
 ## Effet légendaire (vide : aucun), voir ItemMath.LEGENDARIES.
@@ -36,7 +34,7 @@ func to_dict() -> Dictionary:
 	for effect: StringName in rolls:
 		saved_rolls[String(effect)] = rolls[effect]
 	return {
-		"id": id, "slot": slot, "rarity": rarity, "level": level, "forge": forge, "rolls": saved_rolls,
+		"id": id, "slot": slot, "rarity": rarity, "level": level, "rolls": saved_rolls,
 		"legendary": String(legendary), "new": is_new,
 	}
 
@@ -49,7 +47,6 @@ static func from_dict(data: Dictionary) -> ItemData:
 	item.slot = clampi(int(data.get("slot", 0)), 0, Slot.size() - 1) as Slot
 	item.rarity = clampi(int(data.get("rarity", 0)), 0, Rarity.size() - 1) as Rarity
 	item.level = maxi(1, int(data.get("level", 1)))
-	item.forge = int(data.get("forge", 0))
 	var saved_rolls: Variant = data.get("rolls", data.get("effects", {}))
 	if saved_rolls is Dictionary:
 		var old: bool = not data.has("rolls")
