@@ -672,6 +672,9 @@ extends Resource
 ## Saturation du monde selon le nombre de tambours rapportés (0, 1, 2, 3), et nuit gagnée.
 @export var world_saturation_levels: PackedFloat32Array
 @export var world_saturation_won: float
+## Vie de la jungle (couleurs qui ondulent, ciel qui bouge) avant la nuit gagnée : part atteinte
+## avec tous les tambours sauf le dernier (la nuit gagnée donne tout).
+@export var world_life_before_won: float
 ## Vitesse de retour de la saturation (1/s) ; plus vive pendant un éclat (Salto arc-en-ciel).
 @export var world_saturation_rate: float
 @export var world_saturation_pulse_rate: float
@@ -1090,9 +1093,6 @@ extends Resource
 @export_group("Sortie : villageois et conseils")
 ## Le Grand Muet libéré laisse un fruit d'un côté, un objet de l'autre (écart m).
 @export var boss_drop_offset: float
-## Conseil du sanctuaire muet : distance (m) et durée (s).
-@export var zone_tip_distance: float
-@export var zone_tip_time: float
 ## Villageois : distance à laquelle ils parlent au héros (m), attente entre deux bulles (s),
 ## hauteur d'une bulle au-dessus d'un danseur (m).
 @export var bark_distance: float
@@ -1158,7 +1158,7 @@ extends Resource
 @export var banner_rise: float
 ## Voile rose du héros touché (s).
 @export var hurt_flash_time: float
-## Un Muet libéré sur tant remercie le héros d'une bulle.
-@export var freed_line_every: int
+## La pastille du niveau grossit ainsi quand un niveau est gagné.
+@export var level_pulse_scale: float
 ## Ce que le HUD recalcule moins souvent (bouton de pause qui brille) (s).
 @export var hud_slow_refresh: float

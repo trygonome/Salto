@@ -5,6 +5,9 @@
 global uniform float salto_time;
 global uniform float salto_sat;
 global uniform float salto_beat;
+// Vie de la jungle, de 0 (nuit muette : couleurs éteintes et immobiles) à 1 (nuit gagnée : toutes
+// les couleurs du prototype, qui dansent). Chaque tambour rapporté en rend une part.
+global uniform float salto_life;
 // Couleur du brouillard (TSL déjà converti en RVB d'écran) et densité par mètre.
 global uniform vec4 salto_fog_color;
 global uniform float salto_fog_density;

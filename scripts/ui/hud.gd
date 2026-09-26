@@ -10,6 +10,10 @@ extends CanvasLayer
 ##   conseil près du bouton à utiliser, bulle au-dessus de qui parle ;
 ## - voile rose quand le héros est touché ; chiffres de dégâts discrets et désactivables.
 
+## Couleur de chaque rareté (commun, rare, épique, légendaire), pictogramme de chaque emplacement
+## (carte de l'objet trouvé).
+@export var rarity_colors: Array[Color]
+@export var slot_icons: Array[Texture2D]
 ## Icônes de l'objectif : village, tambour, sanctuaire, nuit accomplie.
 @export var quest_icons: Dictionary[StringName, Texture2D]
 @export var damage_number_scene: PackedScene
@@ -73,6 +77,7 @@ var _shown_drums: String = ""
 var _shown_challenge := Vector3i(-1, -1, -1)
 var _shown_boss: Muet
 var _attention_left: float = 0.0
+var _card_tween: Tween
 
 @onready var _safe: Control = $SafeArea
 @onready var _top: VBoxContainer = %Top
@@ -107,28 +112,26 @@ var _attention_left: float = 0.0
 @onready var _bubble: PanelContainer = %Bubble
 @onready var _bubble_label: Label = %BubbleLabel
 @onready var _flash: CanvasItem = %Flash
+@onready var _card: PanelContainer = %LootCard
+@onready var _card_icon: TextureRect = %CardIcon
+@onready var _card_name: Label = %CardName
+@onready var _level_chip: Control = %LevelChip
 @onready var _banner_sound: AudioStreamPlayer = $BannerSound
 @onready var _click_sound: AudioStreamPlayer = $ClickSound
 
 
 func _ready() -> void:
 	add_to_group(&"hud")
-	for control: CanvasItem in [_banner, _toast, _coach, _bubble, _marker, _boss, _combo, _flash]:
+	for control: CanvasItem in [_banner, _toast, _coach, _bubble, _marker, _boss, _combo, _flash, _card]:
 		control.visible = false
 	_pause_button.pressed.connect(func() -> void:
 		_click_sound.play()
 		get_tree().call_group(&"pause_menu", &"open"))
 	Game.sanctuary_freed.connect(func() -> void:
 		show_banner(GameTexts.BANNER_SANCTUARY, GameTexts.BANNER_SANCTUARY_TITLE, GameTexts.BANNER_SANCTUARY_DETAIL))
-	Game.muet_freed.connect(_on_muet_freed)
 	Game.item_found.connect(_on_item_found)
-	Game.level_up.connect(func(level: int) -> void:
-		show_banner(GameTexts.BANNER_LEVEL % level, GameTexts.BANNER_LEVEL_TITLE, GameTexts.BANNER_LEVEL_DETAIL))
-	Game.challenge_done.connect(func(reward: int) -> void:
-		show_banner(GameTexts.BANNER_CHALLENGE, GameTexts.BANNER_CHALLENGE_TITLE % reward, _challenge_text()))
-	Game.drum_dropped.connect(func() -> void:
-		if Game.playing:
-			show_toast(GameTexts.TOAST_DRUM_LOST))
+	Game.level_up.connect(func(_level: int) -> void: _pulse_level())
+	Game.challenge_done.connect(func(reward: int) -> void: show_toast(GameTexts.TOAST_CHALLENGE % reward))
 	Game.sortie_started.connect(func() -> void: _quest_key = "")
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -282,16 +285,8 @@ func _update_quest() -> void:
 		_fit(_quest_title, _view_width() * quest_max_fraction)
 		_fit(_quest_sub, _view_width() * quest_max_fraction)
 		_pulse_quest()
-	var progress: NightProgress = Game.progress
-	_challenge.visible = progress.challenge != &""
-	var shown := Vector3i(progress.challenge_progress, progress.challenge_target, 1 if progress.challenge_done else 0)
-	if _challenge.visible and shown != _shown_challenge:
-		_shown_challenge = shown
-		var done: bool = progress.challenge_done
-		_challenge.theme_type_variation = &"ChallengeDone" if done else &"ChallengePanel"
-		_challenge_label.theme_type_variation = &"ChallengeDoneLabel" if done else &"ChallengeLabel"
-		_challenge_label.text = GameTexts.CHALLENGE_DONE % _challenge_text() if done \
-			else GameTexts.CHALLENGE_PROGRESS % [_challenge_text(), progress.challenge_progress, progress.challenge_target]
+	# Le défi ne s'affiche pas en jeu (pause et résumé) : un message court quand il est réussi.
+	_challenge.visible = false
 
 
 ## Objectif du moment (vide hors sortie ou nuit accomplie).
@@ -540,8 +535,7 @@ func _find_hero() -> void:
 		_hero.hit_landed.connect(_on_hit_landed)
 		_hero.hurtbox.hurt.connect(_on_hero_hurt)
 		_hero.action_pressed.connect(_on_action_pressed)
-		_hero.second_wind.connect(func() -> void:
-			show_banner(GameTexts.BANNER_SECOND_WIND, GameTexts.BANNER_SECOND_WIND_TITLE, ""))
+		_hero.second_wind.connect(func() -> void: show_toast(GameTexts.TOAST_SECOND_WIND))
 
 
 func _on_action_pressed(action: StringName) -> void:
@@ -558,36 +552,44 @@ func _on_hit_landed(hit: HitData) -> void:
 	number.play(hit.damage, hit.critical)
 
 
-## Le héros est touché : voile rose, PV perdus en rose au-dessus de lui.
-func _on_hero_hurt(hit: HitData) -> void:
+## Le héros est touché : voile rose (la barre de PV dit le reste).
+func _on_hero_hurt(_hit: HitData) -> void:
 	var tuning: TuningData = Tuning.data
 	_flash.visible = true
 	_flash.modulate.a = 1.0
 	create_tween().tween_property(_flash, "modulate:a", 0.0, tuning.hurt_flash_time)
-	if not Game.profile.damage_numbers:
-		return
-	var number: DamageNumber = damage_number_scene.instantiate() as DamageNumber
-	_hero.get_parent().add_child(number)
-	number.global_position = _hero.global_position + Vector3.UP * (tuning.hero_height + damage_number_height)
-	number.play(hit.damage, false, true)
 
 
-## Un Muet libéré remercie le héros (une fois sur quelques-unes, pour ne pas tout couvrir).
-func _on_muet_freed(muet: Node3D) -> void:
-	var tuning: TuningData = Tuning.data
-	_reply_index += 1
-	if _bubble_left > 0.0 or _reply_index % tuning.freed_line_every != 0:
-		return
-	var body: MuetBody = muet.get_node_or_null(^"Body") as MuetBody
-	var height: float = body.height if body else 0.0
-	var lines: PackedStringArray = GameTexts.MUET_FREED_LINES
-	show_bubble(lines[(_reply_index / tuning.freed_line_every) % lines.size()], muet, height + tuning.reply_gap)
-
-
-## Objet trouvé : bannière de sa rareté ; sac plein : il est recyclé.
+## Objet trouvé : petite carte en bas (charte des retours à l'écran) ; sac plein : il est recyclé.
 func _on_item_found(item: ItemData) -> void:
 	if item.id == 0:
-		show_toast(GameTexts.TOAST_BAG_FULL % [GameTexts.item_name(item), ItemMath.recycle_value(item, Tuning.data)])
+		show_toast(GameTexts.TOAST_BAG_FULL % ItemMath.recycle_value(item, Tuning.data))
 		return
-	var detail: String = GameTexts.BANNER_ITEM_STORED if Game.profile.is_hint_done(&"bag") else GameTexts.BANNER_ITEM_FIRST
-	show_banner(GameTexts.RARITY_NAMES[item.rarity], GameTexts.item_name(item), detail)
+	var tuning: TuningData = Tuning.data
+	_card_icon.texture = slot_icons[item.slot]
+	_card_name.text = GameTexts.item_name(item)
+	_card_name.modulate = rarity_colors[item.rarity]
+	_card.visible = true
+	_card.modulate.a = 0.0
+	_card.reset_size()
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var pad: Variant = _controls_call(&"pad_rect", [])
+	var bottom: float = (pad as Rect2).position.y if pad is Rect2 and (pad as Rect2).has_area() else view.y
+	_card.position = Vector2((view.x - _card.size.x) / 2.0, bottom - _card.size.y - coach_gap)
+	if _card_tween:
+		_card_tween.kill()
+	_card_tween = create_tween()
+	_card_tween.tween_property(_card, "modulate:a", 1.0, tuning.message_fade_time)
+	_card_tween.tween_interval(tuning.loot_card_time)
+	_card_tween.tween_property(_card, "modulate:a", 0.0, tuning.message_fade_time)
+	_card_tween.tween_callback(_card.hide)
+
+
+## Niveau gagné : la pastille du niveau bat (le monde fait le reste : gerbe et anneau).
+func _pulse_level() -> void:
+	var tuning: TuningData = Tuning.data
+	_level_chip.pivot_offset = _level_chip.size / 2.0
+	var tween: Tween = create_tween()
+	for i: int in tuning.quest_pulses:
+		tween.tween_property(_level_chip, "scale", Vector2.ONE * tuning.level_pulse_scale, tuning.quest_pulse_time * tuning.quest_pulse_rise)
+		tween.tween_property(_level_chip, "scale", Vector2.ONE, tuning.quest_pulse_time * (1.0 - tuning.quest_pulse_rise))

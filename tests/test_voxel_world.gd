@@ -130,3 +130,15 @@ func test_l_etincelle_est_une_etoile() -> void:
 func test_les_mots_font_au_plus_cinq_mots() -> void:
 	for text: String in GameTexts.WORDS:
 		assert_lte(GameTexts.word_count(text), 5, text)
+
+
+func test_la_jungle_revit_tambour_apres_tambour() -> void:
+	var tuning: TuningData = Tuning.data
+	assert_eq(WorldMood.life_target(0, 3, false), 0.0, "nuit muette : couleurs éteintes et immobiles")
+	assert_gt(WorldMood.life_target(1, 3, false), 0.0)
+	assert_gt(WorldMood.life_target(2, 3, false), WorldMood.life_target(1, 3, false))
+	assert_eq(WorldMood.life_target(3, 3, true), 1.0, "nuit gagnée : toutes les couleurs dansent")
+	var levels: PackedFloat32Array = tuning.world_saturation_levels
+	for i: int in levels.size() - 1:
+		assert_gt(levels[i + 1] - levels[i], 0.15, "chaque tambour se voit")
+	assert_lt(levels[0], 0.5, "le monde commence désaturé (docs/GDD.md, palette)")

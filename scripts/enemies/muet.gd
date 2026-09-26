@@ -431,7 +431,6 @@ func _on_hurt(hit: HitData) -> void:
 		enraged = true
 		act_cooldown = 1
 		body.set_enraged(true)
-		get_tree().call_group(&"hud", &"show_banner", GameTexts.BANNER_ENRAGED, GameTexts.BANNER_ENRAGED_TITLE, GameTexts.BANNER_ENRAGED_DETAIL)
 	if health.is_depleted():
 		return
 	var state: MuetState = state_machine.current as MuetState

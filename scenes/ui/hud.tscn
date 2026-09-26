@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -12,6 +12,9 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/title.wav" id="11_title"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="12_click"]
 [ext_resource type="Script" path="res://scripts/ui/marker_arrow.gd" id="13_arrow"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="14_anklets"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="15_mask"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="16_talisman"]
 
 [sub_resource type="Gradient" id="Gradient_flash"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -28,6 +31,8 @@ fill_to = Vector2(1, 0.5)
 [node name="HUD" type="CanvasLayer"]
 layer = 11
 script = ExtResource("1_hud")
+rarity_colors = Array[Color]([Color(0.851, 0.831, 0.902, 1), Color(0.31, 0.702, 1, 1), Color(0.78, 0.49, 1, 1), Color(1, 0.761, 0.2, 1)])
+slot_icons = Array[Texture2D]([ExtResource("14_anklets"), ExtResource("15_mask"), ExtResource("16_talisman")])
 quest_icons = Dictionary[StringName, Texture2D]({
 &"crown": ExtResource("7_crown"),
 &"drum": ExtResource("5_drum"),
@@ -107,6 +112,7 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="LevelChip" type="PanelContainer" parent="SafeArea/Top/Row/Me"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 2
@@ -357,6 +363,32 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BannerDetail"
 horizontal_alignment = 1
+
+[node name="LootCard" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+theme_type_variation = &"ToastPanel"
+
+[node name="Row" type="HBoxContainer" parent="LootCard"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="CardIcon" type="TextureRect" parent="LootCard/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardName" type="Label" parent="LootCard/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"QuestTitle"
+vertical_alignment = 1
 
 [node name="Marker" type="VBoxContainer" parent="."]
 unique_name_in_owner = true

@@ -62,13 +62,6 @@ const RETURN_LINES: PackedStringArray = [
 	"Deux tambours ! Plus qu'un !",
 	"Les trois tambours sont rentrés !",
 ]
-## Répliques des Muets libérés.
-const MUET_FREED_LINES: PackedStringArray = [
-	"Ma voix… elle est revenue !",
-	"Je me souviens de la chanson !",
-	"Merci, petit acrobate !",
-	"Enfin, j'entends la jungle !",
-]
 
 ## Objectifs (bannière du haut) : titre et précision.
 const QUEST_RETURN := "Rapporte le tambour au village"
@@ -83,33 +76,19 @@ const QUEST_WON_SUB := "Les trois tambours sont rentrés."
 ## Distance jusqu'à l'objectif, sous le repère.
 const MARKER_DISTANCE := "%d m"
 
-## Bannières (surtitre, titre, précision).
+## Grands titres (surtitre, titre, précision) : trois moments seulement (charte des retours à
+## l'écran) : début de nuit, sanctuaire libéré, nuit accomplie.
 const BANNER_SANCTUARY := "Sanctuaire libéré"
 const BANNER_SANCTUARY_TITLE := "Le tambour est à toi !"
 const BANNER_SANCTUARY_DETAIL := "Ramasse-le sur son autel"
-const BANNER_DRUM := "Tambour rapporté"
-const BANNER_DRUM_TITLE := "%d / %d"
-const BANNER_DRUM_DETAIL := "Il reste au village, même si tu tombes"
 const BANNER_NIGHT_DONE := "Nuit accomplie"
 const BANNER_NIGHT_DONE_TITLE := "La jungle danse !"
-const BANNER_LEVEL := "Niveau %d"
-const BANNER_LEVEL_TITLE := "Point de talent !"
-const BANNER_LEVEL_DETAIL := "Dépense-le dans Talents, depuis la pause"
-const BANNER_SECOND_WIND := "Second souffle"
-const BANNER_SECOND_WIND_TITLE := "Tu te relèves !"
-const BANNER_ITEM_STORED := "Rangé dans ton sac"
-const BANNER_ITEM_FIRST := "Ouvre ton sac depuis la pause"
-const BANNER_ENRAGED := "Gardien"
-const BANNER_ENRAGED_TITLE := "Il enrage\u00a0!"
-const BANNER_ENRAGED_DETAIL := "Saute par-dessus ses ondes de choc"
-const BANNER_CHALLENGE := "Défi réussi"
-const BANNER_CHALLENGE_TITLE := "+%d plumes"
 
 ## Messages éphémères (toast).
-const TOAST_BAG_FULL := "Sac plein : %s recyclé (+%d plumes)"
+const TOAST_BAG_FULL := "Sac plein : +%d plumes"
+const TOAST_CHALLENGE := "Défi réussi : +%d plumes"
+const TOAST_SECOND_WIND := "Second souffle !"
 const TOAST_FAINT := "Tu t'es évanoui…"
-const TOAST_ZONE := "Le silence aspire les couleurs… Bats le Grand Muet pour libérer le sanctuaire."
-const TOAST_DRUM_LOST := "Tes tambours sont retournés sur leurs autels."
 
 ## Mots qui montent près de leur source (un seul à la fois).
 const WORD_BLOCKED := "Bloqué"

@@ -16,6 +16,7 @@ var _freed_target: PackedFloat32Array = [0.0, 0.0, 0.0]
 var _freed: PackedFloat32Array = [0.0, 0.0, 0.0]
 var _sanctuaries := PackedVector2Array()
 var _won: bool = false
+var _life: float = 0.0
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
@@ -69,6 +70,13 @@ static func saturation_target(drums: int, won: bool, tuning: TuningData) -> floa
 	return tuning.world_saturation_levels[mini(drums, tuning.world_saturation_levels.size() - 1)]
 
 
+## Vie de la jungle visée (0 à 1) : une part par tambour rapporté, tout à la nuit gagnée.
+static func life_target(drums: int, required: int, won: bool) -> float:
+	if won:
+		return 1.0
+	return clampf(float(drums) / maxf(1.0, float(required)), 0.0, 1.0) * Tuning.data.world_life_before_won
+
+
 ## Couleur d'une teinte, saturation, luminosité (0 à 1), comme THREE.Color.setHSL.
 static func hsl(h: float, s: float, l: float) -> Color:
 	var k := Vector3(
@@ -92,6 +100,9 @@ func _process(delta: float) -> void:
 	var rate: float = tuning.world_saturation_pulse_rate if _pulse > 0.0 else tuning.world_saturation_rate
 	_saturation += (target - _saturation) * Smoothing.weight(rate, delta)
 	RenderingServer.global_shader_parameter_set(&"salto_sat", _saturation)
+	var life: float = life_target(Game.progress.drums_returned, Game.progress.drums_required, _won)
+	_life += (life - _life) * Smoothing.weight(tuning.world_saturation_rate, delta)
+	RenderingServer.global_shader_parameter_set(&"salto_life", _life)
 	for i: int in _sanctuaries.size():
 		_freed[i] += (_freed_target[i] - _freed[i]) * Smoothing.weight(tuning.world_freed_rate, delta)
 	_push_sanctuaries()

@@ -1,5 +1,6 @@
 // Couleur d'un cube voxel du prototype, avant brouillard. `data` : couleur codée (mode + teinte,
-// saturation, luminosité). Modes : 0 monde (teinte qui ondule, bue par le silence, pulse au temps)
+// saturation, luminosité). Modes : 0 monde (teinte qui ondule avec la vie de la jungle, bue par le
+// silence, pulse au temps)
 // · 1 vif (ondule) · 2 fixe · 3 arc-en-ciel · 4 teinte fixe bue par le silence.
 // `vivid` (0 à 1) ravive la couleur (Muet libéré). Positions en mètres.
 vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid) {
@@ -8,10 +9,11 @@ vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vi
 	float h = data.x - mode;
 	float s = data.y;
 	float l = data.z;
-	float wob = sin(w.x * 0.05 + w.z * 0.07 + salto_time * 0.35) * 0.07;
+	float wob = sin(w.x * 0.05 + w.z * 0.07 + salto_time * 0.35) * 0.07 * salto_life;
+	float drift = salto_time * 0.04 * salto_life;
 	float zone = salto_zone(w.xz);
 	if (mode < 0.5) {
-		h = fract(h + salto_time * 0.04 + wob);
+		h = fract(h + drift + wob);
 		s *= zone * salto_sat;
 		l += salto_beat * 0.06 * salto_sat;
 	} else if (mode < 1.5) {

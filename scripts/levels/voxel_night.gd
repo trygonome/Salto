@@ -127,7 +127,6 @@ func _process(delta: float) -> void:
 	guide.follow(hero, goal)
 	if not in_sortie or _ending:
 		return
-	_update_zone_tip()
 	_update_barks(delta)
 	_update_hints(delta)
 
@@ -145,10 +144,9 @@ func start_sortie() -> void:
 	_spawn_foes()
 	var info: Dictionary = GameTexts.night_info(Game.night)
 	var goal: Dictionary = objective()
-	hud.show_banner(GameTexts.NIGHT_LABEL % Game.night, info[&"title"], info[&"foes"] if Game.profile.sortie == 1 else String(goal.get(&"title", "")))
-	var chief: Villager = village.get_node(^"Chief") as Villager
-	chief.greet()
-	hud.show_bubble(info[&"line"] if Game.profile.sortie == 1 else _pick(GameTexts.CHIEF_TIPS), chief, tuning_chief_height())
+	# Grand titre du début de nuit ; à la première sortie de la nuit, ce que le Chef en dit.
+	hud.show_banner(GameTexts.NIGHT_LABEL % Game.night, info[&"title"], info[&"line"] if Game.profile.sortie == 1 else "")
+	(village.get_node(^"Chief") as Villager).greet()
 
 
 ## Hauteur des bulles du Chef (m au-dessus de ses pieds).
@@ -436,13 +434,11 @@ func _on_sanctuary_freed() -> void:
 			mood.free_sanctuary(i)
 
 
-## Tambours rapportés : le Chef s'en réjouit ; bannière (sauf à la fin de la nuit).
+## Tambours rapportés : le Chef s'en réjouit (la jungle reprend ses couleurs).
 func _on_drum_returned(count: int) -> void:
 	var chief: Villager = village.get_node(^"Chief") as Villager
 	chief.greet()
 	hud.show_bubble(GameTexts.RETURN_LINES[clampi(count - 1, 0, GameTexts.RETURN_LINES.size() - 1)], chief, tuning_chief_height())
-	if not Game.progress.is_complete():
-		hud.show_banner(GameTexts.BANNER_DRUM, GameTexts.BANNER_DRUM_TITLE % [count, Game.progress.drums_required], GameTexts.BANNER_DRUM_DETAIL)
 
 
 ## Nuit accomplie : le monde éclate de couleurs, une gerbe et un anneau arc-en-ciel au village,
@@ -468,18 +464,6 @@ func _on_hero_fainted() -> void:
 	_clear_hint()
 	hud.show_toast(GameTexts.TOAST_FAINT)
 	get_tree().create_timer(Tuning.data.faint_summary_delay, false).timeout.connect(end_sortie.bind(&"faint"))
-
-
-## Près d'un sanctuaire encore muet, une fois pour toutes : ce qu'il faut y faire.
-func _update_zone_tip() -> void:
-	if Game.profile.is_hint_done(&"zone"):
-		return
-	var reach: float = Tuning.data.zone_tip_distance
-	for i: int in gen.sanctuaries.size():
-		if not Game.progress.freed[i] and hero.global_position.distance_to(to_world(gen.sanctuaries[i])) < reach:
-			Game.mark_hint_done(&"zone")
-			hud.show_toast(GameTexts.TOAST_ZONE, Tuning.data.zone_tip_time)
-			return
 
 
 ## Les villageois parlent au héros qui passe près d'eux (un de temps en temps).

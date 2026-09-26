@@ -43,22 +43,29 @@ func test_un_message_court_puis_il_s_efface() -> void:
 	assert_eq(hud.current_toast(), "")
 
 
-func test_les_evenements_de_la_nuit_s_annoncent() -> void:
+func test_trois_grands_titres_seulement_le_reste_parle_ailleurs() -> void:
 	Game.free_sanctuary(0)
-	assert_eq(hud.current_banner(), GameTexts.BANNER_SANCTUARY_TITLE)
+	assert_eq(hud.current_banner(), GameTexts.BANNER_SANCTUARY_TITLE, "sanctuaire libéré : grand titre")
+	await get_tree().create_timer(tuning.banner_gap + 0.1).timeout
+	Game.profile.add_xp(ProgressionMath.xp_needed(1, tuning))
+	Game.level_up.emit(2)
 	var item := ItemData.new()
 	item.slot = ItemData.Slot.MASK
 	item.rarity = ItemData.Rarity.RARE
 	Game.add_item(item)
-	await get_tree().create_timer(tuning.banner_gap + 0.1).timeout
-	assert_eq(hud.current_banner(), "Masque de corail", "un objet trouvé s'annonce avec sa rareté")
+	assert_eq(hud.current_banner(), "", "ni le niveau ni l'objet ne prennent le centre de l'écran")
+	var card: Control = hud.get_node("%LootCard") as Control
+	assert_true(card.visible, "l'objet trouvé : une petite carte en bas")
+	assert_eq((hud.get_node("%CardName") as Label).text, "Masque de corail")
+	Game.progress.set_challenge(&"perfect", 1, 15)
+	Game.on_perfect()
+	assert_eq(hud.current_toast(), GameTexts.TOAST_CHALLENGE % 15, "le défi réussi : un message court")
 
 
-func test_le_haut_de_l_ecran_montre_niveau_pv_tambours_et_defi() -> void:
+func test_le_haut_de_l_ecran_montre_niveau_pv_et_tambours() -> void:
 	await _spawn_on_flat_ground()
 	Game.profile.level = 3
 	Game.progress.set_challenge(&"perfect", 10, 15)
-	Game.progress.challenge_progress = 4
 	Game.pick_drum(0)
 	Game.return_drum()
 	await _step(2)
@@ -66,7 +73,7 @@ func test_le_haut_de_l_ecran_montre_niveau_pv_tambours_et_defi() -> void:
 	assert_eq((hud.get_node("%HpText") as Label).text, GameTexts.HEALTH % [roundi(hero.health.current), roundi(hero.health.maximum)])
 	assert_eq((hud.get_node("%Drum1") as Control).theme_type_variation, &"DrumOn", "le tambour rapporté s'allume")
 	assert_eq((hud.get_node("%Drum2") as Control).theme_type_variation, &"DrumOff")
-	assert_string_contains((hud.get_node("%ChallengeLabel") as Label).text, "(4/10)")
+	assert_false((hud.get_node("%Challenge") as Control).visible, "le défi reste dans la pause et le résumé")
 
 
 func test_une_bulle_au_dessus_de_qui_parle() -> void:

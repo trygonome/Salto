@@ -1,5 +1,6 @@
 shader_type spatial;
-// Sol du monde voxel (prototype) : dalles de 2 u dont la teinte ondule, place du village et
+// Sol du monde voxel (prototype) : dalles de 2 u dont la teinte ondule avec la vie de la jungle,
+// place du village et
 // chemins dorés vers les sanctuaires, autels violets, bande dorée qui défile vers l'objectif.
 render_mode unshaded;
 
@@ -25,7 +26,7 @@ void fragment() {
 	float e = min(min(f.x, f.y), min(1.0 - f.x, 1.0 - f.y));
 	float r = length(p);
 	float n = fract(sin(dot(t, vec2(12.9898, 78.233))) * 43758.5453);
-	float h = fract(0.33 + n * 0.08 + salto_time * 0.03 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12);
+	float h = fract(0.33 + n * 0.08 + (salto_time * 0.03 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12) * salto_life);
 	float s = 0.72;
 	float l = 0.32 + n * 0.08;
 	vec2 s0 = salto_sanctuary_0.xy;
@@ -34,12 +35,12 @@ void fragment() {
 	float pd = min(seg(p, vec2(0.0), s0), min(seg(p, vec2(0.0), s1), seg(p, vec2(0.0), s2)));
 	float way = max(1.0 - smoothstep(13.5, 15.0, r), 1.0 - smoothstep(2.2, 3.0, pd));
 	if (way > 0.5) {
-		h = fract(0.1 + sin(salto_time * 0.25 + r * 0.05) * 0.06);
+		h = fract(0.1 + sin(salto_time * 0.25 + r * 0.05) * 0.06 * salto_life);
 		s = 0.6;
 		l = 0.44 + n * 0.06;
 	}
 	if (length(p - s0) < 9.0 || length(p - s1) < 9.0 || length(p - s2) < 9.0) {
-		h = fract(0.78 + salto_time * 0.05);
+		h = fract(0.78 + salto_time * 0.05 * salto_life);
 		s = 0.5;
 		l = 0.36 + n * 0.05;
 	}
