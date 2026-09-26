@@ -38,6 +38,9 @@ var act_cooldown: int = 0
 var parity: int = 0
 ## En rage (Grand Muet sous la moitié de ses PV).
 var enraged: bool = false
+## Endormi : trop loin du héros pour qu'on le voie (voir _update_sleep).
+var asleep: bool = false
+var _hero_ref: Hero
 ## États d'attaque (annonce ou coup) : le héros devrait esquiver.
 const THREAT_STATES: Array[StringName] = [&"Telegraph", &"Prepare", &"Charge", &"Dive", &"Slam", &"Bash"]
 var rng := RandomNumberGenerator.new()
@@ -100,12 +103,41 @@ func _physics_process(delta: float) -> void:
 	# Arrêt sur image : le temps ne passe pas (et les vitesses se calculent en divisant par delta).
 	if delta <= 0.0:
 		return
+	_update_sleep()
+	if asleep:
+		return
 	if _knockback_left > 0.0:
 		_knockback_left -= delta
 	_contact_left -= delta
 	state_machine.physics_update(delta)
 	hitbox.update(delta)
 	_check_contact()
+
+
+## Loin du héros, sans cible, revenu à son poste et au repos (ni bond, ni recul, ni attaque en
+## cours), le Muet dort : il ne bouge plus et son corps ne s'anime plus, jusqu'à ce que le héros
+## approche. On ne le voit pas de là, et le téléphone a moins à calculer.
+func _update_sleep() -> void:
+	var tuning: TuningData = Tuning.data
+	var hero: Hero = _hero()
+	var far: bool = hero != null and flat_distance_to(hero.global_position) > tuning.muet_sleep_distance
+	var leash: float = tuning.muet_leash_guard if guardian else tuning.muet_leash_wander
+	var home: bool = flat_distance_to(post) <= leash * tuning.muet_return_fraction
+	var resting: bool = not is_hopping() and _knockback_left <= 0.0 and state_machine.current == state_machine.initial_state
+	var sleep: bool = far and home and target == null and (asleep or resting)
+	if sleep == asleep:
+		return
+	asleep = sleep
+	body.process_mode = Node.PROCESS_MODE_DISABLED if asleep else Node.PROCESS_MODE_INHERIT
+	if asleep:
+		velocity = Vector3.ZERO
+
+
+## Le héros de la nuit (gardé en mémoire).
+func _hero() -> Hero:
+	if not is_instance_valid(_hero_ref):
+		_hero_ref = get_tree().get_first_node_in_group(&"hero") as Hero
+	return _hero_ref
 
 
 ## Réglage de l'espèce : Tuning.<espèce>_<nom> (par exemple hopper_health) ; null s'il n'existe pas.
@@ -157,6 +189,9 @@ func damage_of(stat_name: StringName) -> float:
 
 ## Reçoit un temps de la musique (appelé directement dans les tests).
 func receive_beat(index: int) -> void:
+	_update_sleep()
+	if asleep:
+		return
 	var state: MuetState = state_machine.current as MuetState
 	if state:
 		state.on_beat(index)

@@ -44,6 +44,7 @@ marker_bottom_landscape = 70.0
 marker_height = 1.82
 marker_home_height = 2.34
 marker_min_distance = 2.08
+message_gap = 10.0
 bubble_top_gap = 8.0
 bubble_offscreen = 30.0
 coach_gap = 22.0

@@ -349,6 +349,10 @@ extends Resource
 @export var muet_health_per_night: float
 @export var muet_damage_per_night: float
 
+## Au-delà de cette distance du héros (m), un Muet au repos s'endort et les villageois ne dansent
+## plus (hors de vue).
+@export var muet_sleep_distance: float
+
 @export_group("Muets : corps")
 ## Coup reçu : durée de la réaction (s), élargissement du corps, yeux fermés au-delà de cette part.
 @export var muet_hit_time: float
@@ -1141,10 +1145,9 @@ extends Resource
 @export var combo_pop_time: float
 ## Distance sous le repère arrondie à (m).
 @export var marker_distance_step: int
-## Bannières : hauteur à l'écran (fraction), durée (s), écart avant la suivante (s), taille au
-## départ et au plus fort, parts de la durée (apparition, retour à la taille, début de la
-## disparition), montée en disparaissant (fraction de sa hauteur).
-@export var banner_height: float
+## Bannières : durée (s), écart avant la suivante (s), taille au départ et au plus fort, parts de
+## la durée (apparition, retour à la taille, début de la disparition), montée en disparaissant
+## (fraction de sa hauteur).
 @export var banner_time: float
 @export var banner_gap: float
 @export var banner_start_scale: float
@@ -1157,3 +1160,5 @@ extends Resource
 @export var hurt_flash_time: float
 ## Un Muet libéré sur tant remercie le héros d'une bulle.
 @export var freed_line_every: int
+## Ce que le HUD recalcule moins souvent (bouton de pause qui brille) (s).
+@export var hud_slow_refresh: float

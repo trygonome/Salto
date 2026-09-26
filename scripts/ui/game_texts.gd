@@ -84,7 +84,6 @@ const QUEST_WON_SUB := "Les trois tambours sont rentrés."
 const MARKER_DISTANCE := "%d m"
 
 ## Bannières (surtitre, titre, précision).
-const BANNER_NEW_OBJECTIVE := "Nouvel objectif"
 const BANNER_SANCTUARY := "Sanctuaire libéré"
 const BANNER_SANCTUARY_TITLE := "Le tambour est à toi !"
 const BANNER_SANCTUARY_DETAIL := "Ramasse-le sur son autel"

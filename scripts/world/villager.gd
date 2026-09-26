@@ -28,6 +28,7 @@ var _flip: float = -1.0
 var _next_flip: float = 0.0
 var _time: float = 0.0
 var _rng := RandomNumberGenerator.new()
+var _hero: Node3D
 
 
 ## Prépare le villageois : style (VoxelStyles) et sa clé (maillage partagé), taille, orientation de repos, décalage de la
@@ -68,6 +69,11 @@ static func dance_amount(drums: int, won: bool, tuning: TuningData) -> float:
 func _process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	_time += delta
+	# Loin du héros, hors de vue : pas besoin de danser.
+	if not is_instance_valid(_hero):
+		_hero = get_tree().get_first_node_in_group(&"hero") as Node3D
+	if _hero and _hero.global_position.distance_to(global_position) > tuning.muet_sleep_distance:
+		return
 	var won: bool = Game.progress.is_complete()
 	var amount: float = dance_amount(Game.progress.drums_returned, won, tuning)
 	if is_chief:

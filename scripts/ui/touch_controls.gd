@@ -57,6 +57,15 @@ func button_rect(action: StringName) -> Rect2:
 	return Rect2(transform * rect.position, rect.size * _buttons.scale)
 
 
+## Rectangle qui englobe les trois boutons (coordonnées du canevas).
+func pad_rect() -> Rect2:
+	var all := Rect2()
+	for action: StringName in _buttons_rects:
+		var rect: Rect2 = button_rect(action)
+		all = rect if not all.has_area() else all.merge(rect)
+	return all
+
+
 ## Point du repère du joystick (coordonnées du canevas).
 func stick_point() -> Vector2:
 	return _rest_point.global_position

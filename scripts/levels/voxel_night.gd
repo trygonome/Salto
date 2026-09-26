@@ -50,6 +50,9 @@ var guards: Array[Array] = []
 var in_sortie: bool = false
 
 var _rng := RandomNumberGenerator.new()
+## Objectif gardé d'une image à l'autre ; à recalculer quand la nuit avance.
+var _goal: Dictionary = {}
+var _goal_dirty: bool = true
 var _unit: float = 0.0
 var _bark_left: float = 0.0
 var _ending: bool = false
@@ -93,6 +96,14 @@ func _ready() -> void:
 	Game.night_completed.connect(_on_night_completed)
 	Game.drum_returned.connect(_on_drum_returned)
 	Game.sanctuary_freed.connect(_on_sanctuary_freed)
+	# L'objectif change quand la nuit avance.
+	Game.night_started.connect(func(_night: int) -> void: _goal_dirty = true)
+	Game.sortie_started.connect(func() -> void: _goal_dirty = true)
+	Game.drum_picked.connect(func() -> void: _goal_dirty = true)
+	Game.drum_dropped.connect(func() -> void: _goal_dirty = true)
+	Game.drum_returned.connect(func(_count: int) -> void: _goal_dirty = true)
+	Game.sanctuary_freed.connect(func() -> void: _goal_dirty = true)
+	Game.night_completed.connect(func() -> void: _goal_dirty = true)
 	hero.fainted.connect(_on_hero_fainted)
 	hero.action_pressed.connect(_on_action_pressed)
 	Rhythm.play(Game.music_layers())
@@ -108,7 +119,7 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	var goal: Dictionary = objective() if in_sortie else {}
+	var goal: Dictionary = current_goal() if in_sortie else {}
 	if goal.is_empty():
 		mood.clear_target()
 	else:
@@ -167,6 +178,14 @@ func restart(play: bool) -> void:
 	Game.start_on_load = play
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+## Objectif du moment, recalculé seulement quand la nuit avance (voir objective()).
+func current_goal() -> Dictionary:
+	if _goal_dirty:
+		_goal_dirty = false
+		_goal = objective()
+	return _goal
 
 
 ## Objectif du moment, comme dans le prototype : rapporter les tambours portés, sinon aller

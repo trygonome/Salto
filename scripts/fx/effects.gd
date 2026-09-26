@@ -84,6 +84,8 @@ func _ready() -> void:
 	cubes.multimesh = _multimesh
 	cubes.material_override = cube_material
 	cubes.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Les cubes bougent à chaque image (et non au pas de physique) : pas d'interpolation.
+	cubes.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	cubes.custom_aabb = AABB(Vector3.ONE * -tuning.fx_cull_margin, Vector3.ONE * tuning.fx_cull_margin * 2.0)
 	add_child(cubes)
 	_word = Label3D.new()

@@ -394,3 +394,20 @@ func test_pendant_un_arret_sur_image_les_muets_restent_en_place() -> void:
 	assert_true(flyer.global_position.is_finite(), "pas de division par zéro")
 	assert_true(hopper.global_position.is_finite())
 	assert_eq(flyer.global_position, before)
+
+
+func test_loin_du_heros_un_muet_revenu_a_son_poste_s_endort() -> void:
+	await _spawn_on_flat_ground()
+	var hopper: Muet = await _add_muet(Hopper, Vector3(0.0, 0.0, -3.0))
+	await _step(2)
+	assert_false(hopper.asleep, "le héros est tout près")
+	hero.global_position = Vector3(tuning.muet_sleep_distance + 5.0, 0.0, 0.0)
+	await _step(2)
+	assert_true(hopper.asleep, "trop loin pour qu'on le voie")
+	var before: Vector3 = hopper.global_position
+	await _beats(hopper, 2)
+	await _step(20)
+	assert_eq(hopper.global_position, before, "il ne bouge plus")
+	hero.global_position = Vector3(0.0, 0.0, 0.0)
+	await _step(2)
+	assert_false(hopper.asleep, "le héros revient : il se réveille")

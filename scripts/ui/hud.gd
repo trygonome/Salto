@@ -26,6 +26,8 @@ extends CanvasLayer
 @export var marker_height: float
 @export var marker_home_height: float
 @export var marker_min_distance: float
+## Écart entre le haut de l'interface et les messages (bannière, message court) (px).
+@export var message_gap: float
 ## Bulle : écart sous le haut de l'interface (px) ; marge hors écran avant de la cacher (px).
 @export var bubble_top_gap: float
 @export var bubble_offscreen: float
@@ -64,6 +66,13 @@ var _quest_key: String = ""
 var _combo_shown: int = 0
 var _time: float = 0.0
 var _reply_index: int = 0
+## Valeurs affichées (on ne réécrit un texte que s'il change).
+var _shown_level: int = -1
+var _shown_health := Vector2i(-1, -1)
+var _shown_drums: String = ""
+var _shown_challenge := Vector3i(-1, -1, -1)
+var _shown_boss: Muet
+var _attention_left: float = 0.0
 
 @onready var _safe: Control = $SafeArea
 @onready var _top: VBoxContainer = %Top
@@ -141,7 +150,10 @@ func _process(delta: float) -> void:
 	_update_toast(delta)
 	_update_bubble(delta)
 	_update_coach()
-	_pause_button.theme_type_variation = &"IconBadge" if _needs_attention() else &"IconButton"
+	_attention_left -= delta
+	if _attention_left <= 0.0:
+		_attention_left = Tuning.data.hud_slow_refresh
+		_pause_button.theme_type_variation = &"IconBadge" if _needs_attention() else &"IconButton"
 
 
 ## Bannière au centre : surtitre, titre, précision ; `chime` : elle sonne. Une à la fois ; au plus
@@ -229,32 +241,40 @@ func current_hint() -> StringName:
 	return _hint
 
 
-## Niveau, PV, expérience, tambours.
+## Niveau, PV, expérience, tambours (les textes ne changent que si les valeurs changent).
 func _update_me() -> void:
 	var profile: Profile = Game.profile
-	_level.text = GameTexts.LEVEL_CHIP % profile.level
+	if profile.level != _shown_level:
+		_shown_level = profile.level
+		_level.text = GameTexts.LEVEL_CHIP % profile.level
 	if _hero:
-		var current: int = ceili(maxf(_hero.health.current, 0.0))
-		var maximum: int = roundi(_hero.health.maximum)
-		_hp_bar.max_value = maximum
-		_hp_bar.value = current
-		_hp_text.text = GameTexts.HEALTH % [current, maximum]
+		var health := Vector2i(ceili(maxf(_hero.health.current, 0.0)), roundi(_hero.health.maximum))
+		if health != _shown_health:
+			_shown_health = health
+			_hp_bar.max_value = health.y
+			_hp_bar.value = health.x
+			_hp_text.text = GameTexts.HEALTH % [health.x, health.y]
 	_xp_bar.value = profile.xp / ProgressionMath.xp_needed(profile.level, Tuning.data)
 	var progress: NightProgress = Game.progress
-	var pulse: float = 0.5 + 0.5 * sin(TAU * _time / Tuning.data.hint_pulse_period)
-	for i: int in _drums.size():
-		var returned: bool = i < progress.returned.size() and progress.returned[i]
-		var carried: bool = progress.carrying.has(i)
-		_drums[i].theme_type_variation = &"DrumOn" if returned or carried else &"DrumOff"
-		_drums[i].modulate.a = lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse) if carried else 1.0
+	var drums: String = "%s%s" % [progress.returned, progress.carrying]
+	if drums != _shown_drums:
+		_shown_drums = drums
+		for i: int in _drums.size():
+			var on: bool = (i < progress.returned.size() and progress.returned[i]) or progress.carrying.has(i)
+			_drums[i].theme_type_variation = &"DrumOn" if on else &"DrumOff"
+			_drums[i].modulate.a = 1.0
+	if progress.carrying_drum:
+		var pulse: float = 0.5 + 0.5 * sin(TAU * _time / Tuning.data.hint_pulse_period)
+		for i: int in progress.carrying:
+			if i < _drums.size():
+				_drums[i].modulate.a = lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse)
 
 
 ## Objectif : il bat quand il change ; pendant une sortie, une bannière l'annonce.
 func _update_quest() -> void:
-	var goal: Dictionary = _night.objective() if _night and _night.in_sortie else {}
+	var goal: Dictionary = _goal()
 	var key: String = String(goal.get(&"title", GameTexts.QUEST_WON))
 	if key != _quest_key:
-		var announce: bool = _quest_key != "" and not goal.is_empty()
 		_quest_key = key
 		_quest_icon.texture = quest_icons[goal.get(&"icon", &"won")]
 		_quest_title.text = key
@@ -262,16 +282,21 @@ func _update_quest() -> void:
 		_fit(_quest_title, _view_width() * quest_max_fraction)
 		_fit(_quest_sub, _view_width() * quest_max_fraction)
 		_pulse_quest()
-		if announce:
-			show_banner(GameTexts.BANNER_NEW_OBJECTIVE, key, goal[&"sub"], false)
 	var progress: NightProgress = Game.progress
 	_challenge.visible = progress.challenge != &""
-	if _challenge.visible:
+	var shown := Vector3i(progress.challenge_progress, progress.challenge_target, 1 if progress.challenge_done else 0)
+	if _challenge.visible and shown != _shown_challenge:
+		_shown_challenge = shown
 		var done: bool = progress.challenge_done
 		_challenge.theme_type_variation = &"ChallengeDone" if done else &"ChallengePanel"
 		_challenge_label.theme_type_variation = &"ChallengeDoneLabel" if done else &"ChallengeLabel"
 		_challenge_label.text = GameTexts.CHALLENGE_DONE % _challenge_text() if done \
 			else GameTexts.CHALLENGE_PROGRESS % [_challenge_text(), progress.challenge_progress, progress.challenge_target]
+
+
+## Objectif du moment (vide hors sortie ou nuit accomplie).
+func _goal() -> Dictionary:
+	return _night.current_goal() if _night and _night.in_sortie else {}
 
 
 func _challenge_text() -> String:
@@ -300,7 +325,9 @@ func _update_boss() -> void:
 				break
 	_boss.visible = fighting != null
 	if fighting:
-		_boss_name.text = fighting.display_name
+		if fighting != _shown_boss:
+			_shown_boss = fighting
+			_boss_name.text = fighting.display_name
 		_boss_bar.max_value = fighting.health.maximum
 		_boss_bar.value = fighting.health.current
 
@@ -325,7 +352,7 @@ func _update_combo() -> void:
 
 ## Repère de l'objectif : au-dessus de lui s'il est à l'écran, sinon au bord, pointé vers lui.
 func _update_marker() -> void:
-	var goal: Dictionary = _night.objective() if _night and _night.in_sortie else {}
+	var goal: Dictionary = _goal()
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	if goal.is_empty() or _hero == null or camera == null:
 		_marker.visible = false
@@ -366,7 +393,7 @@ func _update_toast(delta: float) -> void:
 	_toast_left -= delta
 	_toast.modulate.a = clampf(minf(_toast.modulate.a + delta / tuning.message_fade_time, _toast_left / tuning.message_fade_time), 0.0, 1.0)
 	_toast.reset_size()
-	_toast.position.x = (_safe.size.x - _toast.size.x) / 2.0
+	_toast.position = Vector2((_safe.size.x - _toast.size.x) / 2.0, _message_top())
 	if _toast_left <= 0.0:
 		_toast.visible = false
 
@@ -413,8 +440,9 @@ func _update_coach() -> void:
 	var size: Vector2 = _coach.size
 	var anchor := Vector2(view.x * coach_move_x, view.y - coach_move_bottom)
 	var rect: Variant = _controls_call(&"button_rect", [_coach_action])
-	if rect is Rect2 and (rect as Rect2).has_area():
-		anchor = Vector2((rect as Rect2).get_center().x, (rect as Rect2).position.y - coach_gap)
+	var pad: Variant = _controls_call(&"pad_rect", [])
+	if rect is Rect2 and (rect as Rect2).has_area() and pad is Rect2:
+		anchor = Vector2((rect as Rect2).get_center().x, (pad as Rect2).position.y - coach_gap)
 	var bob: float = sin(TAU * _time / coach_bob_period) * coach_bob_height
 	_coach.position = Vector2(clampf(anchor.x - size.x / 2.0, screen_margin, maxf(screen_margin, view.x - size.x - screen_margin)), anchor.y - size.y + bob)
 
@@ -442,7 +470,7 @@ func _next_banner() -> void:
 		_fit(label, _view_width() * banner_max_fraction)
 	_banner.visible = true
 	_banner.reset_size()
-	_banner.position = Vector2((_safe.size.x - _banner.size.x) / 2.0, _safe.size.y * tuning.banner_height - _banner.size.y / 2.0)
+	_banner.position = Vector2((_safe.size.x - _banner.size.x) / 2.0, _message_top() + (_toast.size.y + message_gap if _toast.visible else 0.0))
 	_banner.pivot_offset = _banner.size / 2.0
 	_banner.scale = Vector2.ONE * tuning.banner_start_scale
 	_banner.modulate.a = 0.0
@@ -476,6 +504,11 @@ func _layout() -> void:
 	_quest.size_flags_horizontal = Control.SIZE_SHRINK_CENTER if portrait else Control.SIZE_SHRINK_BEGIN
 	_challenge.size_flags_horizontal = _quest.size_flags_horizontal
 	_quest_sub.visible = portrait
+
+
+## Haut de la place des messages : sous l'objectif, le défi et la barre du Grand Muet.
+func _message_top() -> float:
+	return _top.get_global_rect().end.y - _safe.get_global_rect().position.y + message_gap
 
 
 ## Le texte passe à la ligne s'il dépasse `max_width` (px).
