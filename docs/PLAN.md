@@ -83,3 +83,18 @@ Jalons :
 nuits, sorties (évanoui ou rentré au village, les tambours rapportés restent jusqu'à la fin de la
 nuit), défis et plumes, niveaux, talents, sac et forge, puis les nuits sans fin. Le parcours d'essai
 et le carnet de la phase 1 restent dans le projet (scène d'essai, données).
+
+## Phase 3 : la symbiose (version 1.1.0)
+Constat (retours sur téléphone, version 1.0.2) : les mécaniques s'empilaient sans se répondre
+(plumes, forge, défis, score, butin au sol) : « construit par une calculette ». Décision : chaque
+mécanique nourrit les autres (docs/GDD.md §3). Étapes, une par commit :
+A. **Simplifier** — plus de plumes, forge, recyclage, défis ni score ; la plume des perchoirs devient
+   une plume arc-en-ciel qui remplit la jauge de groove.
+B. **Progression au village** — expérience mise de côté jusqu'au village, cadeau des Grands Muets
+   attaché au tambour, sac et talents au village.
+C. **Le rythme rend la couleur** — cercle de couleurs autour du héros selon la jauge (uniforme
+   `salto_groove`), éclat au Salto arc-en-ciel.
+D. **Les Muets libérés rejoignent le village** — troupe qui danse, gardée pour la nuit, plafonnée.
+E. **Une acrobatie par Muet** — réponse attendue (GDD §7) : dégâts, groove, couleurs, note, conseil.
+*Test : une nuit entière ; on comprend pourquoi on revient au village, pourquoi jouer en rythme,
+et ce que chaque Muet attend.*

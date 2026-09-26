@@ -111,7 +111,16 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 ## Progression
 - XP pour passer du niveau n au suivant : 40 + 30 (n − 1) + 6 (n − 1)².
 - XP par Muet : sautillant 9, volant 11, bouclier 14, cornu 18, cracheur 12 (+4 par sanctuaire) ; Grand Muet 70 + 30 par sanctuaire.
-- Butin : Grand Muet toujours (rare 35 %, épique 35 %, légendaire 15 %) ; autres Muets 3,5 %.
-- Valeur d'un effet d'objet : base × (1 + 0,35 × (niveau d'objet − 1)) × rareté (1 ; 1,25 ; 1,5 ; 1,8) × tirage (0,8 à 1,2) × (1 + 0,15 × forge).
+  Mise de côté pendant la sortie, ajoutée au village (ou à la fin de la sortie).
+- Cadeau d'un Grand Muet (niveau de la nuit + 1), avec son tambour : rare 50 %, épique 35 %, légendaire 15 % ;
+  Roi Muet : épique 60 %, légendaire 40 %. Pas d'autre butin.
+- Valeur d'un effet d'objet : base × (1 + 0,35 × (niveau d'objet − 1)) × rareté (1 ; 1,25 ; 1,5 ; 1,8) × tirage (0,8 à 1,2).
 - Bases : dégâts 6 %, PV 12, résistance 4 %, critique 4 %, vitesse 4 %, vitesse des coups 4 %, groove 10 %, plongeon 12 %, soin par Muet 1, XP 6 %.
-- Forge : 12 × (forge + 1) × (rareté + 1) plumes, jusqu'à +5.
+- Sac : 30 objets ; plein, le plus faible des objets non portés laisse sa place.
+
+## Symbiose (version 1.1)
+- Plume arc-en-ciel au sommet de chaque perchoir : remplit toute la jauge de groove (revient à chaque sortie).
+- Cercle du groove autour du héros : 1,3 m jauge vide → 4,5 m jauge pleine ; Salto arc-en-ciel : éclate à 16 m
+  puis retombe de 6 m/s. Dans le cercle, saturation 0,9 (teintes de la jungle inchangées).
+- Réponse attendue (GDD §7) : dégâts × 1,6, jauge + 2 (sur 10), couleurs rendues au Muet 0,6 s.
+- Troupe du village : 16 Muets libérés au plus, à 60 % de leur taille, sur deux cercles (2,1 m et 3,1 m).

@@ -15,6 +15,14 @@ Sensation visée : fluide, joyeuse, percutante. Le rythme récompense, il ne blo
 Une nuit = partir du village → atteindre un sanctuaire → vaincre le **Grand Muet** qui garde le tambour → rapporter le tambour.
 Trois tambours = nuit accomplie. Tomber = retour au village : on garde niveau, objets et tambours déjà rapportés.
 
+**Tout se tient** (symbiose, version 1.1) : chaque mécanique nourrit les autres, sans monnaie ni défi à côté.
+- **Le rythme rend la couleur** : la jauge de groove fait revivre la jungle autour du héros (un cercle de
+  couleurs qui grandit avec elle) ; le Salto arc-en-ciel la fait éclater loin.
+- **Chaque Muet attend sa réponse** (§7) : la bonne acrobatie remplit la jauge et lui rend un instant ses couleurs.
+- **Le héros grandit au village** : l'expérience des Muets libérés s'y ajoute quand il y revient ; le cadeau
+  de chaque Grand Muet voyage avec son tambour ; le sac et les talents s'ouvrent au village.
+- **Les Muets libérés rejoignent le village** : ils y dansent, en couleurs, jusqu'à la fin de la nuit.
+
 ## 4. Commandes (mobile)
 - **Joystick flottant** à gauche : la base se fixe là où le pouce se pose et **ne le suit jamais** ; repère discret au repos en bas à gauche.
 - **Trois boutons** en arc à droite : Frappe (le plus gros), Saut, Esquive. Pictogrammes, pas de texte.
@@ -33,30 +41,48 @@ Relief à exploiter : rochers, souches, perchoirs en escalier.
 - **Esquive parfaite** : être touché pendant l'invulnérabilité → ralenti + prochain coup critique.
 - **Rythme** : chaque action est jugée au moment de l'appui. Parfait ×1,5, Bien ×1,15.
   La jauge de groove pleine débloque le **Salto arc-en-ciel** (bond + plongeon géant).
+  Elle se remplit en rythme, par les bonnes réponses aux Muets, les esquives parfaites, et d'un coup avec la
+  **plume arc-en-ciel** posée au sommet de chaque perchoir (elle revient à chaque sortie).
+  Autour du héros, la jungle retrouve ses couleurs d'autant plus loin que la jauge est pleine.
 - Retour d'impact : arrêt sur image, traînée du coup, étincelle, secousse, poussée de caméra, son qui monte avec le combo.
 
 ## 7. Les Muets
 Anciens musiciens du village : bouche cousue, grands yeux, antennes aux couleurs volées.
 
-| Muet | Comportement | Réponse attendue |
-|---|---|---|
-| Sautillant | avance par bonds, contact | enchaînement de base |
-| Volant | tourne au-dessus, pique après une ligne rouge au sol | sauter pour le frapper, esquiver le piqué |
-| Porte-bouclier | bloque de face, se tourne lentement | passer derrière ou plonger dessus |
-| Cornu | charge en ligne droite après 2 temps d'annonce, s'assomme contre les arbres | esquive au dernier moment ou saut |
-| Cracheur | garde ses distances, crache des bulles | sauter par-dessus, s'approcher |
+| Muet | Comportement | Réponse attendue | Coup qui la donne |
+|---|---|---|---|
+| Sautillant | avance par bonds, contact | enchaînement de base | armada (3e coup) |
+| Volant | tourne au-dessus, pique après une ligne rouge au sol | sauter pour le frapper, esquiver le piqué | coup en l'air (plongeon) |
+| Porte-bouclier | bloque de face, se tourne lentement | passer derrière ou plonger dessus | tout coup de dos, plongeon |
+| Cornu | charge en ligne droite après 2 temps d'annonce, s'assomme contre les arbres | esquive au dernier moment ou saut | tout coup quand il est assommé |
+| Cracheur | garde ses distances, crache des bulles | sauter par-dessus, s'approcher | coup roulé |
 
 **Grand Muet** : frappe au sol annoncée par un cercle rouge (2 temps). À mi-vie, il enrage et envoie des ondes de choc à sauter.
-Libéré, il retrouve sa voix et remercie (réplique sonore courte).
+Sa réponse : le **Salto arc-en-ciel**. Libéré, il retrouve sa voix et remercie (réplique sonore courte).
+
+**La bonne réponse** fait plus de dégâts (×1,6), remplit la jauge de groove, rend un instant ses couleurs au Muet
+(gerbe de cubes) et sonne une note. Les autres coups marchent toujours (pilier 2). À la première rencontre
+d'une espèce, un conseil près du bon bouton apprend sa réponse.
+
+**Libérés**, les Muets rejoignent le village : plus petits, en couleurs, ils dansent autour de la place
+(un bond un temps sur deux) jusqu'à la fin de la nuit ; les Grands Muets aussi, avec leur couronne.
 
 ## 8. Secrets
 - **Cercle des gongs** : 4 gongs jouent une mélodie au rythme ; la rejouer dans l'ordre fait apparaître un coffre.
 - **Coffres cachés** en hauteur (piliers, perchoirs) : un objet + une page du carnet.
 
 ## 9. Progression
+Le héros **grandit au village** : c'est là que l'on revient, que l'on fête et que l'on se prépare.
 - Niveau conservé ; 1 point de talent par niveau ; 3 voies (Acrobate, Percussion, Chamane) de 4 talents ; réinitialisation gratuite.
+- L'expérience des Muets libérés est **mise de côté** pendant la sortie (sa part bat dans la barre) et s'ajoute
+  quand le héros rentre au village (ou à la fin de la sortie) ; le Chef salue chaque niveau gagné.
 - Objets : 3 emplacements (chevillières, masque, talisman), 4 raretés, effets aléatoires, 5 légendaires à effet unique.
-  Forge de +1 à +5 avec des plumes ; recyclage.
+  Pas de butin au sol : chaque **Grand Muet offre un cadeau** qui voyage avec son tambour et arrive dans le sac
+  au village (perdu en route, il retourne à l'autel avec le tambour). Sac plein : le plus faible des objets
+  non portés laisse sa place.
+- Le **sac et les talents** s'ouvrent au village (depuis la pause) et depuis l'écran titre et le résumé.
+- Ni monnaie, ni forge, ni défis, ni score : le résumé d'une sortie dit les tambours, les Muets libérés,
+  le niveau et le temps.
 
 ## 10. Histoire (résumé)
 Avant le Grand Silence, chaque Muet était un musicien. Le Silence a bu leurs voix puis les couleurs.
@@ -78,7 +104,8 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 - **Grands titres** réservés à 3 moments : début de nuit, sanctuaire libéré, nuit accomplie.
 - **Chiffres de dégâts** discrets et désactivables.
 - **Aide contextuelle** : le bon bouton brille, 2 à 4 mots, disparaît dès que l'action est faite.
-- **Butin** : l'objet jaillit du sol, puis une petite carte en bas pendant 2 s ; le détail est dans le sac.
+- **Butin** : le cadeau d'un Grand Muet arrive au village avec son tambour : une petite carte en bas pendant 2 s ;
+  le détail est dans le sac.
 - **Pas de bulles** qui couvrent le jeu : répliques courtes, surtout sonores.
 
 ## 13. Audio
@@ -86,7 +113,7 @@ Musique en couches calée sur 104 BPM ; chaque tambour rapporté ajoute une couc
 Gongs en gamme pentatonique. Coups en couches (impact + souffle + note), légères variations aléatoires.
 
 ## 14. Tranche verticale : hors périmètre
-Cinq nuits, nuits sans fin, cracheur, porte-bouclier, talents, forge, carnet complet.
+Cinq nuits, nuits sans fin, cracheur, porte-bouclier, talents, carnet complet.
 
 ## Annexe : textes
 **Nuits** — 1 : Le vol des tambours · 2 : La nuit des boucliers · 3 : La charge des cornus · 4 : Le chœur des cracheurs · 5 : Le Roi Muet.
