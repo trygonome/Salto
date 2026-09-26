@@ -129,3 +129,6 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Vibrations (réglage de la pause) : coup 12 ms, coup fort 30 ms, héros touché 70 ms, tambour 50 ms,
   Salto arc-en-ciel 140 ms.
 - Troupe du village : 16 Muets libérés au plus, à 60 % de leur taille, sur deux cercles (2,1 m et 3,1 m).
+  Son chœur est à pleine voix à partir de 8 Muets, au village ; on l'entend jusqu'à 22 m.
+- Cercle des gongs : 4 gongs (ré, mi, fa#, la) sur un cercle de 1,9 m, mélodie de 3, 4 puis 5 notes ;
+  il la joue après 2 temps dans sa zone (3,2 m).

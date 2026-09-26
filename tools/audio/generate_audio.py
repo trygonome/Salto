@@ -172,6 +172,52 @@ def layer_melody():
     return buf
 
 
+def voice(freq, length):
+    """Voix d'un Muet qui chante « aah » : deux formants sur une note tenue, un peu de vibrato."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    vibrato = 1 + 0.01 * np.sin(2 * np.pi * 5.5 * t) * np.minimum(t / 0.3, 1)
+    phase = 2 * np.pi * np.cumsum(freq * vibrato) / RATE
+    tone = np.zeros(n)
+    for k in range(1, 9):
+        # Formants d'un « a » (vers 700 Hz et 1200 Hz).
+        f = freq * k
+        weight = np.exp(-((f - 700) / 260) ** 2) + 0.6 * np.exp(-((f - 1200) / 300) ** 2) + 0.35 / k
+        tone += weight * np.sin(k * phase)
+    shape = np.minimum(t / 0.12, 1.0) * np.minimum((length - t) / 0.25, 1.0).clip(0, 1)
+    return tone * shape
+
+
+def clap(length=0.14):
+    n = int(length * RATE)
+    burst = RNG.standard_normal(n)
+    out = np.zeros(n)
+    for k, delay in enumerate((0.0, 0.011, 0.022)):
+        i = int(delay * RATE)
+        out[i:] += burst[: n - i] * env(n - i, 0.0005, 0.02 if k < 2 else 0.05)
+    kernel = np.array([1.0, -0.9])
+    return np.convolve(out, kernel, mode="same")
+
+
+def layer_band():
+    """La troupe du village : les Muets libérés tapent dans leurs mains (temps 2 et 4) et chantent
+    les accords de la base, en chœur (plus la troupe est grande et proche, plus on l'entend)."""
+    buf = np.zeros(LOOP_SAMPLES)
+    for bar in range(BARS):
+        b0 = bar * BEATS_PER_BAR
+        add(buf, b0 + 1, clap(), 0.24)
+        add(buf, b0 + 3, clap(), 0.24)
+        if bar % 2 == 1:
+            add(buf, b0 + 3.5, clap(), 0.15)
+    chords = [[0, 4, 7], [2, 5, 9], [-3, 2, 4], [0, 4, 7]]
+    for i, chord in enumerate(chords):
+        for j, d in enumerate(chord):
+            for half in range(2):
+                start = i * 2 * BEATS_PER_BAR + half * BEATS_PER_BAR + j * 0.05
+                add(buf, start, voice(degree(d, 0), BEATS_PER_BAR * BEAT * 0.9), 0.055)
+    return buf
+
+
 def sfx_hit():
     n = int(0.25 * RATE)
     body = kick(0.25)[:n] * 0.9
@@ -493,6 +539,7 @@ def main():
     }
     # Même gain pour toutes les couches : leur somme ne sature pas.
     total_peak = np.max(np.abs(sum(layers.values())))
+    layer_gain = 0.9 / total_peak
     for name, buf in layers.items():
         write(ROOT / "assets/audio/music" / f"{name}.wav", buf / total_peak * 0.9, peak=np.max(np.abs(buf)) / total_peak * 0.9)
     write(ROOT / "assets/audio/sfx/hit.wav", sfx_hit())
@@ -519,6 +566,10 @@ def main():
     write(ROOT / "assets/audio/sfx/clink.wav", sfx_clink(), peak=0.45)
     write(ROOT / "assets/audio/sfx/spit.wav", sfx_spit(), peak=0.5)
     write(ROOT / "assets/audio/sfx/answer.wav", sfx_answer(), peak=0.6)
+    # La troupe du village, au même gain que les couches de la nuit (tirée en dernier : les autres
+    # sons ne changent pas).
+    band = layer_band()
+    write(ROOT / "assets/audio/music/night_band.wav", band * layer_gain, peak=np.max(np.abs(band)) * layer_gain)
 
 
 if __name__ == "__main__":

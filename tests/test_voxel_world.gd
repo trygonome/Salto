@@ -156,6 +156,17 @@ func test_la_clairiere_des_gongs_est_libre_et_pres_d_un_chemin() -> void:
 		assert_eq(again.gong_clearing, p, "même graine, même clairière")
 
 
+func test_la_troupe_chante_plus_fort_quand_elle_grandit_et_qu_on_approche() -> void:
+	var tuning: TuningData = Tuning.data
+	assert_eq(VillageBand.music_amount(0, 0.0, tuning), 0.0, "sans troupe, pas de chœur")
+	assert_eq(VillageBand.music_amount(tuning.band_music_full, 0.0, tuning), 1.0, "troupe au complet, au village")
+	assert_gt(VillageBand.music_amount(tuning.band_music_full, 0.0, tuning), VillageBand.music_amount(2, 0.0, tuning))
+	assert_gt(VillageBand.music_amount(8, tuning.village_radius * 2.0, tuning), 0.0, "on l'entend en approchant")
+	assert_eq(VillageBand.music_amount(8, tuning.band_hear_distance, tuning), 0.0, "plus du tout de loin")
+	assert_eq(Rhythm.band_volume_db(0.0, tuning), tuning.music_silent_db)
+	assert_eq(Rhythm.band_volume_db(1.0, tuning), tuning.music_volume_db, "comme les autres couches")
+
+
 func test_la_troupe_du_village_se_repartit_autour_de_la_place() -> void:
 	var rings := PackedFloat32Array([8.0, 12.5])
 	var blocked := func(p: Vector2) -> bool: return p.x > 0.0 and p.y > 0.0

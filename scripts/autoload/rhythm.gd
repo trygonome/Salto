@@ -1,6 +1,7 @@
 extends Node
 ## Horloge musicale. Joue la musique en couches, toutes synchronisées : la base est toujours
-## audible et chaque tambour rapporté en ajoute une. Donne la position exacte dans la musique,
+## audible et chaque tambour rapporté en ajoute une ; la troupe du village (Muets libérés qui
+## chantent et tapent dans leurs mains) a sa couche à elle, plus ou moins forte (set_band). Donne la position exacte dans la musique,
 ## corrigée de la latence audio (méthode documentée par Godot : position de lecture + temps
 ## depuis le dernier mixage − latence de sortie), et émet `beat` à chaque temps (sauf pendant
 ## une pause du jeu).
@@ -15,6 +16,8 @@ const NIGHT_LAYERS: Array[String] = [
 	"res://assets/audio/music/night_2_bass.wav",
 	"res://assets/audio/music/night_3_melody.wav",
 ]
+## Couche de la troupe du village.
+const BAND_LAYER := "res://assets/audio/music/night_band.wav"
 
 var _player := AudioStreamPlayer.new()
 var _music: AudioStreamSynchronized
@@ -23,6 +26,7 @@ var _loops: int = 0
 var _last_position: float = 0.0
 var _last_beat: int = -1
 var _audible_layers: int = 0
+var _band: float = 0.0
 
 
 func _ready() -> void:
@@ -34,10 +38,12 @@ func _ready() -> void:
 func play(layers: int) -> void:
 	var tuning: TuningData = Tuning.data
 	_music = AudioStreamSynchronized.new()
-	_music.stream_count = NIGHT_LAYERS.size()
+	_music.stream_count = NIGHT_LAYERS.size() + 1
 	for i: int in NIGHT_LAYERS.size():
 		_music.set_sync_stream(i, load(NIGHT_LAYERS[i]) as AudioStream)
 		_music.set_sync_stream_volume(i, tuning.music_volume_db if i < layers else tuning.music_silent_db)
+	_music.set_sync_stream(NIGHT_LAYERS.size(), load(BAND_LAYER) as AudioStream)
+	_music.set_sync_stream_volume(NIGHT_LAYERS.size(), band_volume_db(_band, tuning))
 	_loop_length = _music.get_sync_stream(0).get_length()
 	_audible_layers = layers
 	_loops = 0
@@ -77,6 +83,24 @@ func set_layers(count: int) -> void:
 		var target: float = tuning.music_volume_db if i < count else tuning.music_silent_db
 		var set_volume: Callable = func(db: float) -> void: _music.set_sync_stream_volume(i, db)
 		create_tween().tween_method(set_volume, _music.get_sync_stream_volume(i), target, tuning.music_layer_fade_time)
+
+
+## Fait entendre la troupe du village à `amount` (0 : muette, 1 : pleine voix).
+func set_band(amount: float) -> void:
+	_band = clampf(amount, 0.0, 1.0)
+	if _music:
+		_music.set_sync_stream_volume(NIGHT_LAYERS.size(), band_volume_db(_band, Tuning.data))
+
+
+func band_amount() -> float:
+	return _band
+
+
+## Volume (dB) de la troupe pour `amount` (0 à 1) : muette à 0, comme les autres couches à 1.
+static func band_volume_db(amount: float, tuning: TuningData) -> float:
+	if amount <= 0.0:
+		return tuning.music_silent_db
+	return maxf(tuning.music_silent_db, tuning.music_volume_db + linear_to_db(amount))
 
 
 ## Temps écoulé dans la musique depuis son début (s), tel qu'on l'entend.

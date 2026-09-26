@@ -99,9 +99,9 @@ E. **Une acrobatie par Muet** — réponse attendue (GDD §7) : dégâts, groove
 *Test : une nuit entière ; on comprend pourquoi on revient au village, pourquoi jouer en rythme,
 et ce que chaque Muet attend.*
 
-## Phase 4 : finitions pour le téléphone (versions 1.2 à 1.4)
+## Phase 4 : finitions pour le téléphone (versions 1.2 et 1.3)
 - **1.2** — couleurs calmes (les teintes ondulent sans dériver), jauge qui retombe sans rythme,
   vibrations (réglage), d'après les vidéos du téléphone.
 - **1.3** — l'histoire dans la jungle : cercle des gongs et coffres au sommet des perchoirs dans le
-  monde voxel, pages du carnet par nuit, écran Carnet, répliques des Grands Muets.
-- **1.4** — la musique vivante : la troupe du village ajoute une couche à la musique.
+  monde voxel, pages du carnet par nuit, écran Carnet, répliques des Grands Muets ; la musique
+  vivante : la troupe du village chante (sa couche monte avec sa taille et près du village).

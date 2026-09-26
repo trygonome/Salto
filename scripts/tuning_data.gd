@@ -775,6 +775,10 @@ extends Resource
 @export var village_band_squash: float
 @export var village_band_fly_height: float
 @export var village_band_pop_time: float
+## La troupe chante : à pleine voix à partir de tant de Muets ; on l'entend jusqu'à cette distance
+## du village (m), de plus en plus faiblement.
+@export var band_music_full: int
+@export var band_hear_distance: float
 
 @export_group("Effets")
 ## Petits cubes : nombre en réserve ; boîte d'affichage (m, autour du niveau).

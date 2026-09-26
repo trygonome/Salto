@@ -116,6 +116,8 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 
 ## 13. Audio
 Musique en couches calée sur 104 BPM ; chaque tambour rapporté ajoute une couche.
+La troupe du village (Muets libérés) a sa couche : un chœur et des mains qui claquent, d'autant plus fort
+que la troupe est grande et que le héros est près du village.
 Gongs en gamme pentatonique. Coups en couches (impact + souffle + note), légères variations aléatoires.
 
 ## 14. Tranche verticale : hors périmètre

@@ -3,7 +3,8 @@ extends Node3D
 ## Les Muets libérés cette nuit rejoignent le village : plus petits, ils ont retrouvé leurs
 ## couleurs et dansent autour de la place, en bondissant un temps sur deux (les volants planent) ; les Grands Muets
 ## aussi, avec leur couronne. Un nouveau venu apparaît dès sa libération. Leur nombre est plafonné
-## (Tuning.village_band_max) ; loin du héros, ils ne bougent plus.
+## (Tuning.village_band_max) ; loin du héros, ils ne bougent plus. La troupe chante aussi : sa
+## couche de musique monte avec sa taille, et quand le héros s'approche du village.
 
 ## Angle d'or : les places se répartissent tout autour de la place, même avec peu de Muets.
 const GOLDEN_ANGLE := 2.399963
@@ -79,6 +80,13 @@ func join(species: StringName, pop: bool) -> void:
 		create_tween().tween_property(body, "scale", Vector3.ONE, tuning.village_band_pop_time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Part de voix de la troupe (0 à 1) : `count` Muets, héros à `distance` m du village.
+static func music_amount(count: int, distance: float, tuning: TuningData) -> float:
+	var size: float = clampf(float(count) / tuning.band_music_full, 0.0, 1.0)
+	var near: float = 1.0 - smoothstep(tuning.village_radius, tuning.band_hear_distance, distance)
+	return size * near
+
+
 ## Nombre de Muets dans la troupe.
 func count() -> int:
 	return _figures.size()
@@ -88,11 +96,17 @@ func _ready() -> void:
 	Rhythm.beat.connect(_on_beat)
 
 
+func _exit_tree() -> void:
+	Rhythm.set_band(0.0)
+
+
 func _process(_delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	if not is_instance_valid(_hero):
 		_hero = get_tree().get_first_node_in_group(&"hero") as Node3D
-	var near: bool = _hero == null or _hero.global_position.distance_to(global_position) < tuning.muet_sleep_distance + tuning.village_radius
+	var distance: float = _hero.global_position.distance_to(global_position) if _hero else 0.0
+	Rhythm.set_band(music_amount(_figures.size(), distance, tuning))
+	var near: bool = distance < tuning.muet_sleep_distance + tuning.village_radius
 	if near != _awake:
 		_awake = near
 		for body: MuetBody in _figures:

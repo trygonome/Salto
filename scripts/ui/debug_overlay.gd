@@ -35,7 +35,7 @@ func _process(_delta: float) -> void:
 		Engine.get_version_info()["string"],
 	]
 	if Rhythm.is_playing():
-		text += "\nmusique %.1f s · couches %d/%d" % [Rhythm.song_time(), Rhythm.audible_layers(), Rhythm.NIGHT_LAYERS.size()]
+		text += "\nmusique %.1f s · couches %d/%d · troupe %.0f %%" % [Rhythm.song_time(), Rhythm.audible_layers(), Rhythm.NIGHT_LAYERS.size(), Rhythm.band_amount() * 100.0]
 	else:
 		text += "\nmusique arrêtée"
 	var source: Node = get_tree().get_first_node_in_group(&"debug_info")
