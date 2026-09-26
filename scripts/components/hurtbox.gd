@@ -20,6 +20,9 @@ var can_be_hit: bool = true
 var damage_taken_multiplier: float = 1.0
 ## Garde facultative : reçoit le HitData et renvoie vrai si le coup est arrêté (bouclier).
 var blocker: Callable
+## Réglage facultatif d'un coup qui porte, avant les dégâts : reçoit le HitData et peut le changer
+## (bonne réponse d'un Muet).
+var modifier: Callable
 
 
 ## Reçoit un coup ; renvoie vrai s'il a porté, faux s'il a été esquivé ou arrêté.
@@ -30,6 +33,8 @@ func receive(hit: HitData) -> bool:
 	if blocker.is_valid() and blocker.call(hit):
 		blocked.emit(hit)
 		return false
+	if modifier.is_valid():
+		modifier.call(hit)
 	hit.damage *= damage_taken_multiplier
 	if health:
 		health.take(hit.damage)

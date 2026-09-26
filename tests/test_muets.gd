@@ -276,6 +276,65 @@ func test_en_rage_l_onde_touche_qui_reste_au_sol() -> void:
 	assert_almost_eq(hero.health.current, hero.health.maximum - tuning.boss_damage * tuning.boss_wave_damage_factor, 0.01)
 
 
+func test_la_bonne_reponse_rend_un_instant_ses_couleurs_au_muet() -> void:
+	await _spawn_on_flat_ground()
+	var hopper: Muet = await _add_muet(Hopper, Vector3(0.0, 0.0, -1.2))
+	hopper.set_physics_process(false)
+	hero.groove.empty()
+	var start: float = hopper.health.current
+	var plain: HitData = _hit_from_hero(2.0, &"martelo", hopper)
+	hopper.hurtbox.receive(plain)
+	assert_false(plain.answer, "un coup ordinaire porte, sans plus")
+	assert_almost_eq(hopper.health.current, start - 2.0, 0.001)
+	var answered: Array[StringName] = []
+	hero.answered.connect(func(species: StringName) -> void: answered.append(species))
+	var groove: float = hero.groove.value
+	var finisher: HitData = _hit_from_hero(2.0, &"armada", hopper)
+	hopper.hurtbox.receive(finisher)
+	assert_true(finisher.answer, "le sautillant attend l'enchaînement complet")
+	assert_almost_eq(hopper.health.current, start - 2.0 - 2.0 * tuning.answer_damage, 0.001, "plus de dégâts")
+	assert_almost_eq(hero.groove.value, groove + tuning.groove_answer * hero.stats.groove, 0.001, "la jauge se remplit")
+	assert_eq(answered, [&"hopper"] as Array[StringName])
+
+
+func test_chaque_muet_a_sa_reponse() -> void:
+	await _spawn_on_flat_ground()
+	var flyer: Muet = await _add_muet(Flyer, Vector3(-2.0, 0.0, -1.2))
+	var spitter: Muet = await _add_muet(Spitter, Vector3(2.0, 0.0, -1.2))
+	var charger: Muet = await _add_muet(Charger, Vector3(0.0, 0.0, -3.0))
+	var boss: Muet = await _add_muet(GrandMuet, Vector3(0.0, 0.0, 3.0))
+	for muet: Muet in [flyer, spitter, charger, boss]:
+		muet.set_physics_process(false)
+	var cases: Array = [[flyer, &"air_kick"], [spitter, &"rolling_kick"], [boss, &"rainbow"]]
+	for case: Array in cases:
+		var hit: HitData = _hit_from_hero(1.0, case[1], case[0])
+		(case[0] as Muet).hurtbox.receive(hit)
+		assert_true(hit.answer, "%s : %s" % [(case[0] as Muet).species, case[1]])
+	var early: HitData = _hit_from_hero(1.0, &"martelo", charger)
+	charger.hurtbox.receive(early)
+	assert_false(early.answer, "le cornu debout : pas encore")
+	charger.stun(1.0)
+	var stunned: HitData = _hit_from_hero(1.0, &"martelo", charger)
+	charger.hurtbox.receive(stunned)
+	assert_true(stunned.answer, "le cornu assommé (après l'avoir esquivé)")
+
+
+func test_le_porte_bouclier_attend_qu_on_passe_derriere_ou_dessus() -> void:
+	await _spawn_on_flat_ground()
+	var shielder: Muet = await _add_muet(Shielder, Vector3(0.0, 0.0, -1.2))
+	shielder.set_physics_process(false)
+	shielder.body.target_yaw = PI
+	shielder.body.rotation.y = PI
+	var back: HitData = _hit_from_hero(1.0, &"martelo", shielder)
+	assert_true(shielder.hurtbox.receive(back))
+	assert_true(back.answer, "de dos")
+	shielder.body.target_yaw = EnemyMath.yaw_of(Vector3.BACK)
+	shielder.body.rotation.y = shielder.body.target_yaw
+	var dive: HitData = _hit_from_hero(1.0, &"dive", shielder)
+	assert_true(shielder.hurtbox.receive(dive))
+	assert_true(dive.answer, "par-dessus")
+
+
 func test_le_bouclier_arrete_les_coups_de_face() -> void:
 	await _spawn_on_flat_ground()
 	var shielder: Muet = await _add_muet(Shielder, Vector3(0.0, 0.0, -1.2))

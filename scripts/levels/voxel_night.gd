@@ -35,11 +35,17 @@ const NIGHT_FOES: Array[Array] = [
 ]
 ## Le Roi Muet garde ce sanctuaire lors de la dernière nuit de la saga.
 const KING_SANCTUARY := 2
-## Conseils près des boutons, dans l'ordre où on les propose : identifiant et bouton.
+## Conseils près des boutons, dans l'ordre où on les propose : identifiant et bouton. Les conseils
+## « answer_<espèce> » apprennent la réponse qu'attend chaque Muet (docs/GDD.md §7) quand on le
+## croise pour la première fois (le sautillant : l'enchaînement ; le Grand Muet : la jauge pleine).
 const HINT_BUTTONS: Array[Array] = [
 	[&"move", TouchControls.MOVE], [&"attack", &"attack"], [&"jump", &"jump"], [&"salto", &"jump"],
-	[&"combo", &"attack"], [&"dodge", &"dodge"], [&"dive", &"attack"], [&"beat", &"attack"], [&"special", &"attack"],
+	[&"combo", &"attack"], [&"dodge", &"dodge"], [&"answer_flyer", &"jump"], [&"answer_shielder", &"jump"],
+	[&"answer_charger", &"dodge"], [&"answer_spitter", &"dodge"], [&"dive", &"attack"], [&"beat", &"attack"],
+	[&"special", &"attack"],
 ]
+## Préfixe des conseils de réponse (suivi de l'espèce).
+const ANSWER_HINT := "answer_"
 
 var gen := WorldGen.new()
 ## Tambour de chaque sanctuaire, point d'apparition de son Grand Muet, de ses gardiens.
@@ -110,6 +116,7 @@ func _ready() -> void:
 	Game.night_completed.connect(func() -> void: _goal_dirty = true)
 	hero.fainted.connect(_on_hero_fainted)
 	hero.action_pressed.connect(_on_action_pressed)
+	hero.answered.connect(func(species: StringName) -> void: _learn(StringName(ANSWER_HINT + species)))
 	Rhythm.play(Game.music_layers())
 	if Game.start_on_load:
 		Game.start_on_load = false
@@ -560,6 +567,8 @@ func _hint_applies(id: StringName) -> bool:
 			return _attacks >= tuning.hint_beat_after
 		&"special":
 			return hero.groove.is_full()
+	if String(id).begins_with(ANSWER_HINT):
+		return _species_near(StringName(String(id).trim_prefix(ANSWER_HINT)), tuning.hint_near_distance)
 	return false
 
 
@@ -605,6 +614,14 @@ func _muet_near(distance: float) -> bool:
 	for node: Node in get_tree().get_nodes_in_group(&"muets"):
 		var muet: Muet = node as Muet
 		if not muet.is_freed() and muet.global_position.distance_to(hero.global_position) < distance:
+			return true
+	return false
+
+
+func _species_near(species: StringName, distance: float) -> bool:
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if muet.species == species and not muet.is_freed() and muet.global_position.distance_to(hero.global_position) < distance:
 			return true
 	return false
 

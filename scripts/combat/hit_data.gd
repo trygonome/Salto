@@ -22,3 +22,5 @@ var judgement: RhythmMath.Judgement = RhythmMath.Judgement.MISS
 var stun_time: float = 0.0
 ## Vrai pour un gros coup (recul plus fort).
 var big: bool = false
+## Vrai si c'est la réponse attendue par le Muet touché (docs/GDD.md §7).
+var answer: bool = false

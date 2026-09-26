@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hit.wav" id="21_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/chime.wav" id="22_chime"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/answer.wav" id="40_answer"]
 [ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="23_hurtbox"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="24_health"]
 [ext_resource type="Script" path="res://scripts/player/states/hurt_state.gd" id="25_hurt"]
@@ -93,6 +94,9 @@ stream = ExtResource("21_hit")
 
 [node name="ChimeSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("22_chime")
+
+[node name="AnswerSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("40_answer")
 
 [node name="HurtSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("26_hurt_sound")

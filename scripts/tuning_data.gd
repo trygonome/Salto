@@ -348,6 +348,18 @@ extends Resource
 @export var muet_damage_per_tier: float
 @export var muet_health_per_night: float
 @export var muet_damage_per_night: float
+## Réponse attendue par chaque Muet (docs/GDD.md §7) : coups qui la donnent (AttackData.id,
+## « dive », « rainbow » ; « stunned » : tout coup quand il est étourdi, « behind » : tout coup
+## qui passe à côté du bouclier). La bonne réponse fait plus de dégâts, remplit la jauge de groove
+## et rend un instant ses couleurs au Muet (part de l'arc-en-ciel, durée s), dans une gerbe de
+## cubes (nombre, m/s).
+@export var muet_answers: Dictionary[StringName, PackedStringArray]
+@export var answer_damage: float
+@export var groove_answer: float
+@export var answer_glimmer: float
+@export var answer_glimmer_time: float
+@export var fx_answer_cubes: int
+@export var fx_answer_speed: float
 
 ## Au-delà de cette distance du héros (m), un Muet au repos s'endort et les villageois ne dansent
 ## plus (hors de vue).

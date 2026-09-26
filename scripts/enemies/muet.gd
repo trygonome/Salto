@@ -54,7 +54,6 @@ var _hop_time: float = 0.0
 var _hop_duration: float = 0.0
 var _hop_height: float = 0.0
 var _hop_landing: Callable
-var _last_hit_move: StringName = &""
 
 @onready var health: Health = $Health
 @onready var hurtbox: Hurtbox = $Hurtbox
@@ -92,6 +91,7 @@ func _ready() -> void:
 	health.setup(max_health())
 	health.depleted.connect(_on_depleted)
 	hurtbox.hurt.connect(_on_hurt)
+	hurtbox.modifier = _answer
 	if species == &"shielder":
 		hurtbox.blocker = _blocks
 		hurtbox.blocked.connect(_on_blocked)
@@ -419,10 +419,23 @@ func _on_beat(index: int) -> void:
 		receive_beat(index)
 
 
+## La réponse attendue par ce Muet (docs/GDD.md §7, Tuning.muet_answers) fait plus de dégâts ;
+## le reste (couleurs, groove, note) suit dans _on_hurt.
+func _answer(hit: HitData) -> void:
+	var tuning: TuningData = Tuning.data
+	var answers: PackedStringArray = tuning.muet_answers.get(species, PackedStringArray())
+	var stunned: bool = state_machine.current != null and state_machine.current.name == &"Stunned"
+	var behind: bool = species == &"shielder" and not EnemyMath.shield_blocks(facing(), hit.direction, tuning.shielder_block_angle)
+	if EnemyMath.is_answer(answers, hit.move, stunned, behind):
+		hit.answer = true
+		hit.damage *= tuning.answer_damage
+
+
 func _on_hurt(hit: HitData) -> void:
 	var tuning: TuningData = Tuning.data
-	_last_hit_move = hit.move
 	body.flash(tuning.muet_hit_flash_time)
+	if hit.answer:
+		_on_answered(hit)
 	_knockback = hit.direction * tuning.muet_knockback_speed * stat_or(&"knockback_factor", 1.0)
 	_knockback_left = tuning.muet_knockback_time
 	if hit.attacker is Hero:
@@ -440,6 +453,18 @@ func _on_hurt(hit: HitData) -> void:
 		stun(tuning.shielder_dive_stun)
 	elif state and state.interruptible() and not is_boss():
 		state_machine.transition_to(state_machine.initial_state.name)
+
+
+## Bonne réponse : ses couleurs reviennent un instant dans une gerbe de cubes ; le héros l'entend.
+func _on_answered(hit: HitData) -> void:
+	var tuning: TuningData = Tuning.data
+	body.glimmer(tuning.answer_glimmer, tuning.answer_glimmer_time)
+	var fx: Effects = effects()
+	if fx:
+		fx.burst(global_position + Vector3.UP * body.height, tuning.fx_answer_cubes, tuning.fx_answer_speed)
+	var hero: Hero = hit.attacker as Hero
+	if hero:
+		hero.on_answer(species)
 
 
 ## Le porte-bouclier bloque les coups venus de face (sauf s'il est étourdi, et sauf les plongeons

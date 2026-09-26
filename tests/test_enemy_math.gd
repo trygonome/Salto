@@ -66,3 +66,19 @@ func test_laisse() -> void:
 func test_points_de_vie_du_heros() -> void:
 	assert_eq(CombatMath.hero_max_health(1, tuning), tuning.hero_health_base)
 	assert_eq(CombatMath.hero_max_health(2, tuning), tuning.hero_health_base + tuning.hero_health_per_level)
+
+
+func test_chaque_muet_attend_sa_reponse() -> void:
+	var tuning: TuningData = Tuning.data
+	for species: StringName in [&"hopper", &"flyer", &"shielder", &"charger", &"spitter", &"boss"]:
+		assert_gt(tuning.muet_answers.get(species, PackedStringArray()).size(), 0, "réponse du %s (docs/GDD.md §7)" % species)
+	var shield: PackedStringArray = tuning.muet_answers[&"shielder"]
+	assert_true(EnemyMath.is_answer(shield, &"dive", false, false), "plonger dessus")
+	assert_true(EnemyMath.is_answer(shield, &"martelo", false, true), "passer derrière")
+	assert_false(EnemyMath.is_answer(shield, &"martelo", false, false))
+	var charge: PackedStringArray = tuning.muet_answers[&"charger"]
+	assert_true(EnemyMath.is_answer(charge, &"meia_lua", true, false), "frapper le cornu assommé")
+	assert_false(EnemyMath.is_answer(charge, &"meia_lua", false, false))
+	assert_true(EnemyMath.is_answer(tuning.muet_answers[&"hopper"], &"armada", false, false), "l'enchaînement complet")
+	assert_false(EnemyMath.is_answer(tuning.muet_answers[&"hopper"], &"martelo", false, false))
+	assert_gt(tuning.answer_damage, 1.0)

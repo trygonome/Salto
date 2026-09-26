@@ -140,6 +140,16 @@ func play_freed(duration: float) -> void:
 	tween.tween_property(self, "scale", Vector3.ZERO, duration / 2.0).set_ease(Tween.EASE_IN)
 
 
+## Bonne réponse : ses couleurs reviennent un instant (part `amount` de l'arc-en-ciel), puis
+## repartent en `duration` secondes.
+func glimmer(amount: float, duration: float) -> void:
+	if _freed:
+		return
+	_material.set_shader_parameter(&"vivid", amount)
+	var tween: Tween = create_tween()
+	tween.tween_property(_material, "shader_parameter/vivid", 0.0, duration).set_ease(Tween.EASE_IN)
+
+
 ## Libéré pour de bon (troupe du village) : ses couleurs lui sont rendues.
 func show_healed() -> void:
 	_freed = true

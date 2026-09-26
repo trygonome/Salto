@@ -115,6 +115,10 @@ const HINTS: Dictionary[StringName, String] = {
 	&"dive": "En l'air, frappe : plongeon !",
 	&"beat": "Frappe quand l'anneau se referme",
 	&"special": "Jauge pleine : frappe !",
+	&"answer_flyer": "Saute, frappe en l'air !",
+	&"answer_shielder": "Saute, plonge dessus !",
+	&"answer_charger": "Esquive, puis frappe !",
+	&"answer_spitter": "Roule, puis frappe !",
 }
 
 ## Boutons tactiles, HUD.

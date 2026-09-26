@@ -16,6 +16,8 @@ signal fainted
 signal second_wind
 ## Un appui sur Saut, Esquive ou Frappe (aides contextuelles).
 signal action_pressed(action: StringName)
+## Un Muet de l'espèce `species` a reçu la réponse qu'il attendait (docs/GDD.md §7).
+signal answered(species: StringName)
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 
@@ -90,6 +92,7 @@ var _air_peak: float = 0.0
 @onready var beat_ring: BeatRing = $BeatRing
 @onready var _hit_sound: AudioStreamPlayer = $HitSound
 @onready var _chime: AudioStreamPlayer = $ChimeSound
+@onready var _answer_sound: AudioStreamPlayer = $AnswerSound
 @onready var _hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var _dodge_sound: AudioStreamPlayer = $DodgeSound
 @onready var _jump_sound: AudioStreamPlayer = $JumpSound
@@ -415,6 +418,15 @@ func begin_sortie() -> void:
 	health.restore()
 	second_wind_used = false
 	fainted_now = false
+
+
+## Le héros a donné à un Muet de l'espèce `species` la réponse qu'il attendait (docs/GDD.md §7) :
+## une note, et la jauge de groove se remplit (le cercle de couleurs grandit).
+func on_answer(species: StringName) -> void:
+	groove.add(tuning.groove_answer * stats.groove)
+	_answer_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
+	_answer_sound.play()
+	answered.emit(species)
 
 
 ## Un Muet vient d'être libéré (appelé par le Muet sur le groupe « hero »).

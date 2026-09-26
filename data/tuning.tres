@@ -380,6 +380,20 @@ muet_health_per_tier = 9.0
 muet_damage_per_tier = 3.0
 muet_health_per_night = 0.25
 muet_damage_per_night = 0.15
+muet_answers = Dictionary[StringName, PackedStringArray]({
+&"boss": PackedStringArray("rainbow"),
+&"charger": PackedStringArray("stunned"),
+&"flyer": PackedStringArray("air_kick"),
+&"hopper": PackedStringArray("armada"),
+&"shielder": PackedStringArray("dive", "rainbow", "behind"),
+&"spitter": PackedStringArray("rolling_kick")
+})
+answer_damage = 1.6
+groove_answer = 2.0
+answer_glimmer = 0.7
+answer_glimmer_time = 0.6
+fx_answer_cubes = 14
+fx_answer_speed = 0.9
 muet_hit_time = 0.25
 muet_hit_widen = 0.2
 muet_hit_eyes_shut = 0.3

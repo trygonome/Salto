@@ -40,6 +40,12 @@ static func swoop_position(start: Vector3, direction: Vector3, length: float, gr
 	return Vector3(flat.x, ground + height, flat.z)
 
 
+## Vrai si le coup `move` est la réponse attendue parmi `answers` (voir Tuning.muet_answers) :
+## `stunned` : le Muet est étourdi ; `behind` : le coup est passé à côté de son bouclier.
+static func is_answer(answers: PackedStringArray, move: StringName, stunned: bool, behind: bool) -> bool:
+	return answers.has(String(move)) or (stunned and answers.has("stunned")) or (behind and answers.has("behind"))
+
+
 ## Vrai si un coup (`move`) passe par-dessus le bouclier (plongeon, Salto arc-en-ciel).
 static func goes_over_shield(move: StringName) -> bool:
 	return move == &"dive" or move == &"rainbow"

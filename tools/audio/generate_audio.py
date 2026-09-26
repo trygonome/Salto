@@ -225,6 +225,16 @@ def sfx_boss_freed():
     return out
 
 
+def sfx_answer():
+    """Bonne réponse à un Muet : sa voix revient un instant, deux notes de marimba qui montent."""
+    out = np.zeros(int(0.6 * RATE))
+    for k, d in enumerate([7, 12]):
+        seg = marimba(degree(d, 0), 0.45)
+        i = int(k * 0.07 * RATE)
+        out[i:i + len(seg)] += seg
+    return out
+
+
 def sfx_hurt():
     """Héros touché : un choc sourd et une note qui descend."""
     n = int(0.3 * RATE)
@@ -508,6 +518,7 @@ def main():
     write(ROOT / "assets/audio/ambience/night_ambience.wav", ambience_night(), peak=0.5)
     write(ROOT / "assets/audio/sfx/clink.wav", sfx_clink(), peak=0.45)
     write(ROOT / "assets/audio/sfx/spit.wav", sfx_spit(), peak=0.5)
+    write(ROOT / "assets/audio/sfx/answer.wav", sfx_answer(), peak=0.6)
 
 
 if __name__ == "__main__":
