@@ -167,6 +167,23 @@ func test_une_plume_arc_en_ciel_sur_chaque_perchoir_remplit_la_jauge() -> void:
 	assert_true(hero.groove.is_full(), "de quoi lancer le Salto arc-en-ciel")
 
 
+func test_la_jauge_de_groove_elargit_le_cercle_de_couleur() -> void:
+	await _open_level()
+	await _start()
+	hero.groove.empty()
+	for i: int in 10:
+		level.mood._process(0.5)
+	assert_almost_eq(level.mood.groove_radius(), tuning.groove_halo_min, 0.05, "jauge vide")
+	hero.groove.add(hero.groove.maximum)
+	for i: int in 10:
+		level.mood._process(0.5)
+	assert_almost_eq(level.mood.groove_radius(), tuning.groove_halo_max, 0.05, "jauge pleine")
+	hero.groove.empty()
+	get_tree().call_group(&"world_mood", &"burst")
+	level.mood._process(0.01)
+	assert_gt(level.mood.groove_radius(), tuning.groove_halo_max, "le Salto arc-en-ciel fait éclater les couleurs")
+
+
 func test_rentrer_au_village_ouvre_le_resume() -> void:
 	await _open_level()
 	await _start()

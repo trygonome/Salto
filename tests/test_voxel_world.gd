@@ -132,6 +132,15 @@ func test_les_mots_font_au_plus_cinq_mots() -> void:
 		assert_lte(GameTexts.word_count(text), 5, text)
 
 
+func test_le_groove_rend_la_couleur_autour_du_heros() -> void:
+	var tuning: TuningData = Tuning.data
+	assert_eq(WorldMood.halo_radius(0.0, tuning), tuning.groove_halo_min, "jauge vide : un petit cercle")
+	assert_eq(WorldMood.halo_radius(1.0, tuning), tuning.groove_halo_max, "jauge pleine : loin autour")
+	assert_gt(WorldMood.halo_radius(0.5, tuning), WorldMood.halo_radius(0.25, tuning))
+	assert_gt(tuning.groove_halo_burst, tuning.groove_halo_max, "le Salto arc-en-ciel le fait éclater")
+	assert_gt(tuning.groove_halo_min * 2.0, tuning.hero_height, "le héros porte toujours un peu de couleur")
+
+
 func test_la_jungle_revit_tambour_apres_tambour() -> void:
 	var tuning: TuningData = Tuning.data
 	assert_eq(WorldMood.life_target(0, 3, false), 0.0, "nuit muette : couleurs éteintes et immobiles")

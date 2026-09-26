@@ -370,6 +370,8 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 		var at: Vector3 = (orb as Node3D).global_position
 		if Vector2(at.x - global_position.x, at.z - global_position.z).length() < radius:
 			orb.call(&"pop")
+	if move == &"rainbow":
+		get_tree().call_group(&"world_mood", &"burst")
 	var fx: Effects = Effects.of(self)
 	if fx == null:
 		return

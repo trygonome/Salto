@@ -4,7 +4,9 @@ extends Node
 ## scenes/world/salto_world.gdshaderinc) : le temps qui fait onduler les couleurs, la saturation qui
 ## monte à chaque tambour rapporté, l'éclat du décor sur chaque temps de la musique, le brouillard
 ## qui change lentement de teinte, les sanctuaires libérés qui reprennent leurs couleurs,
-## l'objectif du chemin doré et la position du héros.
+## l'objectif du chemin doré, la position du héros et le cercle du groove : autour du héros, la
+## jungle retrouve ses couleurs d'autant plus loin que sa jauge de groove est pleine, et le Salto
+## arc-en-ciel le fait éclater.
 
 ## Héros suivi (pour le laisser voir à travers le décor).
 @export var hero: Node3D
@@ -17,13 +19,17 @@ var _freed: PackedFloat32Array = [0.0, 0.0, 0.0]
 var _sanctuaries := PackedVector2Array()
 var _won: bool = false
 var _life: float = 0.0
+var _halo: float = 0.0
+var _burst: float = 0.0
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
 
 func _ready() -> void:
+	add_to_group(&"world_mood")
 	var tuning: TuningData = Tuning.data
 	_saturation = saturation_target(0, false, tuning)
+	_halo = tuning.groove_halo_min
 	RenderingServer.global_shader_parameter_set(&"salto_unit", tuning.voxel_unit)
 	RenderingServer.global_shader_parameter_set(&"salto_fog_density", tuning.fog_density)
 	RenderingServer.global_shader_parameter_set(&"salto_cut", 1.0)
@@ -54,6 +60,13 @@ func pulse(amount: float) -> void:
 	_pulse = maxf(_pulse, amount)
 
 
+## Salto arc-en-ciel : le cercle du groove éclate loin autour du héros, tout le monde s'illumine.
+func burst() -> void:
+	var tuning: TuningData = Tuning.data
+	_burst = tuning.groove_halo_burst
+	pulse(tuning.rainbow_world_pulse)
+
+
 ## Bande dorée sur le sol, du village vers `point` (u) ; `outward` faux : elle défile vers le village.
 func set_target(point: Vector2, outward: bool) -> void:
 	RenderingServer.global_shader_parameter_set(&"salto_target", Vector4(point.x, point.y, 1.0, 1.0 if outward else -1.0))
@@ -75,6 +88,16 @@ static func life_target(drums: int, required: int, won: bool) -> float:
 	if won:
 		return 1.0
 	return clampf(float(drums) / maxf(1.0, float(required)), 0.0, 1.0) * Tuning.data.world_life_before_won
+
+
+## Rayon actuel du cercle du groove (m).
+func groove_radius() -> float:
+	return maxf(_halo, _burst)
+
+
+## Rayon du cercle du groove (m) pour une jauge remplie à `fraction` (0 à 1).
+static func halo_radius(fraction: float, tuning: TuningData) -> float:
+	return lerpf(tuning.groove_halo_min, tuning.groove_halo_max, clampf(fraction, 0.0, 1.0))
 
 
 ## Couleur d'une teinte, saturation, luminosité (0 à 1), comme THREE.Color.setHSL.
@@ -110,6 +133,11 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set(&"salto_fog_color", Vector4(fog.r, fog.g, fog.b, 1.0))
 	if is_instance_valid(hero):
 		RenderingServer.global_shader_parameter_set(&"salto_player", hero.global_position + Vector3.UP * tuning.cutaway_height)
+	var gauge: GrooveGauge = (hero as Hero).groove if hero is Hero else null
+	var halo: float = halo_radius(gauge.fraction() if gauge else 0.0, tuning)
+	_halo += (halo - _halo) * Smoothing.weight(tuning.groove_halo_rate, delta)
+	_burst = maxf(0.0, _burst - tuning.groove_halo_burst_decay * delta)
+	RenderingServer.global_shader_parameter_set(&"salto_groove", groove_radius())
 
 
 func _push_sanctuaries() -> void:

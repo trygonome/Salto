@@ -8,6 +8,9 @@ global uniform float salto_beat;
 // Vie de la jungle, de 0 (nuit muette : couleurs éteintes et immobiles) à 1 (nuit gagnée : toutes
 // les couleurs du prototype, qui dansent). Chaque tambour rapporté en rend une part.
 global uniform float salto_life;
+// Cercle du groove : rayon (m) autour du héros où la jungle retrouve toutes ses couleurs. La jauge
+// de groove le fait grandir ; le Salto arc-en-ciel le fait éclater.
+global uniform float salto_groove;
 // Couleur du brouillard (TSL déjà converti en RVB d'écran) et densité par mètre.
 global uniform vec4 salto_fog_color;
 global uniform float salto_fog_density;
@@ -41,6 +44,19 @@ float salto_zone(vec2 p) {
 		f = min(f, mix(smoothstep(SALTO_SILENCE_INNER, SALTO_SILENCE_OUTER, d), 1.0, s[i].z));
 	}
 	return f;
+}
+
+// Saturation rendue dans le cercle du groove (celle d'une nuit presque gagnée) : les teintes
+// restent celles de la jungle, seules leurs couleurs reviennent.
+const float SALTO_HALO_SAT = 0.9;
+
+// 1 dans le cercle du groove autour du héros, 0 au-delà (bord doux). `world` en mètres.
+float salto_halo(vec3 world) {
+	if (salto_groove <= 0.0) {
+		return 0.0;
+	}
+	float d = length(world.xz - salto_player.xz);
+	return 1.0 - smoothstep(salto_groove * 0.55, salto_groove, d);
 }
 
 vec3 salto_fog(vec3 c, float depth_m) {

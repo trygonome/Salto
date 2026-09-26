@@ -1,7 +1,7 @@
 shader_type spatial;
 // Sol du monde voxel (prototype) : dalles de 2 u dont la teinte ondule avec la vie de la jungle,
-// place du village et
-// chemins dorés vers les sanctuaires, autels violets, bande dorée qui défile vers l'objectif.
+// place du village et chemins dorés vers les sanctuaires, autels violets, bande dorée qui défile
+// vers l'objectif. Dans le cercle du groove, autour du héros, le sol retrouve ses couleurs.
 render_mode unshaded;
 
 #include "res://scenes/world/salto_world.gdshaderinc"
@@ -26,6 +26,7 @@ void fragment() {
 	float e = min(min(f.x, f.y), min(1.0 - f.x, 1.0 - f.y));
 	float r = length(p);
 	float n = fract(sin(dot(t, vec2(12.9898, 78.233))) * 43758.5453);
+	float halo = salto_halo(v_world);
 	float h = fract(0.33 + n * 0.08 + (salto_time * 0.03 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12) * salto_life);
 	float s = 0.72;
 	float l = 0.32 + n * 0.08;
@@ -44,8 +45,9 @@ void fragment() {
 		s = 0.5;
 		l = 0.36 + n * 0.05;
 	}
-	s *= salto_sat * salto_zone(p);
-	l += salto_beat * 0.05 * salto_sat;
+	float sat = salto_sat * salto_zone(p);
+	s *= mix(sat, max(sat, SALTO_HALO_SAT), halo);
+	l += salto_beat * 0.05 * max(salto_sat, halo * SALTO_HALO_SAT);
 	l *= mix(0.62, 1.0, smoothstep(0.02, 0.07, e));
 	l *= 1.0 - smoothstep(80.0, 96.0, r) * 0.45;
 	vec3 c = salto_hsl2rgb(vec3(h, s, l));

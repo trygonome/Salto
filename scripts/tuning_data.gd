@@ -671,6 +671,16 @@ extends Resource
 @export var world_saturation_pulse_decay: float
 ## Vitesse à laquelle un sanctuaire libéré reprend ses couleurs (1/s).
 @export var world_freed_rate: float
+## Cercle du groove autour du héros, où la jungle retrouve toutes ses couleurs : rayon avec la jauge
+## vide et pleine (m), vitesse à laquelle il suit la jauge (1/s).
+@export var groove_halo_min: float
+@export var groove_halo_max: float
+@export var groove_halo_rate: float
+## Salto arc-en-ciel : le cercle éclate jusqu'à ce rayon (m) puis retombe (m/s) ; éclat de
+## saturation de tout le monde.
+@export var groove_halo_burst: float
+@export var groove_halo_burst_decay: float
+@export var rainbow_world_pulse: float
 ## Le monde s'anime plus vite quand la nuit est gagnée.
 @export var world_time_speed_won: float
 ## Éclat du décor sur le temps : décroissance après chaque temps.

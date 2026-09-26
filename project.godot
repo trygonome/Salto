@@ -145,6 +145,10 @@ salto_life={
 "type": "float",
 "value": 0.0
 }
+salto_groove={
+"type": "float",
+"value": 0.0
+}
 salto_fog_color={
 "type": "vec4",
 "value": Vector4(0.23, 0.11, 0.36, 1)
