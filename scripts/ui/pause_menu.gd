@@ -1,10 +1,13 @@
 class_name PauseMenu
 extends ScreenLayer
 ## Pause du prototype : la nuit en cours, un rappel des gestes, Reprendre, Sac et Talents (au
-## village seulement : c'est là que le héros grandit), Vibrations, Son, chiffres de dégâts (et
+## village seulement : c'est là que le héros grandit), Carnet, Vibrations, Son, chiffres de dégâts (et
 ## infos techniques des versions de test), Rentrer au village (touché deux fois : la sortie se
 ## termine). S'ouvre avec le bouton de pause, Échap / Start, le bouton retour d'Android, ou quand
 ## le jeu passe en arrière-plan.
+
+## Pages du carnet (leur nombre).
+@export var notebook: NotebookData
 
 var _quit_armed: bool = false
 
@@ -12,6 +15,7 @@ var _quit_armed: bool = false
 @onready var _resume: Button = %Resume
 @onready var _bag: Button = %Bag
 @onready var _talents: Button = %Talents
+@onready var _notebook: Button = %Notebook
 @onready var _sound: Button = %Sound
 @onready var _damage: Button = %DamageNumbers
 @onready var _vibration: Button = %Vibration
@@ -28,6 +32,7 @@ func _ready() -> void:
 	_resume.pressed.connect(close)
 	_bag.pressed.connect(func() -> void: _open_sub(&"bag_screen"))
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
+	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
 	_sound.pressed.connect(func() -> void:
 		Game.set_muted(not Game.profile.muted)
 		_refresh())
@@ -111,6 +116,7 @@ func _refresh() -> void:
 		_talents.text = GameTexts.TALENTS_AT_VILLAGE
 	_sound.text = GameTexts.SOUND_OFF if profile.muted else GameTexts.SOUND_ON
 	_damage.text = GameTexts.DAMAGE_NUMBERS_ON if profile.damage_numbers else GameTexts.DAMAGE_NUMBERS_OFF
+	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
 	_vibration.text = GameTexts.VIBRATION_ON if profile.vibration else GameTexts.VIBRATION_OFF
 	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF
 	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else GameTexts.QUIT

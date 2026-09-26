@@ -9,6 +9,7 @@ const PauseScene: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
 const BagScene: PackedScene = preload("res://scenes/ui/bag_screen.tscn")
 const TalentsScene: PackedScene = preload("res://scenes/ui/talents_screen.tscn")
 const SummaryScene: PackedScene = preload("res://scenes/ui/summary_screen.tscn")
+const NotebookScene: PackedScene = preload("res://scenes/ui/notebook_screen.tscn")
 const HintZoneScript: GDScript = preload("res://scripts/levels/props/hint_zone.gd")
 
 var hud: Hud
@@ -186,6 +187,34 @@ func test_les_vibrations_se_coupent_dans_la_pause() -> void:
 	assert_false(Game.profile.vibration)
 	assert_eq(button.text, GameTexts.VIBRATION_OFF)
 	assert_false(Save.load_profile().vibration, "gardé")
+
+
+func test_le_carnet_raconte_les_pages_trouvees_et_dit_ou_chercher_les_autres() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	var screen: NotebookScreen = NotebookScene.instantiate() as NotebookScreen
+	world.add_child(menu)
+	world.add_child(screen)
+	Game.add_page(5)
+	menu.open()
+	var button: Button = menu.get_node("%Notebook") as Button
+	assert_eq(button.text, GameTexts.NOTEBOOK_BUTTON % [1, screen.notebook.pages.size()])
+	button.pressed.emit()
+	assert_true(screen.is_open(), "le carnet s'ouvre depuis la pause")
+	var texts: Array[String] = []
+	for label: Node in screen.find_children("*", "Label", true, false):
+		texts.append((label as Label).text)
+	assert_has(texts, screen.notebook.text(5), "la page trouvée se lit")
+	assert_false(texts.has(screen.notebook.text(1)), "les autres restent cachées")
+	assert_has(texts, GameTexts.PAGE_GONGS % 1, "la page 1 : les gongs de la nuit 1")
+	screen.go_back()
+	assert_true(menu.is_open(), "retour : du carnet à la pause")
+
+
+func test_une_page_trouvee_se_montre_en_petite_carte() -> void:
+	Game.add_page(3)
+	var card: Control = hud.get_node("%LootCard") as Control
+	assert_true(card.visible)
+	assert_eq((hud.get_node("%CardName") as Label).text, GameTexts.PAGE_FOUND % 3)
 
 
 func test_rentrer_au_village_se_confirme() -> void:

@@ -11,8 +11,10 @@ extends CanvasLayer
 ## - voile rose quand le héros est touché ; chiffres de dégâts discrets et désactivables.
 
 ## Couleur de chaque rareté (commun, rare, épique, légendaire), pictogramme de chaque emplacement
-## (carte de l'objet trouvé).
+## (carte de l'objet trouvé) ; pictogramme et couleur de la carte d'une page du carnet.
 @export var rarity_colors: Array[Color]
+@export var page_icon: Texture2D
+@export var page_color: Color
 @export var slot_icons: Array[Texture2D]
 ## Icônes de l'objectif : village, tambour, sanctuaire, nuit accomplie.
 @export var quest_icons: Dictionary[StringName, Texture2D]
@@ -131,6 +133,7 @@ func _ready() -> void:
 	Game.sanctuary_freed.connect(func() -> void:
 		show_banner(GameTexts.BANNER_SANCTUARY, GameTexts.BANNER_SANCTUARY_TITLE, GameTexts.BANNER_SANCTUARY_DETAIL))
 	Game.item_found.connect(_on_item_found)
+	Game.page_found.connect(_on_page_found)
 	Game.level_up.connect(func(_level: int) -> void: _pulse_level())
 	Game.sortie_started.connect(func() -> void: _quest_key = "")
 	get_viewport().size_changed.connect(_layout)
@@ -576,10 +579,20 @@ func _on_hero_hurt(_hit: HitData) -> void:
 
 ## Objet trouvé : petite carte en bas (charte des retours à l'écran).
 func _on_item_found(item: ItemData) -> void:
+	_show_card(slot_icons[item.slot], GameTexts.item_name(item), rarity_colors[item.rarity])
+
+
+## Page du carnet trouvée : petite carte en bas.
+func _on_page_found(page: int) -> void:
+	_show_card(page_icon, GameTexts.PAGE_FOUND % page, page_color)
+
+
+## Petite carte en bas, au-dessus des boutons, pendant un moment.
+func _show_card(icon: Texture2D, text: String, color: Color) -> void:
 	var tuning: TuningData = Tuning.data
-	_card_icon.texture = slot_icons[item.slot]
-	_card_name.text = GameTexts.item_name(item)
-	_card_name.modulate = rarity_colors[item.rarity]
+	_card_icon.texture = icon
+	_card_name.text = text
+	_card_name.modulate = color
 	_card.visible = true
 	_card.modulate.a = 0.0
 	_card.reset_size()

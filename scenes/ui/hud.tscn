@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="14_anklets"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="15_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="16_talisman"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/page.svg" id="40_page"]
 
 [sub_resource type="Gradient" id="Gradient_flash"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -32,6 +33,8 @@ fill_to = Vector2(1, 0.5)
 layer = 11
 script = ExtResource("1_hud")
 rarity_colors = Array[Color]([Color(0.851, 0.831, 0.902, 1), Color(0.31, 0.702, 1, 1), Color(0.78, 0.49, 1, 1), Color(1, 0.761, 0.2, 1)])
+page_icon = ExtResource("40_page")
+page_color = Color(1, 0.957, 0.839, 1)
 slot_icons = Array[Texture2D]([ExtResource("14_anklets"), ExtResource("15_mask"), ExtResource("16_talisman")])
 quest_icons = Dictionary[StringName, Texture2D]({
 &"crown": ExtResource("7_crown"),

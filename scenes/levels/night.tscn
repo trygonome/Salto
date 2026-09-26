@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=42 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/title_screen.tscn" id="27_title"]
 [ext_resource type="PackedScene" path="res://scenes/ui/bag_screen.tscn" id="28_bag"]
 [ext_resource type="PackedScene" path="res://scenes/ui/talents_screen.tscn" id="29_talents"]
+[ext_resource type="PackedScene" path="res://scenes/ui/notebook_screen.tscn" id="43_notebook_screen"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/plume_pickup.tscn" id="30_plume"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/fruit.tscn" id="31_fruit"]
 [ext_resource type="Script" path="res://scripts/levels/objective_guide.gd" id="32_guide"]
@@ -36,6 +37,9 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter.tscn" id="93_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/gong.tscn" id="40_gong"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="41_chest"]
+[ext_resource type="Resource" path="res://data/notebook.tres" id="42_notebook"]
 
 [sub_resource type="CylinderShape3D" id="Shape_village"]
 height = 4.0
@@ -52,6 +56,9 @@ spitter_scene = ExtResource("93_spitter")
 boss_scene = ExtResource("4_boss")
 drum_scene = ExtResource("5_drum")
 plume_scene = ExtResource("30_plume")
+gong_scene = ExtResource("40_gong")
+chest_scene = ExtResource("41_chest")
+notebook = ExtResource("42_notebook")
 fruit_scene = ExtResource("31_fruit")
 character_material = ExtResource("16_actor")
 character_shadow_material = ExtResource("26_actor_shadow")
@@ -128,6 +135,8 @@ autoplay = true
 [node name="BagScreen" parent="." instance=ExtResource("28_bag")]
 
 [node name="TalentsScreen" parent="." instance=ExtResource("29_talents")]
+
+[node name="NotebookScreen" parent="." instance=ExtResource("43_notebook_screen")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
 

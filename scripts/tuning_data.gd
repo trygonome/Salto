@@ -1009,6 +1009,16 @@ extends Resource
 @export_group("Sorties")
 ## Nombre de nuits de la saga (la dernière l'achève ; ensuite, les nuits sans fin).
 @export var saga_nights: int
+## Réplique d'un Grand Muet libéré : durée de la bulle au-dessus de lui (s).
+@export var boss_voice_time: float
+## Cercle des gongs : rayon du cercle (m), zone où il joue sa mélodie (rayon m), notes des gongs
+## (demi-tons, gamme pentatonique), longueur de la mélodie selon la nuit (1, 2, 3 et plus), temps
+## d'attente avant la mélodie (temps de musique).
+@export var gong_circle_radius: float
+@export var gong_zone_radius: float
+@export var gong_semitones: PackedFloat32Array
+@export var gong_melody_lengths: PackedInt32Array
+@export var gong_wait_beats: int
 ## Plume arc-en-ciel au sommet de chaque perchoir : part de la jauge de groove remplie, portée
 ## (m), hauteur (m).
 @export var perch_groove: float

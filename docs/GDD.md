@@ -68,8 +68,14 @@ d'une espèce, un conseil près du bon bouton apprend sa réponse.
 (un bond un temps sur deux) jusqu'à la fin de la nuit ; les Grands Muets aussi, avec leur couronne.
 
 ## 8. Secrets
-- **Cercle des gongs** : 4 gongs jouent une mélodie au rythme ; la rejouer dans l'ordre fait apparaître un coffre.
-- **Coffres cachés** en hauteur (piliers, perchoirs) : un objet + une page du carnet.
+- **Cercle des gongs** : dans une clairière près d'un chemin, 4 gongs jouent une mélodie au rythme (3 notes la
+  nuit 1, 4 la nuit 2, 5 ensuite) ; la rejouer dans l'ordre fait apparaître un coffre.
+- **Coffres cachés** au sommet des perchoirs : une page du carnet, et le rythme qu'ils gardaient remplit la jauge
+  de groove (pas d'objet : les objets sont les cadeaux des Grands Muets).
+- **Le carnet** (12 pages) raconte le Grand Silence : chaque nuit de la saga cache ses pages (le coffre des gongs
+  garde la première) ; le Roi Muet se révèle la nuit 5. L'écran Carnet (pause, titre) dit où chercher les pages
+  manquantes. Une page trouvée : petite carte en bas.
+- **Grand Muet libéré** : il retrouve sa voix, une courte réplique au-dessus de lui.
 
 ## 9. Progression
 Le héros **grandit au village** : c'est là que l'on revient, que l'on fête et que l'on se prépare.

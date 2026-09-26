@@ -99,8 +99,9 @@ func test_le_champignon_relance_tres_haut() -> void:
 	assert_gt(apex, 1.3 + _expected_apex(tuning.mushroom_bounce_speed, tuning.gravity_rise_released) * 0.8, "rebond bien plus haut qu'un saut")
 
 
-func test_le_coffre_donne_une_page_et_un_objet() -> void:
+func test_le_coffre_donne_une_page_et_remplit_la_jauge() -> void:
 	await _spawn_on_flat_ground()
+	hero.groove.empty()
 	var chest: Node3D = Chest.instantiate() as Node3D
 	chest.set(&"page", 5)
 	chest.position = Vector3(0.0, 0.0, -2.0)
@@ -108,14 +109,9 @@ func test_le_coffre_donne_une_page_et_un_objet() -> void:
 	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
 	await _step(10)
 	assert_eq(Game.progress.pages, [5] as Array[int])
-	var bag: int = Game.profile.items.size()
-	var loot: Array[Node] = world.find_children("LootDrop*", "Node3D", true, false)
-	assert_eq(loot.size(), 1, "un objet jaillit")
-	await _step(40)
-	await _walk_to(chest.global_position + Vector3.RIGHT * 0.9)
-	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
-	await _step(10)
-	assert_eq(Game.profile.items.size(), bag + 1, "l'objet est ramassé")
+	assert_true(Game.profile.has_page(5))
+	assert_true(hero.groove.is_full(), "le rythme qu'il gardait remplit la jauge")
+	assert_eq(world.find_children("LootDrop*", "Node3D", true, false).size(), 0, "pas de butin au sol")
 
 
 func test_un_coffre_deja_trouve_est_ouvert_et_vide() -> void:
@@ -150,34 +146,7 @@ func test_le_village_soigne() -> void:
 
 
 func _gong_circle(melody: PackedInt32Array) -> Node3D:
-	var circle := Node3D.new()
-	circle.set_script(load("res://scripts/levels/props/gong_circle.gd"))
-	var zone := Area3D.new()
-	zone.name = "Zone"
-	zone.collision_layer = 0
-	zone.collision_mask = 2
-	var shape := CollisionShape3D.new()
-	var cylinder := CylinderShape3D.new()
-	cylinder.radius = 4.0
-	cylinder.height = 3.0
-	shape.shape = cylinder
-	zone.add_child(shape)
-	circle.add_child(zone)
-	var gongs: Array[Gong] = []
-	for i: int in 3:
-		var gong: Gong = GongScene.instantiate() as Gong
-		gong.index = i
-		gong.position = Vector3.FORWARD.rotated(Vector3.UP, TAU * i / 3.0) * 3.0
-		circle.add_child(gong)
-		gongs.append(gong)
-	var chest: Node3D = Chest.instantiate() as Node3D
-	chest.set(&"hidden", true)
-	chest.set(&"page", 5)
-	circle.add_child(chest)
-	circle.set(&"melody", melody)
-	circle.set(&"gongs", gongs)
-	circle.set(&"chest", chest)
-	circle.set(&"wait_beats", 1)
+	var circle: GongCircle = GongCircle.create(GongScene, Chest, melody, PackedFloat32Array([0.0, 2.0, 4.0]), 3.0, 4.0, 5, 1)
 	world.add_child(circle)
 	return circle
 

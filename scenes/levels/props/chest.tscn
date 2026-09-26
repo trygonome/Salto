@@ -1,70 +1,30 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/props/chest.gd" id="1_chest"]
-[ext_resource type="PackedScene" path="res://scenes/levels/props/loot_drop.tscn" id="2_loot"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/chest.wav" id="3_sound"]
-
-[sub_resource type="StandardMaterial3D" id="Material_wood"]
-albedo_color = Color(0.55, 0.32, 0.16, 1)
-roughness = 0.8
-
-[sub_resource type="BoxMesh" id="Mesh_base"]
-material = SubResource("Material_wood")
-size = Vector3(0.9, 0.5, 0.6)
-
-[sub_resource type="BoxMesh" id="Mesh_lid"]
-material = SubResource("Material_wood")
-size = Vector3(0.92, 0.18, 0.62)
-
-[sub_resource type="StandardMaterial3D" id="Material_gold"]
-albedo_color = Color(1, 0.78, 0.3, 1)
-metallic = 0.7
-roughness = 0.3
-emission_enabled = true
-emission = Color(1, 0.7, 0.25, 1)
-emission_energy_multiplier = 0.8
-
-[sub_resource type="BoxMesh" id="Mesh_band"]
-material = SubResource("Material_gold")
-size = Vector3(0.1, 0.72, 0.64)
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="4_voxel"]
 
 [sub_resource type="BoxShape3D" id="Shape_chest"]
-size = Vector3(0.9, 0.68, 0.6)
+size = Vector3(0.9, 0.7, 0.7)
 
 [sub_resource type="SphereShape3D" id="Shape_zone"]
 radius = 0.9
 
 [node name="Chest" type="Node3D"]
 script = ExtResource("1_chest")
-loot_scene = ExtResource("2_loot")
 lid_open_deg = 110.0
 open_time = 0.4
 rise_depth = 1.0
 rise_time = 0.8
-
-[node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("Mesh_base")
-
-[node name="BandLeft" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.36, 0)
-mesh = SubResource("Mesh_band")
-
-[node name="BandRight" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.36, 0)
-mesh = SubResource("Mesh_band")
+material = ExtResource("4_voxel")
+cell = 0.1
 
 [node name="Lid" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.31)
-
-[node name="Mesh" type="MeshInstance3D" parent="Lid"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, -0.31)
-mesh = SubResource("Mesh_lid")
 
 [node name="Body" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
 shape = SubResource("Shape_chest")
 
 [node name="Zone" type="Area3D" parent="."]

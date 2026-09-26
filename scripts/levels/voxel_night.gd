@@ -20,6 +20,10 @@ extends Node3D
 @export var drum_scene: PackedScene
 ## Plume d'un perchoir, fruit.
 @export var plume_scene: PackedScene
+## L'histoire cachée dans la nuit : gong, coffre, pages du carnet.
+@export var gong_scene: PackedScene
+@export var chest_scene: PackedScene
+@export var notebook: NotebookData
 @export var fruit_scene: PackedScene
 ## Matériau des personnages voxel (villageois, troupe des Muets libérés) et de leurs ombres rondes.
 @export var character_material: Material
@@ -41,8 +45,8 @@ const KING_SANCTUARY := 2
 const HINT_BUTTONS: Array[Array] = [
 	[&"move", TouchControls.MOVE], [&"attack", &"attack"], [&"jump", &"jump"], [&"salto", &"jump"],
 	[&"combo", &"attack"], [&"dodge", &"dodge"], [&"answer_flyer", &"jump"], [&"answer_shielder", &"jump"],
-	[&"answer_charger", &"dodge"], [&"answer_spitter", &"dodge"], [&"dive", &"attack"], [&"beat", &"attack"],
-	[&"special", &"attack"],
+	[&"answer_charger", &"dodge"], [&"answer_spitter", &"dodge"], [&"gongs", &"attack"], [&"dive", &"attack"],
+	[&"beat", &"attack"], [&"special", &"attack"],
 ]
 ## Préfixe des conseils de réponse (suivi de l'espèce).
 const ANSWER_HINT := "answer_"
@@ -56,6 +60,9 @@ var guards: Array[Array] = []
 var in_sortie: bool = false
 ## Les Muets libérés cette nuit, qui dansent au village.
 var band: VillageBand
+## Cercle des gongs de la nuit (null : aucun, nuits sans fin) ; perchoirs qui portent un coffre.
+var gong_circle: GongCircle
+var chest_perches: Array[int] = []
 
 var _rng := RandomNumberGenerator.new()
 ## Objectif gardé d'une image à l'autre ; à recalculer quand la nuit avance.
@@ -101,6 +108,7 @@ func _ready() -> void:
 	for i: int in gen.sanctuaries.size():
 		_place_drum(i)
 		guards.append([])
+	_place_story()
 	_place_perches()
 	Game.night_completed.connect(_on_night_completed)
 	Game.drum_returned.connect(_on_drum_returned)
@@ -326,9 +334,43 @@ func _place_drum(index: int) -> void:
 	drums.append(drum)
 
 
-## Une plume arc-en-ciel au sommet de chaque perchoir.
+## L'histoire cachée dans la nuit (docs/GDD.md §8) : le cercle des gongs, dans sa clairière, garde
+## la première page de la nuit ; les suivantes attendent dans des coffres au sommet des premiers
+## perchoirs (une page déjà trouvée y laisse la plume arc-en-ciel). Mélodie tirée pour la nuit.
+func _place_story() -> void:
+	var pages: PackedInt32Array = notebook.pages_of_night(Game.night)
+	if pages.is_empty():
+		return
+	var tuning: TuningData = Tuning.data
+	if gen.gong_clearing != Vector2.INF:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = Game.world_seed()
+		var length: int = tuning.gong_melody_lengths[mini(Game.night, tuning.gong_melody_lengths.size()) - 1]
+		var tune := PackedInt32Array()
+		for i: int in length:
+			tune.append(rng.randi_range(0, tuning.gong_semitones.size() - 1))
+		gong_circle = GongCircle.create(gong_scene, chest_scene, tune, tuning.gong_semitones, tuning.gong_circle_radius, tuning.gong_zone_radius, pages[0], tuning.gong_wait_beats)
+		gong_circle.position = to_world(gen.gong_clearing)
+		pickups.add_child(gong_circle)
+		for gong: Gong in gong_circle.gongs:
+			gong.struck.connect(func(_gong: Gong) -> void: _learn(&"gongs"))
+	for k: int in range(1, pages.size()):
+		var perch: int = k - 1
+		if perch >= gen.pickups.size() or Game.profile.has_page(pages[k]):
+			continue
+		var chest: Node3D = chest_scene.instantiate() as Node3D
+		chest.set(&"page", pages[k])
+		var p: Vector3 = gen.pickups[perch]
+		chest.position = Vector3(p.x, p.y - WorldGen.PERCH_ABOVE, p.z) * _unit
+		pickups.add_child(chest)
+		chest_perches.append(perch)
+
+
+## Une plume arc-en-ciel au sommet de chaque perchoir (sauf ceux qui portent un coffre).
 func _place_perches() -> void:
 	for i: int in gen.pickups.size():
+		if chest_perches.has(i):
+			continue
 		var plume: PlumePickup = plume_scene.instantiate() as PlumePickup
 		var p: Vector3 = gen.pickups[i]
 		plume.position = Vector3(p.x, p.y, p.z) * _unit
@@ -432,9 +474,15 @@ func _on_muet_freed(muet: Muet) -> void:
 		_drop(fruit_scene, muet.global_position)
 
 
-## Un Grand Muet libéré laisse un fruit, et son cadeau part avec le tambour qu'il libère.
+## Un Grand Muet libéré retrouve sa voix (une réplique au-dessus de lui), laisse un fruit, et son
+## cadeau part avec le tambour qu'il libère.
 func _on_boss_freed(muet: Muet, index: int) -> void:
 	_drop(fruit_scene, muet.global_position)
+	var voice := Node3D.new()
+	voice.position = muet.global_position
+	pickups.add_child(voice)
+	get_tree().create_timer(Tuning.data.boss_voice_time, false).timeout.connect(voice.queue_free)
+	hud.show_bubble(GameTexts.BOSS_FREED_LINES[(Game.night + index) % GameTexts.BOSS_FREED_LINES.size()], voice, muet.body.height)
 	if not Game.progress.freed[index]:
 		Game.give_gift(index, muet.king)
 		(drums[index].call(&"release"))
@@ -567,6 +615,8 @@ func _hint_applies(id: StringName) -> bool:
 			return _attacks >= tuning.hint_beat_after
 		&"special":
 			return hero.groove.is_full()
+		&"gongs":
+			return gong_circle != null and gong_circle.phase == GongCircle.Phase.LISTENING
 	if String(id).begins_with(ANSWER_HINT):
 		return _species_near(StringName(String(id).trim_prefix(ANSWER_HINT)), tuning.hint_near_distance)
 	return false

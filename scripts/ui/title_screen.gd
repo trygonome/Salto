@@ -2,10 +2,12 @@ class_name TitleScreen
 extends ScreenLayer
 ## Écran titre du prototype, par-dessus le village qui danse : SALTO, la saga des cinq nuits (faites,
 ## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
-## Talents, Nouvelle partie (touchée deux fois).
+## Talents, Carnet, Nouvelle partie (touchée deux fois).
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
+## Pages du carnet (leur nombre).
+@export var notebook: NotebookData
 
 var _reset_armed: bool = false
 
@@ -15,6 +17,7 @@ var _reset_armed: bool = false
 @onready var _play: Button = %Play
 @onready var _bag: Button = %Bag
 @onready var _talents: Button = %Talents
+@onready var _notebook: Button = %Notebook
 @onready var _new_game: Button = %NewGame
 
 
@@ -26,6 +29,7 @@ func _ready() -> void:
 	_play.pressed.connect(_on_play)
 	_bag.pressed.connect(func() -> void: _open_sub(&"bag_screen"))
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
+	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
 	_new_game.pressed.connect(_on_new_game)
 
 
@@ -72,6 +76,7 @@ func refresh() -> void:
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME
 	_bag.text = GameTexts.BAG_BUTTON
+	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
 
 

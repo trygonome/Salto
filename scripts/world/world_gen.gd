@@ -26,6 +26,18 @@ const DANCERS: PackedVector2Array = [
 ]
 const DANCER_R := 1.0
 const SLOT_R := 1.6
+## Hauteur de la plume (ou du coffre) au-dessus du dernier rocher d'un perchoir (u).
+const PERCH_ABOVE := 1.2
+## Clairière du cercle des gongs (u) : rayon libre, entre ces distances du village, à cette distance
+## au plus d'un chemin (qu'on la trouve en passant), loin des sanctuaires ; tirage à part (le monde
+## du prototype ne change pas).
+const CLEARING_R := 6.0
+const CLEARING_MIN := 26.0
+const CLEARING_MAX := 60.0
+const CLEARING_PATH := 7.0
+const CLEARING_SANCTUARY := 20.0
+const CLEARING_TRIES := 600
+const CLEARING_SALT := 0x5A170
 const SLOT_H := 1.0
 const TOTEM := Vector2(0.0, -12.5)
 ## Hauteur de l'autel d'un sanctuaire, où attend le tambour.
@@ -63,6 +75,8 @@ var sanctuaries := PackedVector2Array()
 var sanctuary_names := PackedStringArray()
 var huts := PackedVector2Array()
 var totem_height: int = 0
+## Centre de la clairière du cercle des gongs (u) ; Vector2.INF si aucune n'est libre.
+var gong_clearing := Vector2.INF
 
 var _rng: ProtoRandom
 
@@ -120,6 +134,7 @@ func generate(seed_value: int, nights_done: int) -> void:
 		if near_path(p, 3.5):
 			continue
 		_sv(p.x, 0.25, p.y, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+	gong_clearing = _find_clearing(ProtoRandom.new(seed_value ^ CLEARING_SALT))
 
 
 func voxel_count() -> int:
@@ -172,6 +187,20 @@ func _add_solid(x: float, z: float, r: float, h: float = WALL, kind: StringName 
 
 func _shadow(x: float, z: float, r: float, alpha: float) -> void:
 	shadows.append_array(PackedFloat32Array([x, z, r, alpha]))
+
+
+## Une clairière libre pour le cercle des gongs, près d'un chemin (Vector2.INF si aucune).
+func _find_clearing(rng: ProtoRandom) -> Vector2:
+	for t: int in CLEARING_TRIES:
+		var a: float = rng.next() * TAU
+		var r: float = CLEARING_MIN + rng.next() * (CLEARING_MAX - CLEARING_MIN)
+		var p := Vector2(cos(a) * r, sin(a) * r)
+		if near_path(p, CLEARING_R) or not near_path(p, CLEARING_R + CLEARING_PATH):
+			continue
+		if near_sanctuary(p, CLEARING_SANCTUARY) or not _free_spot(p, CLEARING_R):
+			continue
+		return p
+	return Vector2.INF
 
 
 func _free_spot(p: Vector2, margin: float) -> bool:
@@ -426,7 +455,7 @@ func _perch(x: float, z: float) -> void:
 		var pz: float = z + sin(a) * step.x
 		_rock(px, pz, step.y, step.z)
 		top = Vector3(px, step.z, pz)
-	pickups.append(Vector3(top.x, top.y + 1.2, top.z))
+	pickups.append(Vector3(top.x, top.y + PERCH_ABOVE, top.z))
 
 
 ## lerpAng(a, b, 1) du prototype : b ramené à moins d'un demi-tour de a.

@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
+[ext_resource type="Resource" path="res://data/notebook.tres" id="9_notebook"]
 
 [sub_resource type="Gradient" id="Gradient_fade"]
 offsets = PackedFloat32Array(0, 0.22, 0.55, 1)
@@ -19,6 +20,7 @@ fill_to = Vector2(0, 1)
 [node name="TitleScreen" type="CanvasLayer"]
 layer = 20
 script = ExtResource("1_title")
+notebook = ExtResource("9_notebook")
 saga_dot_size = 32.0
 max_width = 460.0
 side_margin = 20.0
@@ -131,6 +133,11 @@ layout_mode = 2
 focus_mode = 0
 
 [node name="Talents" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="Notebook" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0

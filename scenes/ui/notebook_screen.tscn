@@ -1,18 +1,18 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_screen"]
+[ext_resource type="Script" path="res://scripts/ui/notebook_screen.gd" id="1_screen"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
-[ext_resource type="Resource" path="res://data/notebook.tres" id="9_notebook"]
+[ext_resource type="Resource" path="res://data/notebook.tres" id="5_notebook"]
 
-[node name="PauseMenu" type="CanvasLayer"]
-layer = 25
+[node name="NotebookScreen" type="CanvasLayer"]
+layer = 30
 script = ExtResource("1_screen")
-notebook = ExtResource("9_notebook")
-max_width = 460.0
-side_margin = 20.0
-top_margin = 24.0
+notebook = ExtResource("5_notebook")
+max_width = 560.0
+side_margin = 12.0
+top_margin = 16.0
 bottom_margin = 28.0
 compact_height = 540.0
 
@@ -53,7 +53,6 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
-alignment = 1
 
 [node name="Title" type="Label" parent="SafeArea/Scroll/Margin/Column"]
 unique_name_in_owner = true
@@ -65,72 +64,29 @@ script = ExtResource("3_neon")
 echo_color = Color(0.086, 0.878, 1, 1)
 echo_offset = Vector2(-3, -3)
 
-[node name="Info" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Sub" type="Label" parent="SafeArea/Scroll/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SubLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Help" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Pages" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SmallLabel"
-horizontal_alignment = 1
-autowrap_mode = 3
+theme_override_constants/separation = 8
 
 [node name="Buttons" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
-unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 10
 
-[node name="Resume" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Back" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 theme_type_variation = &"CtaButton"
-
-[node name="Bag" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="Talents" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="Notebook" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="Sound" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="Vibration" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="DamageNumbers" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="DebugInfo" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-
-[node name="Quit" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]
 process_mode = 3

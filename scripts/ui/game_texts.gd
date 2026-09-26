@@ -93,6 +93,17 @@ const BANNER_SANCTUARY_DETAIL := "Ramasse-le sur son autel"
 const BANNER_NIGHT_DONE := "Nuit accomplie"
 const BANNER_NIGHT_DONE_TITLE := "La jungle danse !"
 
+## Carte d'une page du carnet trouvée.
+const PAGE_FOUND := "Page %d du carnet"
+
+## Grand Muet libéré : il retrouve sa voix (bulle au-dessus de lui, docs/GDD.md, annexe).
+const BOSS_FREED_LINES: PackedStringArray = [
+	"Ma voix… elle est revenue !",
+	"Je me souviens de la chanson !",
+	"Merci, petit acrobate !",
+	"Enfin, j'entends la jungle !",
+]
+
 ## Messages éphémères (toast).
 const TOAST_SECOND_WIND := "Second souffle !"
 const TOAST_FAINT := "Tu t'es évanoui…"
@@ -119,6 +130,7 @@ const HINTS: Dictionary[StringName, String] = {
 	&"answer_shielder": "Saute, plonge dessus !",
 	&"answer_charger": "Esquive, puis frappe !",
 	&"answer_spitter": "Roule, puis frappe !",
+	&"gongs": "Rejoue la mélodie !",
 }
 
 ## Boutons tactiles, HUD.
@@ -140,6 +152,7 @@ const TITLE_PITCH := "Cinq nuits pour rendre ses couleurs à la jungle."
 const TITLE_DRUMS := "%s sur 3 au village"
 const TITLE_SORTIES := ", %s cette nuit"
 const BAG_BUTTON := "Sac"
+const NOTEBOOK_BUTTON := "Carnet (%d/%d)"
 const BAG_AT_VILLAGE := "Sac : au village"
 const TALENTS_AT_VILLAGE := "Talents : au village"
 const TALENTS_BUTTON := "Talents"
@@ -181,6 +194,14 @@ const NEXT_NIGHT := "Nuit suivante"
 const ENDLESS_NIGHT := "Nuit sans fin"
 const HOME := "Accueil"
 const BACK := "Retour"
+
+## Carnet.
+const NOTEBOOK_TITLE := "Carnet"
+const NOTEBOOK_SUB := "%d pages sur %d"
+const PAGE_TITLE := "Page %d"
+const PAGE_GONGS := "Les gongs de la nuit %d la gardent."
+const PAGE_PERCH := "Tout en haut d'un perchoir, nuit %d."
+const PAGE_EMPTY := "Page encore cachée."
 
 ## Sac.
 const BAG_TITLE := "Sac"

@@ -141,6 +141,21 @@ func test_le_groove_rend_la_couleur_autour_du_heros() -> void:
 	assert_gt(tuning.groove_halo_min * 2.0, tuning.hero_height, "le héros porte toujours un peu de couleur")
 
 
+func test_la_clairiere_des_gongs_est_libre_et_pres_d_un_chemin() -> void:
+	for seed_value: int in [1, 12345, 777, 99, 2024]:
+		var gen := WorldGen.new()
+		gen.generate(seed_value, 0)
+		var p: Vector2 = gen.gong_clearing
+		assert_ne(p, Vector2.INF, "une clairière pour la graine %d" % seed_value)
+		assert_true(gen.near_path(p, WorldGen.CLEARING_R + WorldGen.CLEARING_PATH), "on la trouve en passant")
+		assert_false(gen.near_path(p, WorldGen.CLEARING_R), "pas sur le chemin")
+		for s: WorldGen.Solid in gen.solids:
+			assert_gt(Vector2(p.x - s.x, p.y - s.z).length(), s.r + WorldGen.CLEARING_R - 0.001)
+		var again := WorldGen.new()
+		again.generate(seed_value, 0)
+		assert_eq(again.gong_clearing, p, "même graine, même clairière")
+
+
 func test_la_troupe_du_village_se_repartit_autour_de_la_place() -> void:
 	var rings := PackedFloat32Array([8.0, 12.5])
 	var blocked := func(p: Vector2) -> bool: return p.x > 0.0 and p.y > 0.0

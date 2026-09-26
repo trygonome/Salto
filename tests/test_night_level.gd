@@ -158,7 +158,7 @@ func test_une_plume_arc_en_ciel_sur_chaque_perchoir_remplit_la_jauge() -> void:
 	await _open_level()
 	await _start()
 	var plumes: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is PlumePickup)
-	assert_eq(plumes.size(), level.gen.pickups.size(), "une par perchoir, à chaque sortie")
+	assert_eq(plumes.size(), level.gen.pickups.size() - level.chest_perches.size(), "une par perchoir sans coffre, à chaque sortie")
 	hero.groove.empty()
 	var plume: PlumePickup = plumes[0] as PlumePickup
 	hero.global_position = plume.global_position - Vector3.UP * tuning.perch_pickup_height
@@ -197,6 +197,34 @@ func test_un_muet_libere_rejoint_la_troupe_du_village() -> void:
 	await get_tree().physics_frame
 	assert_eq(level.band.count(), 3, "le Muet libéré les rejoint")
 	assert_eq(Game.profile.band[2], spawner.muet.species)
+
+
+func test_la_nuit_cache_ses_pages_dans_les_gongs_et_en_hauteur() -> void:
+	await _open_level()
+	await _start()
+	var pages: PackedInt32Array = level.notebook.pages_of_night(1)
+	assert_not_null(level.gong_circle, "un cercle des gongs dans sa clairière")
+	assert_eq(level.gong_circle.chest.get(&"page"), pages[0], "le coffre des gongs garde la première page")
+	var chests: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n.has_method(&"is_opened"))
+	assert_eq(chests.size(), pages.size() - 1, "les autres pages au sommet des perchoirs")
+	var chest: Node3D = chests[0] as Node3D
+	hero.groove.empty()
+	watch_signals(Game)
+	hero.global_position = chest.global_position + Vector3.UP * 0.1
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	assert_true(chest.call(&"is_opened"))
+	assert_signal_emitted_with_parameters(Game, "page_found", [chest.get(&"page")])
+	assert_true(hero.groove.is_full(), "le rythme qu'il gardait remplit la jauge")
+
+
+func test_une_page_deja_trouvee_laisse_la_plume_sur_son_perchoir() -> void:
+	for page: int in [5, 6]:
+		Game.profile.add_page(page)
+	await _open_level()
+	assert_eq(level.chest_perches.size(), 0)
+	var plumes: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is PlumePickup)
+	assert_eq(plumes.size(), level.gen.pickups.size())
 
 
 func test_rentrer_au_village_ouvre_le_resume() -> void:
