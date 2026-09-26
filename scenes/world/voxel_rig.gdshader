@@ -9,8 +9,10 @@ render_mode unshaded, cull_back;
 
 // Éclat blanc (Muet touché), de 0 à 1.
 uniform float flash = 0.0;
-// Couleurs retrouvées (Muet libéré), de 0 à 1.
+// Couleurs retrouvées en arc-en-ciel (Muet qu'on libère), de 0 à 1.
 uniform float vivid = 0.0;
+// Couleurs rendues pour de bon (Muet libéré qui danse au village), de 0 à 1.
+uniform float healed = 0.0;
 // Rougeur de la rage (Grand Muet blessé), de 0 à 1.
 uniform float rage = 0.0;
 
@@ -25,7 +27,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 c = salto_voxel_color(v_color, v_world, v_normal, CAMERA_POSITION_WORLD, vivid);
+	vec3 c = salto_voxel_color(v_color, v_world, v_normal, CAMERA_POSITION_WORLD, vivid, healed);
 	c = mix(c, vec3(c.r * 1.2 + 0.12, c.g * 0.5, c.b * 0.55), rage);
 	c = mix(c, vec3(1.0), flash);
 	ALBEDO = salto_output(salto_fog(c, -VERTEX.z));

@@ -141,6 +141,22 @@ func test_le_groove_rend_la_couleur_autour_du_heros() -> void:
 	assert_gt(tuning.groove_halo_min * 2.0, tuning.hero_height, "le héros porte toujours un peu de couleur")
 
 
+func test_la_troupe_du_village_se_repartit_autour_de_la_place() -> void:
+	var rings := PackedFloat32Array([8.0, 12.5])
+	var blocked := func(p: Vector2) -> bool: return p.x > 0.0 and p.y > 0.0
+	var places: PackedVector2Array = VillageBand.spots(12, rings, blocked)
+	assert_eq(places.size(), 12)
+	var sides: Dictionary = {}
+	for p: Vector2 in places:
+		assert_false(blocked.call(p), "pas sur le décor")
+		assert_true(is_equal_approx(p.length(), 8.0) or is_equal_approx(p.length(), 12.5), "sur un des cercles")
+		sides[Vector2i(signi(roundi(p.x)), signi(roundi(p.y)))] = true
+	assert_gte(sides.size(), 3, "tout autour, même avec peu de Muets")
+	for i: int in places.size():
+		for j: int in range(i + 1, places.size()):
+			assert_gt(places[i].distance_to(places[j]), 1.0, "pas les uns sur les autres")
+
+
 func test_la_jungle_revit_tambour_apres_tambour() -> void:
 	var tuning: TuningData = Tuning.data
 	assert_eq(WorldMood.life_target(0, 3, false), 0.0, "nuit muette : couleurs éteintes et immobiles")

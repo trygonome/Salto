@@ -182,6 +182,22 @@ func test_le_cadeau_du_grand_muet_arrive_au_village_avec_son_tambour() -> void:
 	assert_true(Save.load_profile().items.size() == bag + 1)
 
 
+func test_les_muets_liberes_rejoignent_le_village_pour_la_nuit() -> void:
+	Game.start_sortie()
+	watch_signals(Game)
+	Game.welcome(&"hopper")
+	Game.welcome(&"boss")
+	assert_signal_emit_count(Game, "band_joined", 2)
+	for i: int in tuning.village_band_max:
+		Game.welcome(&"flyer")
+	assert_eq(Game.profile.band.size(), tuning.village_band_max, "une troupe plafonnée")
+	Game.end_sortie(&"quit")
+	var loaded: Profile = Save.load_profile()
+	assert_eq(loaded.band.slice(0, 2), [&"hopper", &"boss"] as Array[StringName], "gardés d'une sortie à l'autre")
+	loaded.complete_current_night()
+	assert_eq(loaded.band.size(), 0, "une nouvelle nuit, une nouvelle troupe")
+
+
 func test_l_experience_fait_gagner_des_niveaux() -> void:
 	Game.start_sortie()
 	watch_signals(Game)

@@ -21,6 +21,8 @@ signal drum_returned(count: int)
 signal sanctuary_freed
 signal night_completed
 signal muet_freed(muet: Node3D)
+## Un Muet libéré rejoint la troupe du village (espèce ; &"boss", &"king" : Grands Muets).
+signal band_joined(species: StringName)
 ## Une page arrive dans le carnet pour la première fois.
 signal page_found(page: int)
 ## Un objet arrive dans le sac (le cadeau d'un Grand Muet, au village).
@@ -151,6 +153,14 @@ func on_muet_freed(muet: Node3D) -> void:
 	progress.xp_carried += ProgressionMath.muet_xp(species, tier, king, tuning) * stats.xp
 	xp_changed.emit()
 	muet_freed.emit(muet)
+
+
+## Un Muet libéré de l'espèce `species` rejoint la troupe du village (tant qu'il y a de la place).
+func welcome(species: StringName) -> void:
+	if night != profile.night or profile.band.size() >= Tuning.data.village_band_max:
+		return
+	profile.band.append(species)
+	band_joined.emit(species)
 
 
 ## Le héros arrive au village : l'expérience mise de côté s'ajoute (les niveaux se gagnent ici).

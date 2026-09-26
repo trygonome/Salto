@@ -1,7 +1,8 @@
 class_name Profile
 extends RefCounted
 ## Ce qui se garde d'une sortie à l'autre et d'une partie à l'autre, comme la saga du prototype :
-## la nuit en cours (graine du monde, tambours déjà rapportés, sorties), les nuits accomplies, le
+## la nuit en cours (graine du monde, tambours déjà rapportés, Muets libérés venus au village,
+## sorties), les nuits accomplies, le
 ## niveau, l'expérience et les talents, le sac et l'équipement, les aides déjà suivies, les
 ## réglages. S'écrit et se relit en dictionnaire.
 
@@ -23,6 +24,8 @@ var nights_done: int = 0
 var finished: bool = false
 ## Tambours déjà rapportés au village cette nuit, par sanctuaire : ils y restent.
 var banked: Array[bool] = [false, false, false]
+## Muets libérés cette nuit qui dansent au village (espèce ; &"boss", &"king" : Grands Muets).
+var band: Array[StringName] = []
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -167,6 +170,7 @@ func complete_current_night() -> bool:
 	night += 1
 	night_seed = 0
 	banked = [false, false, false]
+	band.clear()
 	sortie = 0
 	return finale
 
@@ -190,6 +194,9 @@ func to_dict() -> Dictionary:
 	var saved_hints: Array = []
 	for hint: StringName in hints_done:
 		saved_hints.append(String(hint))
+	var saved_band: Array = []
+	for species: StringName in band:
+		saved_band.append(String(species))
 	var saved_talents: Dictionary = {}
 	for id: StringName in talents:
 		saved_talents[String(id)] = talents[id]
@@ -199,7 +206,7 @@ func to_dict() -> Dictionary:
 	return {
 		"version": VERSION,
 		"started": started, "night": night, "night_seed": night_seed, "nights_done": nights_done,
-		"finished": finished, "banked": banked.duplicate(),
+		"finished": finished, "banked": banked.duplicate(), "band": saved_band,
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
@@ -222,6 +229,10 @@ static func from_dict(data: Dictionary) -> Profile:
 	if saved_banked is Array:
 		for i: int in mini((saved_banked as Array).size(), DRUMS):
 			profile.banked[i] = bool(saved_banked[i])
+	var saved_band: Variant = data.get("band", [])
+	if saved_band is Array:
+		for species: Variant in saved_band:
+			profile.band.append(StringName(str(species)))
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))

@@ -184,6 +184,21 @@ func test_la_jauge_de_groove_elargit_le_cercle_de_couleur() -> void:
 	assert_gt(level.mood.groove_radius(), tuning.groove_halo_max, "le Salto arc-en-ciel fait éclater les couleurs")
 
 
+func test_un_muet_libere_rejoint_la_troupe_du_village() -> void:
+	Game.profile.band.assign([&"hopper", &"king"])
+	await _open_level()
+	assert_eq(level.band.count(), 2, "ceux déjà libérés cette nuit dansent au village")
+	await _start()
+	var spawner: EnemySpawner = level.guards[0][0]
+	var hit := HitData.new()
+	hit.damage = spawner.muet.health.maximum * 10.0
+	hit.direction = Vector3.FORWARD
+	spawner.muet.hurtbox.receive(hit)
+	await get_tree().physics_frame
+	assert_eq(level.band.count(), 3, "le Muet libéré les rejoint")
+	assert_eq(Game.profile.band[2], spawner.muet.species)
+
+
 func test_rentrer_au_village_ouvre_le_resume() -> void:
 	await _open_level()
 	await _start()

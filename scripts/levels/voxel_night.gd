@@ -21,7 +21,7 @@ extends Node3D
 ## Plume d'un perchoir, fruit.
 @export var plume_scene: PackedScene
 @export var fruit_scene: PackedScene
-## Matériau des personnages voxel et de leurs ombres rondes.
+## Matériau des personnages voxel (villageois, troupe des Muets libérés) et de leurs ombres rondes.
 @export var character_material: Material
 @export var character_shadow_material: Material
 
@@ -48,6 +48,8 @@ var bosses: Array[EnemySpawner] = []
 var guards: Array[Array] = []
 ## Sortie en cours (sinon : écran titre ou résumé).
 var in_sortie: bool = false
+## Les Muets libérés cette nuit, qui dansent au village.
+var band: VillageBand
 
 var _rng := RandomNumberGenerator.new()
 ## Objectif gardé d'une image à l'autre ; à recalculer quand la nuit avance.
@@ -88,6 +90,7 @@ func _ready() -> void:
 	world.build(gen)
 	mood.set_sanctuaries(gen.sanctuaries, Game.progress.freed)
 	_place_villagers()
+	_place_band()
 	_add_shadow(hero, tuning.hero_shadow_radius)
 	for i: int in gen.sanctuaries.size():
 		_place_drum(i)
@@ -279,6 +282,25 @@ func _place_villagers() -> void:
 	chief.setup(VoxelStyles.chief(), "chief", tuning.chief_scale, 0.0, tuning.chief_phase, INF, character_material, character_shadow_material, tuning.chief_shadow_radius)
 
 
+## La troupe des Muets libérés cette nuit, autour de la place : loin du décor, et jamais entre la
+## caméra et le héros à son départ du village.
+func _place_band() -> void:
+	var tuning: TuningData = Tuning.data
+	var margin: float = tuning.village_band_clearance / _unit
+	var lane: float = tuning.village_band_view_lane / _unit
+	var start := Vector2(hero.position.x, hero.position.z) / _unit
+	var places: PackedVector2Array = VillageBand.spots(tuning.village_band_max, tuning.village_band_rings, func(p: Vector2) -> bool:
+		return _blocked(p, margin) or (absf(p.x - start.x) < lane and p.y > start.y - lane))
+	for i: int in places.size():
+		places[i] *= _unit
+	band = VillageBand.new()
+	band.name = "Band"
+	band.material = character_material as ShaderMaterial
+	band.shadow_material = character_shadow_material
+	village.add_child(band)
+	band.setup(places, Game.profile.band if Game.night == Game.profile.night else [] as Array[StringName])
+
+
 func _add_shadow(target: Node3D, radius: float) -> void:
 	var shadow := BlobShadow.new()
 	shadow.name = "Shadow"
@@ -392,10 +414,13 @@ func _blocked(p: Vector2, margin: float) -> bool:
 	return false
 
 
-## Un Muet libéré laisse parfois un fruit (le Grand Muet : toujours).
+## Un Muet libéré rejoint la troupe du village, et laisse parfois un fruit (le Grand Muet :
+## toujours).
 func _on_muet_freed(muet: Muet) -> void:
 	if muet.is_boss():
+		Game.welcome(&"king" if muet.king else &"boss")
 		return
+	Game.welcome(muet.species)
 	if _rng.randf() < Tuning.data.fruit_chance:
 		_drop(fruit_scene, muet.global_position)
 

@@ -140,6 +140,13 @@ func play_freed(duration: float) -> void:
 	tween.tween_property(self, "scale", Vector3.ZERO, duration / 2.0).set_ease(Tween.EASE_IN)
 
 
+## Libéré pour de bon (troupe du village) : ses couleurs lui sont rendues.
+func show_healed() -> void:
+	_freed = true
+	_stunned = false
+	_material.set_shader_parameter(&"healed", 1.0)
+
+
 ## Ressort du corps (étirement positif, écrasement négatif), pour les tests.
 func squash_amount() -> float:
 	return _squash

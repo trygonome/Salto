@@ -38,6 +38,6 @@ void fragment() {
 			discard;
 		}
 	}
-	vec3 c = salto_voxel_color(v_color, v_world, v_normal, CAMERA_POSITION_WORLD, 0.0);
+	vec3 c = salto_voxel_color(v_color, v_world, v_normal, CAMERA_POSITION_WORLD, 0.0, 0.0);
 	ALBEDO = salto_output(salto_fog(c, -VERTEX.z));
 }

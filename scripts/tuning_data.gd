@@ -741,6 +741,19 @@ extends Resource
 @export var villager_first_flip_step: float
 @export var villager_flip_gap_min: float
 @export var villager_flip_gap_max: float
+## Troupe des Muets libérés au village : combien au plus, leur taille (part de celle de leur
+## espèce), rayons des cercles où ils dansent (u), écart aux obstacles (m), couloir laissé libre
+## devant la caméra au départ du héros (demi-largeur m), bond sur un temps sur deux (m), rebond de
+## gelée à l'atterrissage, hauteur des volants (m), apparition d'un nouveau venu (s).
+@export var village_band_max: int
+@export var village_band_scale: float
+@export var village_band_rings: PackedFloat32Array
+@export var village_band_clearance: float
+@export var village_band_view_lane: float
+@export var village_band_hop: float
+@export var village_band_squash: float
+@export var village_band_fly_height: float
+@export var village_band_pop_time: float
 
 @export_group("Effets")
 ## Petits cubes : nombre en réserve ; boîte d'affichage (m, autour du niveau).

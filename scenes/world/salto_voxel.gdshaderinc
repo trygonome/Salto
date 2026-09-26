@@ -2,8 +2,9 @@
 // saturation, luminosité). Modes : 0 monde (teinte qui ondule avec la vie de la jungle, bue par le
 // silence, pulse au temps) · 1 vif (ondule) · 2 fixe · 3 arc-en-ciel · 4 teinte fixe bue par le
 // silence. Dans le cercle du groove, autour du héros, le monde retrouve ses couleurs.
-// `vivid` (0 à 1) ravive la couleur (Muet libéré). Positions en mètres.
-vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid) {
+// `vivid` (0 à 1) ravive la couleur en arc-en-ciel (Muet qu'on libère) ; `healed` (0 à 1) rend
+// ses couleurs à un Muet libéré qui danse au village (sa teinte, plus vive). Positions en mètres.
+vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid, float healed) {
 	vec3 w = world / salto_unit;
 	float mode = floor(data.x + 0.001);
 	float h = data.x - mode;
@@ -27,6 +28,8 @@ vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vi
 	} else {
 		s *= sat;
 	}
+	s = min(1.0, s * (1.0 + 0.8 * healed));
+	l = mix(l, l + (1.0 - l) * 0.2, healed);
 	h = fract(h + vivid * (salto_time * 0.5 + w.y * 0.1));
 	s = mix(s, 1.0, vivid);
 	l = mix(l, clamp(l, 0.45, 0.7), vivid);
