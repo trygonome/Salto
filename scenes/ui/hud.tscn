@@ -65,6 +65,7 @@ quest_max_fraction = 0.72
 combo_min = 2
 combo_hot = 10
 boss_bar_range = 8.32
+xp_carry_color = Color(0.235, 0.91, 1, 0.45)
 
 [node name="Flash" type="TextureRect" parent="."]
 unique_name_in_owner = true
@@ -161,6 +162,13 @@ theme_type_variation = &"XpBar"
 max_value = 1.0
 step = 0.0
 show_percentage = false
+
+[node name="XpCarry" type="ColorRect" parent="SafeArea/Top/Row/Me/Bars/XpBar"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+color = Color(0.235, 0.91, 1, 0.45)
 
 [node name="Spacer" type="Control" parent="SafeArea/Top/Row"]
 layout_mode = 2

@@ -1,6 +1,7 @@
 class_name PauseMenu
 extends ScreenLayer
-## Pause du prototype : la nuit en cours, un rappel des gestes, Reprendre, Sac, Talents, Son, chiffres de dégâts (et infos techniques des versions de test), Rentrer au
+## Pause du prototype : la nuit en cours, un rappel des gestes, Reprendre, Sac et Talents (au
+## village seulement : c'est là que le héros grandit), Son, chiffres de dégâts (et infos techniques des versions de test), Rentrer au
 ## village (touché deux fois : la sortie se termine). S'ouvre avec le bouton de pause, Échap /
 ## Start, le bouton retour d'Android, ou quand le jeu passe en arrière-plan.
 
@@ -94,8 +95,15 @@ func _notification(what: int) -> void:
 func _refresh() -> void:
 	var profile: Profile = Game.profile
 	_info.text = GameTexts.NIGHT_CHAPTER % [Game.night, GameTexts.night_name(Game.night)]
-	_bag.text = GameTexts.BAG_BUTTON
-	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+	var home: bool = Game.at_village or not Game.playing
+	_bag.disabled = not home
+	_talents.disabled = not home
+	if home:
+		_bag.text = GameTexts.BAG_BUTTON
+		_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+	else:
+		_bag.text = GameTexts.BAG_AT_VILLAGE
+		_talents.text = GameTexts.TALENTS_AT_VILLAGE
 	_sound.text = GameTexts.SOUND_OFF if profile.muted else GameTexts.SOUND_ON
 	_damage.text = GameTexts.DAMAGE_NUMBERS_ON if profile.damage_numbers else GameTexts.DAMAGE_NUMBERS_OFF
 	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF

@@ -108,13 +108,14 @@ func test_le_coffre_donne_une_page_et_un_objet() -> void:
 	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
 	await _step(10)
 	assert_eq(Game.progress.pages, [5] as Array[int])
+	var bag: int = Game.profile.items.size()
 	var loot: Array[Node] = world.find_children("LootDrop*", "Node3D", true, false)
 	assert_eq(loot.size(), 1, "un objet jaillit")
 	await _step(40)
 	await _walk_to(chest.global_position + Vector3.RIGHT * 0.9)
 	await _walk_to(chest.global_position + Vector3.BACK * 0.6)
 	await _step(10)
-	assert_eq(Game.progress.items.size(), 1, "l'objet est ramassé")
+	assert_eq(Game.profile.items.size(), bag + 1, "l'objet est ramassé")
 
 
 func test_un_coffre_deja_trouve_est_ouvert_et_vide() -> void:

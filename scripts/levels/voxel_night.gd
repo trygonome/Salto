@@ -18,8 +18,7 @@ extends Node3D
 @export var boss_scene: PackedScene
 ## Tambour d'un sanctuaire (dans sa bulle jusqu'à la libération du gardien).
 @export var drum_scene: PackedScene
-## Objet au sol, plume d'un perchoir, fruit.
-@export var loot_scene: PackedScene
+## Plume d'un perchoir, fruit.
 @export var plume_scene: PackedScene
 @export var fruit_scene: PackedScene
 ## Matériau des personnages voxel et de leurs ombres rondes.
@@ -97,6 +96,7 @@ func _ready() -> void:
 	Game.night_completed.connect(_on_night_completed)
 	Game.drum_returned.connect(_on_drum_returned)
 	Game.sanctuary_freed.connect(_on_sanctuary_freed)
+	Game.level_up.connect(_on_level_up)
 	# L'objectif change quand la nuit avance.
 	Game.night_started.connect(func(_night: int) -> void: _goal_dirty = true)
 	Game.sortie_started.connect(func() -> void: _goal_dirty = true)
@@ -392,23 +392,19 @@ func _blocked(p: Vector2, margin: float) -> bool:
 	return false
 
 
-## Un Muet libéré laisse parfois un fruit ou un objet (le Grand Muet : toujours les deux).
+## Un Muet libéré laisse parfois un fruit (le Grand Muet : toujours).
 func _on_muet_freed(muet: Muet) -> void:
 	if muet.is_boss():
 		return
-	var tuning: TuningData = Tuning.data
-	if _rng.randf() < tuning.fruit_chance:
+	if _rng.randf() < Tuning.data.fruit_chance:
 		_drop(fruit_scene, muet.global_position)
-	if _rng.randf() < tuning.loot_muet_chance:
-		_drop_loot(Game.roll_item(false, false), muet.global_position)
 
 
+## Un Grand Muet libéré laisse un fruit, et son cadeau part avec le tambour qu'il libère.
 func _on_boss_freed(muet: Muet, index: int) -> void:
-	var tuning: TuningData = Tuning.data
-	var side: Vector3 = Vector3.RIGHT * tuning.boss_drop_offset
-	_drop(fruit_scene, muet.global_position + side)
-	_drop_loot(Game.roll_item(true, muet.king), muet.global_position - side)
+	_drop(fruit_scene, muet.global_position)
 	if not Game.progress.freed[index]:
+		Game.give_gift(index, muet.king)
 		(drums[index].call(&"release"))
 
 
@@ -417,13 +413,6 @@ func _drop(scene: PackedScene, at: Vector3) -> Node3D:
 	node.position = Vector3(at.x, 0.0, at.z)
 	pickups.add_child(node)
 	return node
-
-
-func _drop_loot(item: ItemData, at: Vector3) -> void:
-	var loot: LootDrop = loot_scene.instantiate() as LootDrop
-	loot.item = item
-	loot.position = Vector3(at.x, 0.0, at.z)
-	pickups.add_child(loot)
 
 
 func _on_sanctuary_freed() -> void:
@@ -437,6 +426,15 @@ func _on_drum_returned(count: int) -> void:
 	var chief: Villager = village.get_node(^"Chief") as Villager
 	chief.greet()
 	hud.show_bubble(GameTexts.RETURN_LINES[clampi(count - 1, 0, GameTexts.RETURN_LINES.size() - 1)], chief, tuning_chief_height())
+
+
+## Le héros grandit (au village, ou en fin de sortie) : le Chef le salue.
+func _on_level_up(level: int) -> void:
+	if not in_sortie or _ending:
+		return
+	var chief: Villager = village.get_node(^"Chief") as Villager
+	chief.greet()
+	hud.show_bubble(GameTexts.LEVEL_UP_LINES[level % GameTexts.LEVEL_UP_LINES.size()], chief, tuning_chief_height())
 
 
 ## Nuit accomplie : le monde éclate de couleurs, une gerbe et un anneau arc-en-ciel au village,

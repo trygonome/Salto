@@ -49,6 +49,8 @@ const CHIEF_TIPS: PackedStringArray = [
 	"Au village, les Muets n'osent pas entrer.",
 	"Frappe sur le battement : c'est là que tu es le plus fort.",
 	"Les Muets étaient nos musiciens. Libère-les !",
+	"Reviens souvent : c'est au village que tu grandis.",
+	"Ramène un tambour, et le cadeau de son Grand Muet vient avec.",
 ]
 const BARKS: Array = [
 	["Sans tambour, mes pieds sont tout mous…", "Mon frère est devenu un Muet… Libère-le !", "Tu entends ce battement ? C'est ton cœur, petit."],
@@ -61,6 +63,13 @@ const RETURN_LINES: PackedStringArray = [
 	"Un tambour ! La jungle respire de nouveau.",
 	"Deux tambours ! Plus qu'un !",
 	"Les trois tambours sont rentrés !",
+]
+
+## Le Chef, quand le héros grandit au village.
+const LEVEL_UP_LINES: PackedStringArray = [
+	"Tu grandis, petit acrobate !",
+	"Tes pieds deviennent légers !",
+	"La jungle t'a appris des choses !",
 ]
 
 ## Objectifs (bannière du haut) : titre et précision.
@@ -127,6 +136,8 @@ const TITLE_PITCH := "Cinq nuits pour rendre ses couleurs à la jungle."
 const TITLE_DRUMS := "%s sur 3 au village"
 const TITLE_SORTIES := ", %s cette nuit"
 const BAG_BUTTON := "Sac"
+const BAG_AT_VILLAGE := "Sac : au village"
+const TALENTS_AT_VILLAGE := "Talents : au village"
 const TALENTS_BUTTON := "Talents"
 const TALENTS_BUTTON_POINTS := "Talents (%s)"
 
@@ -168,7 +179,7 @@ const BACK := "Retour"
 ## Sac.
 const BAG_TITLE := "Sac"
 const BAG_SUB := "%d/%d objets"
-const BAG_EMPTY := "Les Muets libérés laissent parfois un objet. Les Grands Muets en laissent toujours un."
+const BAG_EMPTY := "Chaque Grand Muet libéré offre un cadeau : il arrive au village avec son tambour."
 const SLOT_EMPTY := "Vide"
 const ITEM_NEW := "nouveau"
 const ITEM_INFO := "%s · %s · niveau %d"

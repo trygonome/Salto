@@ -605,12 +605,10 @@ extends Resource
 ## Tirage de la valeur d'un effet (fractions).
 @export var item_roll_min: float
 @export var item_roll_max: float
-## Chances de rareté du butin (commun, rare, épique, légendaire) : Muet ordinaire, Grand Muet (et
-## coffres), Roi Muet ; chance qu'un Muet ordinaire laisse un objet.
-@export var loot_muet_weights: PackedFloat32Array
+## Chances de rareté (commun, rare, épique, légendaire) du cadeau d'un Grand Muet (et des coffres),
+## du Roi Muet.
 @export var loot_boss_weights: PackedFloat32Array
 @export var loot_king_weights: PackedFloat32Array
-@export var loot_muet_chance: float
 ## Sac : objets au plus (au-delà, le plus faible des objets non portés laisse sa place).
 @export var item_inventory_max: int
 
@@ -1063,8 +1061,6 @@ extends Resource
 @export var fx_loot_speed: float
 
 @export_group("Sortie : villageois et conseils")
-## Le Grand Muet libéré laisse un fruit d'un côté, un objet de l'autre (écart m).
-@export var boss_drop_offset: float
 ## Villageois : distance à laquelle ils parlent au héros (m), attente entre deux bulles (s),
 ## hauteur d'une bulle au-dessus d'un danseur (m).
 @export var bark_distance: float

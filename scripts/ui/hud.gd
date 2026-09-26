@@ -55,6 +55,9 @@ extends CanvasLayer
 @export var combo_hot: int
 ## Barre du Grand Muet : visible à moins de (m).
 @export var boss_bar_range: float
+## Expérience mise de côté pendant la sortie (elle s'ajoute au village) : couleur de sa part de la
+## barre, qui bat doucement.
+@export var xp_carry_color: Color
 
 var _hero: Hero
 var _night: VoxelNight
@@ -84,6 +87,7 @@ var _card_tween: Tween
 @onready var _hp_bar: ProgressBar = %HpBar
 @onready var _hp_text: Label = %HpText
 @onready var _xp_bar: ProgressBar = %XpBar
+@onready var _xp_carry: ColorRect = %XpCarry
 @onready var _drums: Array[PanelContainer] = [%Drum1, %Drum2, %Drum3]
 @onready var _pause_button: Button = %PauseButton
 @onready var _quest: PanelContainer = %Quest
@@ -253,7 +257,7 @@ func _update_me() -> void:
 			_hp_bar.max_value = health.y
 			_hp_bar.value = health.x
 			_hp_text.text = GameTexts.HEALTH % [health.x, health.y]
-	_xp_bar.value = profile.xp / ProgressionMath.xp_needed(profile.level, Tuning.data)
+	_update_xp()
 	var progress: NightProgress = Game.progress
 	var drums: String = "%s%s" % [progress.returned, progress.carrying]
 	if drums != _shown_drums:
@@ -267,6 +271,27 @@ func _update_me() -> void:
 		for i: int in progress.carrying:
 			if i < _drums.size():
 				_drums[i].modulate.a = lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse)
+
+
+## Barre d'expérience : la part gagnée, puis celle mise de côté pendant la sortie (elle bat : il
+## faut la rapporter au village) ; assez pour un niveau, la pastille du niveau bat aussi.
+func _update_xp() -> void:
+	var profile: Profile = Game.profile
+	var needed: float = ProgressionMath.xp_needed(profile.level, Tuning.data)
+	var gained: float = profile.xp / needed
+	var carried: float = minf(Game.progress.xp_carried / needed, 1.0 - gained)
+	_xp_bar.value = gained
+	_xp_carry.visible = carried > 0.0
+	if not _xp_carry.visible:
+		_level_chip.modulate.a = 1.0
+		return
+	var width: float = _xp_bar.size.x
+	_xp_carry.position = Vector2(width * gained, 0.0)
+	_xp_carry.size = Vector2(width * carried, _xp_bar.size.y)
+	var pulse: float = 0.5 + 0.5 * sin(TAU * _time / Tuning.data.hint_pulse_period)
+	_xp_carry.color = Color(xp_carry_color, lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse) * xp_carry_color.a)
+	var level_ready: bool = profile.xp + Game.progress.xp_carried >= needed
+	_level_chip.modulate.a = lerpf(Tuning.data.drum_pulse_min_alpha, 1.0, pulse) if level_ready else 1.0
 
 
 ## Objectif : il bat quand il change ; pendant une sortie, une bannière l'annonce.

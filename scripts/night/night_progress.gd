@@ -1,7 +1,9 @@
 class_name NightProgress
 extends RefCounted
 ## Une sortie dans la nuit, comme dans le prototype : sanctuaires libérés, tambours pris, portés
-## et rapportés (ceux des sorties précédentes restent au village), Muets libérés, temps écoulé.
+## et rapportés (ceux des sorties précédentes restent au village), cadeau de chaque Grand Muet
+## (il voyage avec son tambour), Muets libérés, expérience mise de côté jusqu'au village, temps
+## écoulé.
 ## S'évanouir met fin à la sortie : les tambours portés retournent à leurs sanctuaires.
 
 ## Tambours à rapporter pour accomplir la nuit (un par sanctuaire).
@@ -21,11 +23,13 @@ var drums_returned: int:
 var carrying_drum: bool:
 	get:
 		return not carrying.is_empty()
-## Pages du carnet et objets trouvés pendant la sortie.
+## Pages du carnet trouvées pendant la sortie.
 var pages: Array[int] = []
-var items: Array[ItemData] = []
-## Muets libérés pendant la sortie.
+## Cadeau de chaque sanctuaire, en attendant que son tambour rentre au village (null : aucun).
+var gifts: Array[ItemData] = []
+## Muets libérés pendant la sortie ; leur expérience, pas encore ajoutée (au village).
 var muets_freed: int = 0
+var xp_carried: float = 0.0
 ## Temps de jeu de la sortie (s), arrêté quand la nuit est accomplie.
 var elapsed: float = 0.0
 
@@ -39,6 +43,7 @@ func _init(required: int, banked: Array[bool] = []) -> void:
 		picked.append(done)
 		returned.append(done)
 		banked_at_start.append(done)
+		gifts.append(null)
 
 
 ## Le gardien du sanctuaire `index` est libéré : son tambour est à prendre.
@@ -88,16 +93,24 @@ func music_layers(layer_count: int) -> int:
 	return mini(1 + drums_returned, layer_count)
 
 
+## Le cadeau du sanctuaire `index` attend son tambour.
+func set_gift(index: int, item: ItemData) -> void:
+	gifts[index] = item
+
+
+## Reprend le cadeau du sanctuaire `index` (null s'il n'y en a pas).
+func take_gift(index: int) -> ItemData:
+	var gift: ItemData = gifts[index]
+	gifts[index] = null
+	return gift
+
+
 ## Ajoute une page ; renvoie faux si elle était déjà trouvée.
 func add_page(page: int) -> bool:
 	if pages.has(page):
 		return false
 	pages.append(page)
 	return true
-
-
-func add_item(item: ItemData) -> void:
-	items.append(item)
 
 
 ## Fait avancer le temps de la sortie tant que la nuit n'est pas accomplie.

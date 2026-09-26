@@ -1,11 +1,10 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/flyer.tscn" id="3_flyer"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/grand_muet.tscn" id="4_boss"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/altar_drum.tscn" id="5_drum"]
-[ext_resource type="PackedScene" path="res://scenes/levels/props/loot_drop.tscn" id="6_loot"]
 [ext_resource type="Environment" path="res://scenes/world/night_environment.tres" id="7_env"]
 [ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="8_builder"]
 [ext_resource type="Material" path="res://scenes/world/voxel_static.tres" id="9_voxel"]
@@ -52,7 +51,6 @@ charger_scene = ExtResource("92_charger")
 spitter_scene = ExtResource("93_spitter")
 boss_scene = ExtResource("4_boss")
 drum_scene = ExtResource("5_drum")
-loot_scene = ExtResource("6_loot")
 plume_scene = ExtResource("30_plume")
 fruit_scene = ExtResource("31_fruit")
 character_material = ExtResource("16_actor")

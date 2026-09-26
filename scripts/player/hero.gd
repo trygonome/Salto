@@ -439,11 +439,11 @@ func debug_text() -> String:
 		" · tambour" if Game.progress.carrying_drum else "",
 	]
 	text += "\nPV %.0f/%.0f · combo %d · groove %.1f/%.0f" % [health.current, health.maximum, combo.hits, groove.value, groove.maximum]
-	text += "\ntambours %d/%d · pages %d · objets %d%s" % [
+	text += "\ntambours %d/%d · pages %d · xp à rapporter %.0f%s" % [
 		Game.progress.drums_returned,
 		Game.progress.drums_required,
 		Game.progress.pages.size(),
-		Game.progress.items.size(),
+		Game.progress.xp_carried,
 		" · nuit accomplie" if Game.progress.is_complete() else "",
 	]
 	if last_hit:

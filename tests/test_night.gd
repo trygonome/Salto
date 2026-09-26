@@ -46,6 +46,18 @@ func test_les_tambours_d_une_sortie_precedente_sont_deja_au_village() -> void:
 	assert_false(night.banked_at_start[1], "rapporté pendant cette sortie")
 
 
+func test_le_cadeau_d_un_grand_muet_attend_son_tambour() -> void:
+	var night := NightProgress.new(3)
+	var gift := ItemData.new()
+	night.set_gift(1, gift)
+	night.pick_drum(1)
+	night.drop_drums()
+	assert_eq(night.gifts[1], gift, "perdu en route : il retourne à l'autel avec le tambour")
+	assert_eq(night.take_gift(1), gift)
+	assert_null(night.take_gift(1), "un seul cadeau")
+	assert_null(night.take_gift(0))
+
+
 func test_la_nuit_est_accomplie_avec_tous_les_tambours() -> void:
 	var night := NightProgress.new(2)
 	for i: int in 2:
@@ -90,7 +102,7 @@ func test_rarete_selon_les_poids() -> void:
 	assert_eq(ItemMath.rarity_for(0.3, weights), ItemData.Rarity.RARE)
 	assert_eq(ItemMath.rarity_for(0.6, weights), ItemData.Rarity.EPIC)
 	assert_eq(ItemMath.rarity_for(0.99, weights), ItemData.Rarity.LEGENDARY)
-	assert_eq(ItemMath.rarity_for(0.99, tuning.loot_muet_weights), ItemData.Rarity.EPIC, "un Muet ordinaire ne laisse pas de légendaire")
+	assert_eq(ItemMath.rarity_for(0.0, tuning.loot_king_weights), ItemData.Rarity.EPIC, "le Roi Muet offre au moins un objet épique")
 
 
 func test_valeur_d_un_effet_selon_les_reglages() -> void:

@@ -2,7 +2,8 @@ class_name LootDrop
 extends Node3D
 ## Butin du prototype : un petit objet de cubes aux couleurs de sa rareté, qui flotte en tournant
 ## sous une colonne de lumière de la même couleur. Le héros le ramasse en passant dessus ; il va
-## dans le sac (s'il est plein, il est recyclé en plumes).
+## dans le sac. Dans la nuit, les objets sont les cadeaux des Grands Muets (voir Game) : ce butin
+## ne sert qu'aux coffres du parcours d'essai.
 
 ## Couleur codée des cubes (voir voxel.gdshader) et de la colonne, par rareté (commun, rare,
 ## épique, légendaire).

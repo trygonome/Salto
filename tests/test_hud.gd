@@ -1,6 +1,7 @@
 extends "res://tests/hero_test_base.gd"
 ## Interface du prototype : bannières (une à la fois), message court, bulle, conseil près du bon
-## bouton, HUD (niveau, PV, tambours, défi), chiffres de dégâts, pause, sac et forge, talents.
+## bouton, HUD (niveau, PV, expérience à rapporter, tambours), chiffres de dégâts, pause (sac et
+## talents au village), sac, talents, résumé.
 
 const HudScene: PackedScene = preload("res://scenes/ui/hud.tscn")
 const ControlsScene: PackedScene = preload("res://scenes/ui/touch_controls.tscn")
@@ -138,6 +139,41 @@ func test_la_pause_arrete_le_jeu_et_ouvre_le_sac() -> void:
 	menu.back()
 	assert_false(menu.is_open(), "retour : de la pause au jeu")
 	assert_false(get_tree().paused)
+
+
+func test_loin_du_village_le_sac_et_les_talents_attendent() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	Game.start_sortie()
+	Game.leave_village()
+	menu.open()
+	var bag: Button = menu.get_node("%Bag") as Button
+	var talents: Button = menu.get_node("%Talents") as Button
+	assert_true(bag.disabled, "le héros grandit au village")
+	assert_true(talents.disabled)
+	assert_eq(bag.text, GameTexts.BAG_AT_VILLAGE)
+	menu.close()
+	Game.enter_village()
+	menu.open()
+	assert_false(bag.disabled, "de retour au village")
+	assert_false(talents.disabled)
+	Game.playing = false
+
+
+func test_l_experience_a_rapporter_bat_dans_la_barre() -> void:
+	await _spawn_on_flat_ground()
+	Game.start_sortie()
+	Game.leave_village()
+	Game.progress.xp_carried = ProgressionMath.xp_needed(1, tuning) * 0.5
+	await _step(2)
+	var carry: ColorRect = hud.get_node("%XpCarry") as ColorRect
+	assert_true(carry.visible, "l'expérience des Muets libérés attend le village")
+	assert_eq(Game.profile.level, 1)
+	Game.enter_village()
+	await _step(2)
+	assert_false(carry.visible, "au village, elle s'ajoute")
+	assert_gt(Game.profile.xp, 0.0)
+	Game.playing = false
 
 
 func test_rentrer_au_village_se_confirme() -> void:

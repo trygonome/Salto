@@ -135,6 +135,53 @@ func test_la_cinquieme_nuit_acheve_la_saga() -> void:
 	assert_eq(GameTexts.night_name(Game.profile.night), GameTexts.ENDLESS[&"title"])
 
 
+func test_le_heros_grandit_au_village() -> void:
+	Game.start_sortie()
+	Game.leave_village()
+	# Un Muet sautillant tout juste libéré.
+	var script := GDScript.new()
+	script.source_code = "extends Node3D\nvar species: StringName = &\"hopper\"\nvar tier: int = 0\nvar king: bool = false\n"
+	script.reload()
+	var muet: Node3D = script.new() as Node3D
+	Game.on_muet_freed(muet)
+	muet.free()
+	assert_eq(Game.progress.xp_carried, tuning.xp_per_species[&"hopper"] * Game.stats.xp, "l'expérience des Muets libérés est mise de côté")
+	assert_eq(Game.profile.level, 1, "pas de niveau loin du village")
+	assert_eq(Game.profile.xp, 0.0)
+	watch_signals(Game)
+	Game.enter_village()
+	assert_eq(Game.progress.xp_carried, 0.0)
+	assert_signal_emitted(Game, "xp_changed")
+	assert_eq(Game.profile.xp, tuning.xp_per_species[&"hopper"] * Game.stats.xp, "au village, elle s'ajoute")
+
+
+func test_l_experience_mise_de_cote_s_ajoute_a_la_fin_de_la_sortie() -> void:
+	Game.start_sortie()
+	Game.leave_village()
+	Game.progress.xp_carried = ProgressionMath.xp_needed(1, tuning)
+	var summary: Dictionary = Game.end_sortie(&"faint")
+	assert_eq(summary[&"level"], 2, "même évanoui, le héros se réveille au village")
+	assert_eq(Save.load_profile().level, 2)
+
+
+func test_le_cadeau_du_grand_muet_arrive_au_village_avec_son_tambour() -> void:
+	Game.start_sortie()
+	var bag: int = Game.profile.items.size()
+	Game.give_gift(0, false)
+	var gift: ItemData = Game.progress.gifts[0]
+	assert_not_null(gift)
+	assert_eq(gift.level, Game.night + 1, "un niveau de plus que la nuit")
+	assert_ne(gift.rarity, ItemData.Rarity.COMMON, "jamais commun")
+	Game.free_sanctuary(0)
+	Game.pick_drum(0)
+	assert_eq(Game.profile.items.size(), bag, "pas encore : il voyage avec le tambour")
+	var found: Array[ItemData] = []
+	Game.item_found.connect(func(item: ItemData) -> void: found.append(item))
+	Game.return_drum()
+	assert_eq(found, [gift] as Array[ItemData], "au village : dans le sac")
+	assert_true(Save.load_profile().items.size() == bag + 1)
+
+
 func test_l_experience_fait_gagner_des_niveaux() -> void:
 	Game.start_sortie()
 	watch_signals(Game)
