@@ -228,8 +228,17 @@ extends Resource
 @export var good_multiplier: float
 ## Arrêt sur image d'un coup Parfait (s).
 @export var hit_stop_perfect: float
-## Jauge de groove pleine.
+## Vibrations du téléphone (durée s, force 0 à 1) : coup qui porte, coup fort (parfait, critique,
+## bonne réponse), héros touché, Salto arc-en-ciel, tambour pris.
+@export var vibration_hit: Vector2
+@export var vibration_strong: Vector2
+@export var vibration_hurt: Vector2
+@export var vibration_rainbow: Vector2
+@export var vibration_drum: Vector2
+## Jauge de groove pleine ; sans gain pendant (s), elle retombe de (par seconde), sauf pleine.
 @export var groove_max: float
+@export var groove_idle_time: float
+@export var groove_drain_rate: float
 ## Groove gagné par un coup Parfait qui touche.
 @export var groove_perfect: float
 ## Groove gagné par un coup Bien qui touche.

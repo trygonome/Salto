@@ -1,6 +1,7 @@
 extends Node
 ## Retours d'impact globaux : arrêt sur image (tout le jeu se fige un instant), ralenti
-## (esquive parfaite) et demandes de secousse, que la caméra écoute.
+## (esquive parfaite), demandes de secousse, que la caméra écoute, et vibrations du téléphone
+## (réglage « Vibrations »).
 
 ## Secousse demandée : `trauma` de 0 à 1, `direction` du coup (horizontale) pour pousser la caméra.
 signal shake_requested(trauma: float, direction: Vector3)
@@ -44,6 +45,13 @@ func is_slowed() -> bool:
 
 func shake(trauma: float, direction: Vector3) -> void:
 	shake_requested.emit(trauma, direction)
+
+
+## Fait vibrer le téléphone : `pulse` = (durée s, force 0 à 1). Rien si le réglage est coupé.
+func vibrate(pulse: Vector2) -> void:
+	if Game.profile == null or not Game.profile.vibration:
+		return
+	Input.vibrate_handheld(roundi(pulse.x * 1000.0), pulse.y)
 
 
 func _process(_delta: float) -> void:

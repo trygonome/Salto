@@ -44,6 +44,8 @@ var pages: Array[int] = []
 var hints_done: Array[StringName] = []
 ## Réglages : chiffres de dégâts, infos de mise au point (versions de test), son coupé.
 var damage_numbers: bool = true
+## Vibrations du téléphone sur les coups, les blessures, le Salto arc-en-ciel, les tambours.
+var vibration: bool = true
 var debug_info: bool = false
 var muted: bool = false
 
@@ -211,7 +213,7 @@ func to_dict() -> Dictionary:
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
 		"pages": pages.duplicate(), "hints_done": saved_hints,
-		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted},
+		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted, "vibration": vibration},
 	}
 
 
@@ -269,4 +271,5 @@ static func from_dict(data: Dictionary) -> Profile:
 		profile.damage_numbers = bool(settings.get("damage_numbers", profile.damage_numbers))
 		profile.debug_info = bool(settings.get("debug_info", profile.debug_info))
 		profile.muted = bool(settings.get("muted", profile.muted))
+		profile.vibration = bool(settings.get("vibration", profile.vibration))
 	return profile

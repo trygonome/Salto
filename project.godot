@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Salto"
 config/description="Salto : la jungle muette. Action acrobatique et rythmique en 3D."
-config/version="1.1.0"
+config/version="1.2.0"
 run/main_scene="res://scenes/levels/night.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 boot_splash/bg_color=Color(0.06, 0.07, 0.17, 1)

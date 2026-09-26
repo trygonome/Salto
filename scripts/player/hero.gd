@@ -152,6 +152,7 @@ func _physics_process(delta: float) -> void:
 	roll_cooldown_left = maxf(roll_cooldown_left - delta, 0.0)
 	_hurt_invuln_left = maxf(_hurt_invuln_left - delta, 0.0)
 	combo.update(_clock)
+	groove.drain(delta, tuning.groove_idle_time, tuning.groove_drain_rate)
 	if reads_player_input:
 		_read_player_input()
 	state_machine.physics_update(delta)
@@ -375,6 +376,7 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 			orb.call(&"pop")
 	if move == &"rainbow":
 		get_tree().call_group(&"world_mood", &"burst")
+		Feedback.vibrate(tuning.vibration_rainbow)
 	var fx: Effects = Effects.of(self)
 	if fx == null:
 		return
@@ -495,6 +497,7 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 			health.heal(stats.perfect_heal)
 	_pending_groove = 0.0
 	Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
+	Feedback.vibrate(tuning.vibration_strong if perfect or hit.critical or hit.answer else tuning.vibration_hit)
 	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
 	_hit_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
 	_hit_sound.play()
@@ -510,6 +513,7 @@ func _on_hurt(hit: HitData) -> void:
 	combo.reset()
 	_hurt_invuln_left = tuning.hero_hurt_invuln
 	Feedback.hit_stop(tuning.hit_stop_hero)
+	Feedback.vibrate(tuning.vibration_hurt)
 	Feedback.shake(tuning.shake_trauma_hurt, hit.direction)
 	_hurt_sound.play()
 	if health.is_depleted():

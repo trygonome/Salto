@@ -64,6 +64,7 @@ func _on_body_entered(body: Node3D) -> void:
 		var tuning: TuningData = Tuning.data
 		fx.burst(_model.global_position + Vector3.UP * tuning.fx_drum_pick_height, tuning.fx_drum_pick_cubes, tuning.fx_drum_pick_speed)
 	Game.pick_drum(sanctuary)
+	Feedback.vibrate(Tuning.data.vibration_drum)
 
 
 ## Vrai tant que le tambour attend sur son autel qu'on vienne le prendre.

@@ -176,6 +176,18 @@ func test_l_experience_a_rapporter_bat_dans_la_barre() -> void:
 	Game.playing = false
 
 
+func test_les_vibrations_se_coupent_dans_la_pause() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	menu.open()
+	var button: Button = menu.get_node("%Vibration") as Button
+	assert_eq(button.text, GameTexts.VIBRATION_ON, "activées par défaut")
+	button.pressed.emit()
+	assert_false(Game.profile.vibration)
+	assert_eq(button.text, GameTexts.VIBRATION_OFF)
+	assert_false(Save.load_profile().vibration, "gardé")
+
+
 func test_rentrer_au_village_se_confirme() -> void:
 	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
 	world.add_child(menu)

@@ -250,6 +250,7 @@ func new_game() -> void:
 	var fresh: Profile = Profile.create()
 	fresh.damage_numbers = profile.damage_numbers
 	fresh.debug_info = profile.debug_info
+	fresh.vibration = profile.vibration
 	fresh.muted = profile.muted
 	fresh.hints_done = profile.hints_done.duplicate()
 	profile = fresh
@@ -266,6 +267,12 @@ func mark_hint_done(hint: StringName) -> void:
 
 func set_damage_numbers(enabled: bool) -> void:
 	profile.damage_numbers = enabled
+	save()
+	settings_changed.emit()
+
+
+func set_vibration(enabled: bool) -> void:
+	profile.vibration = enabled
 	save()
 	settings_changed.emit()
 

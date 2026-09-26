@@ -1,9 +1,10 @@
 class_name PauseMenu
 extends ScreenLayer
 ## Pause du prototype : la nuit en cours, un rappel des gestes, Reprendre, Sac et Talents (au
-## village seulement : c'est là que le héros grandit), Son, chiffres de dégâts (et infos techniques des versions de test), Rentrer au
-## village (touché deux fois : la sortie se termine). S'ouvre avec le bouton de pause, Échap /
-## Start, le bouton retour d'Android, ou quand le jeu passe en arrière-plan.
+## village seulement : c'est là que le héros grandit), Vibrations, Son, chiffres de dégâts (et
+## infos techniques des versions de test), Rentrer au village (touché deux fois : la sortie se
+## termine). S'ouvre avec le bouton de pause, Échap / Start, le bouton retour d'Android, ou quand
+## le jeu passe en arrière-plan.
 
 var _quit_armed: bool = false
 
@@ -13,6 +14,7 @@ var _quit_armed: bool = false
 @onready var _talents: Button = %Talents
 @onready var _sound: Button = %Sound
 @onready var _damage: Button = %DamageNumbers
+@onready var _vibration: Button = %Vibration
 @onready var _debug: Button = %DebugInfo
 @onready var _quit: Button = %Quit
 
@@ -28,6 +30,9 @@ func _ready() -> void:
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
 	_sound.pressed.connect(func() -> void:
 		Game.set_muted(not Game.profile.muted)
+		_refresh())
+	_vibration.pressed.connect(func() -> void:
+		Game.set_vibration(not Game.profile.vibration)
 		_refresh())
 	_damage.pressed.connect(func() -> void:
 		Game.set_damage_numbers(not Game.profile.damage_numbers)
@@ -106,6 +111,7 @@ func _refresh() -> void:
 		_talents.text = GameTexts.TALENTS_AT_VILLAGE
 	_sound.text = GameTexts.SOUND_OFF if profile.muted else GameTexts.SOUND_ON
 	_damage.text = GameTexts.DAMAGE_NUMBERS_ON if profile.damage_numbers else GameTexts.DAMAGE_NUMBERS_OFF
+	_vibration.text = GameTexts.VIBRATION_ON if profile.vibration else GameTexts.VIBRATION_OFF
 	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF
 	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else GameTexts.QUIT
 

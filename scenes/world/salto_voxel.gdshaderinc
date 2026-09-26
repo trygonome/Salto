@@ -1,7 +1,8 @@
 // Couleur d'un cube voxel du prototype, avant brouillard. `data` : couleur codée (mode + teinte,
 // saturation, luminosité). Modes : 0 monde (teinte qui ondule avec la vie de la jungle, bue par le
-// silence, pulse au temps) · 1 vif (ondule) · 2 fixe · 3 arc-en-ciel · 4 teinte fixe bue par le
-// silence. Dans le cercle du groove, autour du héros, le monde retrouve ses couleurs.
+// silence, pulse au temps) · 1 vif (fleurs : ondule, s'éteint avec le monde) · 2 fixe ·
+// 3 arc-en-ciel · 4 teinte fixe bue par le silence. Les teintes ondulent autour de leur valeur sans
+// jamais dériver. Dans le cercle du groove, autour du héros, le monde retrouve ses couleurs.
 // `vivid` (0 à 1) ravive la couleur en arc-en-ciel (Muet qu'on libère) ; `healed` (0 à 1) rend
 // ses couleurs à un Muet libéré qui danse au village (sa teinte, plus vive). Positions en mètres.
 vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid, float healed) {
@@ -12,16 +13,15 @@ vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vi
 	float l = data.z;
 	float halo = salto_halo(world);
 	float wob = sin(w.x * 0.05 + w.z * 0.07 + salto_time * 0.35) * 0.07 * salto_life;
-	float drift = salto_time * 0.04 * salto_life;
 	float zone = salto_zone(w.xz);
 	float sat = mix(zone * salto_sat, max(zone * salto_sat, SALTO_HALO_SAT), halo);
 	if (mode < 0.5) {
-		h = fract(h + drift + wob);
+		h = fract(h + wob);
 		s *= sat;
 		l += salto_beat * 0.06 * max(salto_sat, halo * SALTO_HALO_SAT);
 	} else if (mode < 1.5) {
-		h = fract(h + salto_time * 0.04 + wob);
-		s *= mix(zone, 1.0, halo);
+		h = fract(h + wob);
+		s *= sat;
 	} else if (mode < 2.5) {
 	} else if (mode < 3.5) {
 		h = fract(h + salto_time * 0.1 + w.y * 0.03);

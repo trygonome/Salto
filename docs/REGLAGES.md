@@ -120,7 +120,12 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 
 ## Symbiose (version 1.1)
 - Plume arc-en-ciel au sommet de chaque perchoir : remplit toute la jauge de groove (revient à chaque sortie).
-- Cercle du groove autour du héros : 1,3 m jauge vide → 4,5 m jauge pleine ; Salto arc-en-ciel : éclate à 16 m
+- Cercle du groove autour du héros : 1,3 m jauge vide → 3,5 m jauge pleine ; Salto arc-en-ciel : éclate à 16 m
   puis retombe de 6 m/s. Dans le cercle, saturation 0,9 (teintes de la jungle inchangées).
-- Réponse attendue (GDD §7) : dégâts × 1,6, jauge + 2 (sur 10), couleurs rendues au Muet 0,6 s.
+- Jauge (version 1.2) : après 3 s sans gain, elle retombe de 0,8 par seconde ; pleine, elle attend le Salto.
+- Les teintes du monde ondulent sans jamais dériver (version 1.2) ; les fleurs s'éteignent avec le monde
+  et fleurissent dans le cercle du groove.
+- Réponse attendue (GDD §7) : dégâts × 1,6, jauge + 1 (sur 10), ses propres couleurs rendues au Muet 0,6 s.
+- Vibrations (réglage de la pause) : coup 12 ms, coup fort 30 ms, héros touché 70 ms, tambour 50 ms,
+  Salto arc-en-ciel 140 ms.
 - Troupe du village : 16 Muets libérés au plus, à 60 % de leur taille, sur deux cercles (2,1 m et 3,1 m).
