@@ -3,7 +3,8 @@ extends ScreenLayer
 ## Écran titre du prototype, par-dessus le village qui danse : SALTO, la saga des cinq nuits (faites,
 ## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
 ## Talents, Carnet, Nouvelle partie (touchée deux fois). En expédition (version 2.6) : la région
-## où partir, choisie entre les flèches (une région fermée dit comment l'ouvrir).
+## où partir, choisie entre les flèches (une région fermée dit comment l'ouvrir) ; Le village
+## (version 2.7) : y entrer à pied.
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
@@ -19,6 +20,7 @@ var _shown_region: StringName = &""
 @onready var _chapter_small: Label = %ChapterSmall
 @onready var _play: Button = %Play
 @onready var _bag: Button = %Bag
+@onready var _village: Button = %Village
 @onready var _talents: Button = %Talents
 @onready var _notebook: Button = %Notebook
 @onready var _new_game: Button = %NewGame
@@ -33,6 +35,7 @@ func _ready() -> void:
 	%Subtitle.text = GameTexts.GAME_SUBTITLE
 	_play.pressed.connect(_on_play)
 	_bag.pressed.connect(func() -> void: _open_sub(&"bag_screen"))
+	_village.pressed.connect(_on_village)
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
 	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
 	_new_game.pressed.connect(_on_new_game)
@@ -91,6 +94,8 @@ func refresh() -> void:
 	var expedition: bool = level != null and level.is_expedition()
 	_saga.visible = not expedition
 	_region.visible = expedition
+	_village.visible = expedition
+	_village.text = GameTexts.VILLAGE_BUTTON
 	_play.disabled = false
 	if expedition:
 		_chapter.text = GameTexts.EXPEDITION_TITLE
@@ -130,6 +135,12 @@ func _step_region(step: int) -> void:
 		Game.save()
 	get_tree().call_group(&"night_level", &"preview_region", _shown_region)
 	refresh()
+
+
+## Entrer au village à pied (rebâtir, écouter le Chef), puis partir par le nord.
+func _on_village() -> void:
+	close()
+	get_tree().call_group(&"night_level", &"enter_village")
 
 
 func _on_play() -> void:

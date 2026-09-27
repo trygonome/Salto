@@ -194,13 +194,13 @@ func current_toast() -> String:
 
 
 ## Bulle au-dessus de `source` (un villageois, le Chef, un Muet libéré), `height` m au-dessus de
-## ses pieds.
-func show_bubble(text: String, source: Node3D, height: float) -> void:
+## ses pieds, pendant `duration` s (négatif : la durée habituelle).
+func show_bubble(text: String, source: Node3D, height: float, duration: float = -1.0) -> void:
 	_bubble_label.text = text
 	_fit(_bubble_label, bubble_max_width)
 	_bubble_source = source
 	_bubble_height = height
-	_bubble_left = Tuning.data.bubble_time
+	_bubble_left = duration if duration > 0.0 else Tuning.data.bubble_time
 	_bubble.visible = true
 	_bubble.reset_size()
 	_place_bubble()
@@ -315,9 +315,9 @@ func _update_quest() -> void:
 		_pulse_quest()
 
 
-## Objectif du moment (vide hors sortie ou nuit accomplie).
+## Objectif du moment (vide hors sortie ou nuit accomplie ; au village, ce qu'on peut y faire).
 func _goal() -> Dictionary:
-	return _night.current_goal() if _night and _night.in_sortie else {}
+	return _night.current_goal() if _night and (_night.in_sortie or bool(_night.get(&"in_village"))) else {}
 
 
 func _pulse_quest() -> void:

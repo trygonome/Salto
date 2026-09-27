@@ -9,6 +9,9 @@ extends Level
 ## Version 2.6 : trois régions (couleurs, formes de clairière, gardien), pièges au tempo, tambours de
 ## guerre, jarres, rocher fêlé qui ouvre un passage secret, salles de repos et de trésor ; l'eau
 ## ralentit.
+## Version 2.7 : le camp est le village. On y marche au retour d'une expédition (ou depuis l'écran
+## titre) : le Chef commente la partie, les danseurs font la fête, les plumes d'or rebâtissent les
+## cases (s'en approcher), et le passage du nord part en expédition.
 
 ## Muets à faire apparaître, par espèce, et le Grand Muet ; passage de sortie.
 @export var hopper_scene: PackedScene
@@ -65,6 +68,8 @@ const CAMPFIRE_FLAME_BASE := 0.6
 const CAMPFIRE_FLAME_CUBE := 0.5
 const CAMPFIRE_FLAME_HOT := Color(1.0, 0.85, 0.3)
 const CAMPFIRE_FLAME_COOL := Color(0.95, 0.25, 0.1, 0.0)
+## Village : cercle des danseurs autour du feu (u, au-delà du feu).
+const VILLAGE_DANCE_RING := 3.0
 
 var gen := WorldGen.new()
 ## Graine de la prochaine expédition (tirée au hasard).
@@ -91,6 +96,14 @@ var _ambient: AmbientFx
 ## Passage secret ouvert par le rocher fêlé (Vector2.INF : aucun) ; coffre de la salle (trésor, secret).
 var _secret_at := Vector2.INF
 var _chest: Node3D
+## Au village (on y marche) : le Chef et ses répliques à dire, la case dont on s'est approché (vide :
+## aucune ; elle ne reparle qu'une fois qu'on s'en est éloigné), repères au-dessus des cases.
+var in_village: bool = false
+var _chief: Villager
+var _chief_lines := PackedStringArray()
+var _line_left: float = 0.0
+var _plot_near: StringName = &""
+var _plot_marks: Dictionary[StringName, Node3D] = {}
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -124,12 +137,16 @@ func _ready() -> void:
 	hero.fainted.connect(_on_hero_fainted)
 	boon_screen.chosen.connect(_on_boon_chosen)
 	boon_screen.choice_made.connect(_on_choice_made)
-	Rhythm.play(1)
+	hero.hurtbox.hurt.connect(_on_hero_hurt)
+	Rhythm.play(Village.music_layers(Game.profile))
 	Rhythm.set_band(0.0)
 	_build_camp()
 	if Game.start_on_load:
 		Game.start_on_load = false
 		start_sortie()
+	elif Game.village_on_load:
+		Game.village_on_load = false
+		enter_village()
 	else:
 		_show_title()
 
@@ -139,11 +156,14 @@ func _exit_tree() -> void:
 	Rhythm.set_region(&"")
 
 
-func _process(_delta: float) -> void:
-	# La troupe du village chante quand le combo tient.
+func _process(delta: float) -> void:
+	if in_village:
+		_process_village(delta)
+		return
+	# La troupe du village chante quand le combo tient (toujours un peu, avec la scène rebâtie).
 	if in_sortie:
 		var tuning: TuningData = Tuning.data
-		Rhythm.set_band(minf(float(hero.combo.hits) / tuning.combo_band_full, 1.0) * tuning.combo_band_max)
+		Rhythm.set_band(maxf(minf(float(hero.combo.hits) / tuning.combo_band_full, 1.0) * tuning.combo_band_max, Village.band_floor(Game.profile, tuning)))
 	# Une rencontre s'ouvre quand le héros s'approche du personnage.
 	if _encounter == &"" or _encounter_open or not in_sortie or _cleared:
 		return
@@ -170,6 +190,9 @@ func shows_drums() -> bool:
 ## Objectif du moment : se battre (et ce que la clairière promet), choisir un passage, le Grand
 ## Muet.
 func current_goal() -> Dictionary:
+	if in_village:
+		var gate: Vector2 = WorldGen.gap_point(0.0, _radius) * _unit
+		return {&"title": GameTexts.VILLAGE_TITLE, &"sub": GameTexts.VILLAGE_SUB % GameTexts.feathers(Game.profile.feathers), &"icon": &"home", &"point": Vector3(gate.x, 0.0, gate.y)}
 	var run: RunState = Game.run
 	if run == null or not in_sortie:
 		return {}
@@ -200,6 +223,9 @@ func room_name() -> String:
 func start_sortie() -> void:
 	var tuning: TuningData = Tuning.data
 	Game.start_run(next_seed, tuning.run_rooms, Game.profile.region)
+	in_village = false
+	_chief = null
+	_plot_marks.clear()
 	in_sortie = true
 	_ending = false
 	hero.begin_sortie()
@@ -212,6 +238,11 @@ func start_sortie() -> void:
 
 ## Termine l'expédition (&"won", &"faint" ou &"quit") et ouvre le résumé.
 func end_sortie(kind: StringName) -> void:
+	if in_village:
+		# Depuis le village, « rentrer » ramène à l'écran titre.
+		Game.village_on_load = false
+		restart(false)
+		return
 	if not in_sortie:
 		return
 	in_sortie = false
@@ -228,6 +259,8 @@ func end_sortie(kind: StringName) -> void:
 ## Relance la scène : une nouvelle expédition tout de suite (`play`), ou l'écran titre.
 func restart(play: bool) -> void:
 	Game.start_on_load = play
+	# Retour d'une expédition : on arrive au village, où le Chef la commente.
+	Game.village_on_load = not play and not in_village and Game.last_summary.size() > 0
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -296,7 +329,9 @@ func _build_camp(region: StringName = &"") -> void:
 	if region == &"":
 		region = Game.profile.region if Game.profile else Regions.UNDERGROWTH
 	_apply_region(region)
-	gen.generate_room(next_seed, _radius, PackedFloat32Array(), _kind)
+	_kind = &"village"
+	gen.village_built = Game.profile.village.duplicate() if Game.profile else {} as Dictionary[StringName, int]
+	gen.generate_room(next_seed, _radius, PackedFloat32Array([0.0]), _kind)
 	world.build(gen)
 	_ambient.setup(_radius * _unit)
 	_place_hero()
@@ -333,7 +368,7 @@ func _enter_room() -> void:
 	if not run.is_boss_room() and run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET:
 		_place_room_props()
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
-	Rhythm.set_layers(mini(1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count), Rhythm.NIGHT_LAYERS.size()))
+	Rhythm.set_layers(mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size()))
 	_place_hero()
 	if run.is_boss_room():
 		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), "")
@@ -424,7 +459,7 @@ func _on_chest_opened() -> void:
 	var gained: int = tuning.secret_feathers if run.reward == RunState.SECRET else tuning.treasure_feathers
 	run.feathers += gained
 	hud.show_toast(GameTexts.FEATHERS_FOUND % gained)
-	boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
+	boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
 
 
 ## Vitesse de marche : l'eau (rivière, mare) ralentit, sauf sur les ponts.
@@ -596,7 +631,7 @@ func _room_cleared() -> void:
 	var fx: Effects = Effects.of(self)
 	match run.reward:
 		RunState.BOON:
-			boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
+			boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
 			return
 		RunState.HEAL:
 			var amount: float = hero.health.maximum * tuning.room_heal
@@ -629,7 +664,7 @@ func _after_reward() -> void:
 	var tuning: TuningData = Tuning.data
 	if _elite_boon and Game.run:
 		_elite_boon = false
-		boon_screen.open(Boons.offer(Game.run.rng, Game.run.boons, tuning.boon_offer, tuning), GameTexts.ELITE_BOON_TITLE)
+		boon_screen.open(Boons.offer(Game.run.rng, Game.run.boons, _boon_offer(), tuning), GameTexts.ELITE_BOON_TITLE)
 		return
 	_open_exits()
 
@@ -656,6 +691,9 @@ func _add_gate(reward: StringName, p: Vector2) -> void:
 
 
 func _on_gate_chosen(reward: StringName) -> void:
+	if in_village:
+		_depart()
+		return
 	if not in_sortie or _ending:
 		return
 	var tuning: TuningData = Tuning.data
@@ -782,6 +820,9 @@ func _encounter_value(choice: int) -> int:
 ## Le choix `index` de la rencontre : son effet, puis les passages s'ouvrent (un don se choisit
 ## d'abord).
 func _on_choice_made(index: int) -> void:
+	if in_village:
+		_on_build_choice(index)
+		return
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	_cleared = true
@@ -821,7 +862,7 @@ func _on_choice_made(index: int) -> void:
 				Game.take_boon(sharpened)
 				hud.show_toast(GameTexts.BOON_SHARPENED % GameTexts.boon_name(sharpened))
 	if boon:
-		boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
+		boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
 	else:
 		_open_exits()
 
@@ -848,8 +889,171 @@ func _on_hero_fainted() -> void:
 	if not in_sortie or _ending:
 		return
 	_ending = true
+	if Game.run and Game.run.is_boss_room():
+		for node: Node in get_tree().get_nodes_in_group(&"muets"):
+			var muet: Muet = node as Muet
+			if muet.is_boss() and not muet.is_freed():
+				Game.run.boss_left = muet.health.current / muet.health.maximum
 	hud.show_toast(GameTexts.TOAST_FAINT)
 	get_tree().create_timer(Tuning.data.faint_summary_delay, false).timeout.connect(end_sortie.bind(&"faint"))
+
+
+## Dons proposés à chaque offre (l'autel des esprits en ajoute un).
+func _boon_offer() -> int:
+	return Tuning.data.boon_offer + Village.extra_boons(Game.profile)
+
+
+## Ce qui a touché le héros en dernier (le Chef en parle s'il est tombé).
+func _on_hero_hurt(hit: HitData) -> void:
+	if not in_sortie or Game.run == null:
+		return
+	var source: Node = hit.attacker
+	while source and not source is Muet and not source is BeatTrap:
+		source = source.get_parent()
+	if source is Muet:
+		Game.run.fallen_to = (source as Muet).species
+	elif source is BeatTrap:
+		Game.run.fallen_to = &"trap"
+
+
+## On entre au village à pied : le Chef, les danseurs, les chantiers, le passage du nord.
+func enter_village() -> void:
+	var tuning: TuningData = Tuning.data
+	in_village = true
+	in_sortie = false
+	get_tree().call_group(&"title_screen", &"close")
+	hero.reads_player_input = true
+	hud.visible = true
+	touch_controls.visible = true
+	_place_hero()
+	_populate_village()
+	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - tuning.room_exit_inset / _unit))
+	Rhythm.set_layers(mini(1 + Village.built_count(Game.profile), Rhythm.NIGHT_LAYERS.size()))
+	Rhythm.set_band(Village.band_floor(Game.profile, tuning))
+	_chief_lines = Village.chief_lines(Game.last_summary, Game.profile, tuning)
+	_line_left = 0.0
+	_plot_near = &""
+	if Game.last_summary.get(&"kind", &"") == &"won":
+		mood.burst()
+	Game.last_summary = {}
+
+
+## Le Chef devant le feu, les danseurs autour (un de plus par case rebâtie), un repère par case.
+func _populate_village() -> void:
+	var tuning: TuningData = Tuning.data
+	for node: Node in pickups.get_children():
+		node.queue_free()
+	_plot_marks.clear()
+	var fire: Node3D = _campfire()
+	pickups.add_child(fire)
+	var south: float = EnemyMath.yaw_of(Vector3.BACK)
+	_chief = Villager.new()
+	_chief.is_chief = true
+	_chief.position = Vector3(WorldGen.VILLAGE_CHIEF.x, 0.0, WorldGen.VILLAGE_CHIEF.y) * _unit
+	pickups.add_child(_chief)
+	_chief.setup(VoxelStyles.chief(), "village_chief", tuning.chief_scale, south, 0.0, INF, character_material, character_shadow_material, tuning.chief_shadow_radius)
+	var won: bool = Game.last_summary.get(&"kind", &"") == &"won"
+	var count: int = tuning.village_dancers + Village.built_count(Game.profile)
+	for i: int in count:
+		var a: float = PI * 0.25 + TAU * i / count
+		var p := Vector2(cos(a), sin(a)) * (WorldGen.VILLAGE_FIRE_CLEAR + VILLAGE_DANCE_RING)
+		var dancer := Villager.new()
+		dancer.position = Vector3(p.x, 0.0, p.y) * _unit
+		pickups.add_child(dancer)
+		dancer.setup(VoxelStyles.dancer(i), "village_dancer_%d" % i, 1.0, EnemyMath.yaw_of(Vector3(-p.x, 0.0, -p.y)), float(i) / count, tuning.village_party_flip * (1 + i) if won else INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
+	for id: StringName in WorldGen.VILLAGE_PLOTS:
+		var p: Vector2 = WorldGen.VILLAGE_PLOTS[id]
+		var mark := Node3D.new()
+		mark.name = "Plot_%s" % id
+		mark.position = Vector3(p.x, 0.0, p.y) * _unit
+		pickups.add_child(mark)
+		_plot_marks[id] = mark
+
+
+## Au village : le Chef dit ses répliques l'une après l'autre ; une case parle quand on s'en approche.
+func _process_village(delta: float) -> void:
+	var tuning: TuningData = Tuning.data
+	_line_left -= delta
+	if _line_left <= 0.0 and not _chief_lines.is_empty() and is_instance_valid(_chief):
+		hud.show_bubble(_chief_lines[0], _chief, tuning.chief_height + tuning.reply_gap, tuning.village_line_time)
+		_chief.greet()
+		_chief_lines.remove_at(0)
+		_line_left = tuning.village_line_time + tuning.message_fade_time
+	if boon_screen.is_open():
+		return
+	var at := Vector2(hero.global_position.x, hero.global_position.z)
+	if _plot_near != &"":
+		var mark: Node3D = _plot_marks.get(_plot_near)
+		if mark == null or at.distance_to(Vector2(mark.global_position.x, mark.global_position.z)) > tuning.village_plot_radius + tuning.village_plot_leave:
+			_plot_near = &""
+		return
+	for id: StringName in _plot_marks:
+		var mark: Node3D = _plot_marks[id]
+		if at.distance_to(Vector2(mark.global_position.x, mark.global_position.z)) < tuning.village_plot_radius:
+			_plot_near = id
+			_talk_to_plot(id)
+			return
+
+
+## Une case : rebâtie et au rang maximal, elle dit ce qu'elle fait ; sinon, on peut la rebâtir.
+func _talk_to_plot(id: StringName) -> void:
+	var tuning: TuningData = Tuning.data
+	var profile: Profile = Game.profile
+	var price: int = Village.cost(profile, id, tuning)
+	var level: int = Village.rank(profile, id)
+	var spring: int = roundi(tuning.village_spring_health)
+	if price < 0:
+		hud.show_bubble(GameTexts.BUILDING_LINES[id].replace("%d", str(spring * level)), _plot_marks[id], tuning.villager_bubble_height)
+		return
+	var text: String = GameTexts.BUILDING_TEXTS[id].replace("%d", str(spring))
+	if level > 0:
+		text = GameTexts.BUILDING_LINES[id].replace("%d", str(spring * level))
+	var build: String = GameTexts.BUILD_CHOICE % price if level == 0 else GameTexts.BUILD_MORE % [level + 1, price]
+	if not Village.can_build(profile, id, tuning):
+		build += " · " + GameTexts.BUILD_MISSING % (price - profile.feathers)
+	boon_screen.open_choices(GameTexts.BUILDING_NAMES[id], text, PackedStringArray([build, GameTexts.BUILD_LATER]), [Village.can_build(profile, id, tuning), true] as Array[bool])
+
+
+## Rebâtir (choix 0) : les plumes partent, la case surgit en couleurs, le village s'anime.
+func _on_build_choice(index: int) -> void:
+	var tuning: TuningData = Tuning.data
+	var id: StringName = _plot_near
+	if index != 0 or id == &"" or not Village.build(Game.profile, id, tuning):
+		return
+	Game.refresh_stats()
+	Game.stats_changed.emit()
+	hero.health.restore()
+	Game.save()
+	var mark: Node3D = _plot_marks.get(id)
+	var at: Vector3 = mark.global_position if mark else Vector3.ZERO
+	# Le héros recule un peu : la case rebâtie est plus large que le chantier.
+	var away: Vector3 = (hero.global_position - at) * Vector3(1.0, 0.0, 1.0)
+	hero.global_position = at + (away.normalized() if not away.is_zero_approx() else Vector3.BACK) * (tuning.village_plot_radius + tuning.village_plot_leave * 0.5)
+	hero.reset_physics_interpolation()
+	gen.village_built = Game.profile.village.duplicate()
+	gen.generate_room(next_seed, _radius, PackedFloat32Array([0.0]), &"village")
+	world.build(gen)
+	_populate_village()
+	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - tuning.room_exit_inset / _unit))
+	Rhythm.set_layers(mini(1 + Village.built_count(Game.profile), Rhythm.NIGHT_LAYERS.size()))
+	Rhythm.set_band(Village.band_floor(Game.profile, tuning))
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.burst(at + Vector3.UP * tuning.hero_height, tuning.fx_rainbow_cubes, tuning.fx_rainbow_speed)
+		fx.ring(at, tuning.fx_level_ring, fx.gold, tuning.fx_level_ring_time, true)
+	mood.pulse(tuning.rainbow_world_pulse)
+	hud.show_toast(GameTexts.BUILD_DONE % GameTexts.BUILDING_NAMES[id])
+
+
+## Le passage du nord : on part en expédition (fondu au noir).
+func _depart() -> void:
+	var tuning: TuningData = Tuning.data
+	hero.reads_player_input = false
+	hero.input_move = Vector2.ZERO
+	var tween: Tween = create_tween()
+	tween.tween_property(_fade, "color:a", 1.0, tuning.room_fade_time)
+	tween.tween_callback(start_sortie)
+	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time)
 
 
 ## Voile noir des passages d'une clairière à l'autre.

@@ -161,6 +161,9 @@ var jars := PackedVector2Array()
 var secret := Vector2.INF
 ## Décalage de teinte des feuillages et des herbes (région de l'expédition).
 var foliage_shift: float = 0.0
+## Village (version 2.7) : rang de chaque case rebâtie (voir Village) ; le lire avant
+## generate_room(…, &"village").
+var village_built: Dictionary[StringName, int] = {}
 
 var _rng: ProtoRandom
 
@@ -261,6 +264,8 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 			_room_flooded(radius, gaps)
 		&"heights":
 			_room_heights(radius, gaps)
+		&"village":
+			_room_village(radius, gaps)
 		&"mushrooms":
 			_room_place(_mushroom, ROOM_MUSHROOMS + floori(_rnd() * 2.0), radius, gaps, 3.5)
 			_room_place(_bouncer, ROOM_BOUNCERS, radius, gaps, 2.5)
@@ -279,7 +284,7 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
 	_grass(radius, ROOM_GRASS)
 	_pebbles(radius, ROOM_PEBBLES)
-	if kind != &"arena":
+	if kind != &"arena" and kind != &"village":
 		_room_props(radius, gaps, kind)
 
 
@@ -584,6 +589,148 @@ func _room_props(radius: float, gaps: PackedFloat32Array, kind: StringName) -> v
 			var p := Vector2(sin(a), -cos(a)) * (ROOM_CENTER_CLEAR + _rnd() * radius * 0.4)
 			if _free_spot(p, 2.0):
 				traps.append({&"kind": &"spikes", &"x": p.x, &"z": p.y, &"angle": 0.0, &"phase": i})
+
+
+## Place des cases du village (u, depuis le feu au centre) et du Chef.
+const VILLAGE_PLOTS: Dictionary[StringName, Vector2] = {
+	&"altar": Vector2(-13.0, -8.0), &"drum_hut": Vector2(13.0, -8.0),
+	&"spring": Vector2(-13.0, 9.0), &"stage": Vector2(13.0, 9.0),
+}
+const VILLAGE_CHIEF := Vector2(0.0, -6.0)
+const VILLAGE_FIRE_CLEAR := 3.0
+## Couleurs codées du village rebâti (mode 2 : fixes, vives) et des chantiers (mode 4 : bues par le
+## silence).
+const V_WOOD := Vector3(2.07, 0.55, 0.36)
+const V_ROOF := Vector3(2.11, 0.7, 0.5)
+const V_STONE := Vector3(2.72, 0.12, 0.55)
+const V_GOLD := Vector3(2.12, 0.9, 0.55)
+const V_FLAME := Vector3(2.06, 1.0, 0.58)
+const V_WATER := Vector3(1.53, 0.8, 0.6)
+const V_BANNER: Array[Vector3] = [Vector3(2.95, 0.85, 0.6), Vector3(2.13, 0.9, 0.58), Vector3(2.5, 0.8, 0.55), Vector3(2.33, 0.8, 0.5)]
+const V_RUIN := Vector3(4.08, 0.2, 0.3)
+const V_RUIN_STONE := Vector3(4.6, 0.08, 0.38)
+
+
+## Le village : un feu au centre, quatre cases (rebâties ou en chantier), quelques palmiers.
+func _room_village(radius: float, gaps: PackedFloat32Array) -> void:
+	_add_solid(0.0, 0.0, VILLAGE_FIRE_CLEAR)
+	for id: StringName in VILLAGE_PLOTS:
+		var p: Vector2 = VILLAGE_PLOTS[id]
+		var level: int = village_built.get(id, 0)
+		if level <= 0:
+			_plot_ruin(p)
+			continue
+		match id:
+			&"altar":
+				_village_altar(p)
+			&"drum_hut":
+				_village_hut(p)
+			&"spring":
+				_village_spring(p, level)
+			&"stage":
+				_village_stage(p)
+	_room_place(_palm, ROOM_PALMS, radius, gaps, 3.0)
+	_room_place(_fern, ROOM_FERNS, radius, gaps, 2.0)
+
+
+## Chantier : quatre piquets, une pile de planches, des pierres renversées.
+func _plot_ruin(p: Vector2) -> void:
+	for corner: Vector2 in [Vector2(-3, -3), Vector2(3, -3), Vector2(-3, 3), Vector2(3, 3)]:
+		for y: int in 2 + floori(_rnd() * 2.0):
+			_sv(p.x + corner.x, y + 0.5, p.y + corner.y, 0.7, V_RUIN.x, V_RUIN.y, V_RUIN.z + _rnd() * 0.05)
+	for i: int in 3:
+		for k: int in 3:
+			_sv(p.x - 1.0 + k, 0.4 + i * 0.5, p.y + (i % 2) * 0.4, 0.9, V_RUIN.x, V_RUIN.y, V_RUIN.z + 0.05)
+	for i: int in 5:
+		var a: float = _rnd() * TAU
+		_sv(p.x + cos(a) * 2.2, 0.3, p.y + sin(a) * 2.2, 0.7, V_RUIN_STONE.x, V_RUIN_STONE.y, V_RUIN_STONE.z)
+	_add_solid(p.x, p.y, 1.8, 1.5)
+	_shadow(p.x, p.y, 3.0, 0.15)
+
+
+## L'autel des esprits : une estrade de pierre, l'autel, une plume arc-en-ciel, quatre torches.
+func _village_altar(p: Vector2) -> void:
+	for x: int in range(-3, 4):
+		for z: int in range(-3, 4):
+			_sv(p.x + x, 0.5, p.y + z, 1.0, V_STONE.x, V_STONE.y, V_STONE.z - 0.08 + _rnd() * 0.05)
+	for x: int in range(-1, 2):
+		for z: int in range(-1, 2):
+			for y: int in 2:
+				_sv(p.x + x, 1.5 + y, p.y + z, 1.0, V_STONE.x, V_STONE.y, V_STONE.z)
+	for y: int in 3:
+		_sv(p.x, 3.6 + y * 0.8, p.y, 0.7 - y * 0.12, 3.0 + y * 0.2, 0.9, 0.6)
+	for corner: Vector2 in [Vector2(-3, -3), Vector2(3, -3), Vector2(-3, 3), Vector2(3, 3)]:
+		for y: int in 3:
+			_sv(p.x + corner.x, 1.5 + y, p.y + corner.y, 0.6, V_WOOD.x, V_WOOD.y, V_WOOD.z)
+		_sv(p.x + corner.x, 4.5, p.y + corner.y, 0.7, V_FLAME.x, V_FLAME.y, V_FLAME.z)
+	_add_solid(p.x, p.y, 3.8, 2.0)
+	_shadow(p.x, p.y, 5.0, 0.25)
+
+
+## La case du tambourinaire : murs de bois, toit de paille dorée, un grand tambour à côté.
+func _village_hut(p: Vector2) -> void:
+	var r: float = 3.2
+	var door: float = atan2(-p.y, -p.x)
+	for x: int in range(-4, 5):
+		for z: int in range(-4, 5):
+			var d: float = Vector2(x, z).length()
+			if d > r or d <= r - 1.1:
+				continue
+			var is_door: bool = absf(angle_difference(atan2(z, x), door)) < 0.45
+			for y: int in 3:
+				if is_door and y < 2:
+					continue
+				_sv(p.x + x, y + 0.5, p.y + z, 1.0, V_WOOD.x, V_WOOD.y, V_WOOD.z + _rnd() * 0.06)
+	for l: int in 4:
+		var lr: float = r + 0.8 - l * 1.1
+		for x: int in range(-5, 6):
+			for z: int in range(-5, 6):
+				if Vector2(x, z).length() <= lr:
+					_sv(p.x + x, 3.5 + l, p.y + z, 1.0, V_ROOF.x, V_ROOF.y, V_ROOF.z + _rnd() * 0.08)
+	var drum := p + Vector2(cos(door + 1.2), sin(door + 1.2)) * 5.0
+	for y: int in 3:
+		for a: int in 8:
+			var ang: float = a * TAU / 8.0
+			_sv(drum.x + cos(ang) * 1.1, y * 0.8 + 0.4, drum.y + sin(ang) * 1.1, 0.8, 2.98, 0.8, 0.45 if y != 1 else 0.3)
+	_sv(drum.x, 2.3, drum.y, 1.6, V_GOLD.x, 0.4, 0.8)
+	_add_solid(p.x, p.y, r + 0.3)
+	_add_solid(drum.x, drum.y, 1.4, 2.5)
+	_shadow(p.x, p.y, r + 1.5, 0.3)
+
+
+## La source : un bassin d'eau bordé de pierres ; plus haut à chaque rang, une fontaine au dernier.
+func _village_spring(p: Vector2, level: int) -> void:
+	var r: int = 3
+	for x: int in range(-r - 1, r + 2):
+		for z: int in range(-r - 1, r + 2):
+			var d: float = Vector2(x, z).length()
+			if d <= r:
+				_sv(p.x + x, 0.2, p.y + z, 1.0, V_WATER.x, V_WATER.y, V_WATER.z)
+			elif d <= r + 1.2:
+				for y: int in level:
+					_sv(p.x + x, 0.5 + y * 0.8, p.y + z, 0.9, V_STONE.x, V_STONE.y, V_STONE.z + _rnd() * 0.05)
+	if level >= 3:
+		for y: int in 4:
+			_sv(p.x, 1.0 + y * 0.9, p.y, 0.6 - y * 0.1, V_WATER.x, V_WATER.y, V_WATER.z + 0.1)
+	_add_solid(p.x, p.y, r + 1.0, 1.0 + level * 0.8)
+	_shadow(p.x, p.y, r + 1.5, 0.2)
+
+
+## La scène : un plancher, deux mâts et un bandeau tissé aux couleurs volées.
+func _village_stage(p: Vector2) -> void:
+	for x: int in range(-4, 5):
+		for z: int in range(-3, 4):
+			_sv(p.x + x, 0.5, p.y + z, 1.0, V_WOOD.x, V_WOOD.y, V_WOOD.z + (0.06 if (x + z) % 2 == 0 else 0.0))
+	var back: float = 3.0 if p.y > 0.0 else -3.0
+	for side: int in [-4, 4]:
+		for y: int in 7:
+			_sv(p.x + side, 1.5 + y, p.y + back, 0.7, V_WOOD.x, V_WOOD.y, V_WOOD.z - 0.06)
+	for x: int in range(-3, 4):
+		for y: int in 2:
+			var c: Vector3 = V_BANNER[posmod(x + y, V_BANNER.size())]
+			_sv(p.x + x, 6.5 + y, p.y + back, 0.9, c.x, c.y, c.z)
+	_add_solid(p.x, p.y, 4.2, 1.5)
+	_shadow(p.x, p.y, 5.0, 0.25)
 
 
 ## Mare : un bassin d'eau (dessiné par WorldBuilder), bordé de pierres.

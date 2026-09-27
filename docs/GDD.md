@@ -52,7 +52,22 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   ou affûter un don déjà pris d'un rang), **trésor** (un coffre après le combat : 35 plumes d'or et un don),
   **secret** (un coffre sans combat : 50 plumes d'or et un don).
 - **Fin** : Grand Muet libéré (jungle libérée), héros évanoui, ou retour depuis la pause. On garde
-  l'expérience (le niveau) et les plumes d'or, qui serviront au camp (jalon suivant).
+  l'expérience (le niveau) et les plumes d'or.
+- **Le village vivant** (version 2.7) : le camp de l'écran titre est le village. Au retour d'une expédition
+  (« Retour » du résumé), ou par le bouton « Le village » de l'écran titre, on y marche : un feu au centre, le
+  **Chef Taroum** devant, des danseurs autour (un de plus par case rebâtie ; ils enchaînent les saltos après une
+  victoire). Le Chef **commente l'expédition** en une réplique au-dessus de lui : le gardien presque libéré, le
+  record de clairières, la première victoire, la région qui s'ouvre, ou la réponse à l'espèce qui a fait tomber le
+  héros (« Un bouclier ne protège que de face… ») ; puis, si les plumes le permettent, il rappelle de rebâtir.
+  Quatre **chantiers** (piquets, planches, pierres renversées) : s'en approcher propose de les rebâtir contre des
+  plumes d'or ; rebâtie, la case surgit en couleurs (gerbe arc-en-ciel) et dit ce qu'elle fait quand on s'en
+  approche :
+  - *l'autel des esprits* (90) : un don de plus au choix à chaque offre ;
+  - *la case du tambourinaire* (70) : les rencontres paraissent plus souvent ;
+  - *la source* (50, 100, 160 : trois rangs) : +10 PV au départ par rang ;
+  - *la scène* (110) : la troupe accompagne l'expédition et la musique part avec une couche de plus.
+  La musique du village gagne une couche par case rebâtie. Le passage du nord part en expédition ; la pause
+  ramène à l'écran titre.
 Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le
 combat, les Muets et le monde.
 

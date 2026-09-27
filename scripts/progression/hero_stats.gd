@@ -55,7 +55,7 @@ static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[Stri
 		if item.legendary != &"":
 			legendaries.append(item.legendary)
 	var n: int = profile.level - 1
-	stats.max_health = roundf(tuning.hero_health_base + tuning.hero_health_per_level * n + tuning.talent_breath_health * profile.talent_rank(&"breath") + gear.get(&"health", 0.0))
+	stats.max_health = roundf(tuning.hero_health_base + tuning.hero_health_per_level * n + tuning.talent_breath_health * profile.talent_rank(&"breath") + gear.get(&"health", 0.0) + Village.extra_health(profile, tuning))
 	stats.attack = (tuning.hero_attack_base + tuning.hero_attack_per_level * n) * (1.0 + tuning.talent_drum_damage * profile.talent_rank(&"drum") + gear.get(&"damage", 0.0))
 	stats.crit_chance = tuning.crit_chance + gear.get(&"crit", 0.0)
 	stats.damage_taken = maxf(tuning.hero_min_damage_taken, 1.0 - tuning.talent_bark_resistance * profile.talent_rank(&"bark") - gear.get(&"resistance", 0.0))

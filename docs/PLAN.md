@@ -185,6 +185,11 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
      (autel des esprits : un don de plus au choix ; case du tambourinaire : rencontres ; source : PV de
      départ ; scène : musiques).
    *Test : a-t-on envie de revenir au village entre deux expéditions ?*
+   **Fait** (version 2.7) : le village à pied au retour (et depuis l'écran titre), le Chef qui commente la
+   partie (gardien presque libéré, record, première victoire, région ouverte, réponse à l'espèce qui a fait
+   tomber le héros) puis rappelle de rebâtir, quatre cases rebâties avec les plumes d'or (autel : un don de plus ;
+   case du tambourinaire : plus de rencontres ; source : PV de départ ; scène : troupe et musique), danseurs de
+   plus en plus nombreux, fête après une victoire.
 6. **2.8 — Des parties différentes.**
    - **Instruments-armes** au départ : bâton de pluie (l'actuel), maracas jumelles (rapides),
      tambour-marteau (lent, zones), sarbacane (à distance) : chacun ses enchaînements.

@@ -119,7 +119,9 @@ func _refresh() -> void:
 	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
 	_vibration.text = GameTexts.VIBRATION_ON if profile.vibration else GameTexts.VIBRATION_OFF
 	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF
-	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else GameTexts.QUIT
+	var village: Node = get_tree().get_first_node_in_group(&"night_level")
+	var in_village: bool = village != null and bool(village.get(&"in_village"))
+	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else (GameTexts.QUIT_TO_TITLE if in_village else GameTexts.QUIT)
 
 
 func _on_quit() -> void:
@@ -140,4 +142,4 @@ func _open_sub(group: StringName) -> void:
 
 func _in_sortie() -> bool:
 	var night: Node = get_tree().get_first_node_in_group(&"night_level")
-	return night == null or bool(night.get(&"in_sortie"))
+	return night == null or bool(night.get(&"in_sortie")) or bool(night.get(&"in_village"))

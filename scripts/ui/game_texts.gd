@@ -218,6 +218,65 @@ const GUARDIAN_NAMES: Dictionary[StringName, String] = {
 }
 const REGION_UNLOCKED := "Nouvelle région : %s"
 
+## Village vivant (version 2.7) : les cases à rebâtir, ce qu'elles font, ce qu'on y entend ; le
+## Chef qui commente l'expédition.
+const VILLAGE_TITLE := "Le village"
+const VILLAGE_SUB := "%s · départ au nord"
+const VILLAGE_BUTTON := "Le village"
+const VILLAGE_DEPART := "Partir en expédition"
+const BUILDING_NAMES: Dictionary[StringName, String] = {
+	&"altar": "L'autel des esprits", &"drum_hut": "La case du tambourinaire",
+	&"spring": "La source", &"stage": "La scène",
+}
+const BUILDING_TEXTS: Dictionary[StringName, String] = {
+	&"altar": "Des pierres renversées, des plumes éparses. Rebâti, les esprits t'offriront un don de plus au choix.",
+	&"drum_hut": "Une case sans toit où dormait Kamba. Rebâtie, les rencontres paraîtront plus souvent dans la jungle.",
+	&"spring": "Un bassin à sec. Chaque pierre remise en place : +%d PV au départ de l'expédition.",
+	&"stage": "Des planches et des mâts tombés. Rebâtie, la troupe t'accompagnera et la musique partira plus riche.",
+}
+## Ce que disent les cases rebâties quand on s'en approche (le monde parle d'abord).
+const BUILDING_LINES: Dictionary[StringName, String] = {
+	&"altar": "Les esprits t'attendent : un don de plus au choix.",
+	&"drum_hut": "Kamba bat le rappel : les rencontres viennent à toi.",
+	&"spring": "L'eau chante : +%d PV au départ.",
+	&"stage": "La troupe répète pour ta prochaine expédition !",
+}
+const BUILD_CHOICE := "Rebâtir : %d plumes d'or"
+const BUILD_MORE := "Agrandir (rang %d) : %d plumes d'or"
+const BUILD_LATER := "Plus tard"
+const BUILD_DONE := "%s est rebâtie !"
+const BUILD_MISSING := "Il te manque %d plumes d'or"
+## Le Chef au retour de l'expédition (une réplique à la fois, au-dessus de lui).
+const CHIEF_WELCOME := "Bienvenue, petit. Nos cases sont en ruine : tes plumes d'or les rebâtiront."
+const CHIEF_HELLO: PackedStringArray = [
+	"La jungle t'attend, petit acrobate.",
+	"Écoute : même les ruines battent la mesure.",
+	"Chaque plume d'or rend un peu de vie au village.",
+]
+const CHIEF_FIRST_WIN := "Le gardien chante à nouveau ! Tout le village danse pour toi !"
+const CHIEF_WON := "%s est libéré ! Les tambours te remercient."
+const CHIEF_UNLOCKED := "La route des %s est ouverte. Prends garde à son gardien."
+const CHIEF_BOSS_CLOSE := "%s vacillait déjà ! La prochaine fois, il chantera."
+const CHIEF_BOSS_LOST := "%s est fort. Reviens avec plus de dons."
+const CHIEF_RECORD := "Clairière %d ! Jamais un tambourinaire n'était allé si loin."
+const CHIEF_EARLY := "Déjà de retour ? La jungle ne pardonne pas les pas pressés."
+const CHIEF_FAINT := "Tu t'es relevé, c'est l'essentiel. Repose-toi et repars."
+const CHIEF_QUIT := "Sage de rentrer. La jungle attendra."
+const CHIEF_BUILD := "Tu as %d plumes d'or : de quoi rebâtir une case !"
+## Tombé face à une espèce : le Chef rappelle sa réponse.
+const CHIEF_FALLEN: Dictionary[StringName, String] = {
+	&"hopper": "Les Sautillants t'ont eu ? Enchaîne : le 3e coup les envoie valser.",
+	&"flyer": "Les Volants ? Esquive leur piqué, puis frappe-les au sol.",
+	&"shielder": "Un bouclier ne protège que de face : passe derrière, ou plonge dessus.",
+	&"charger": "Le Cornu charge tout droit : esquive au dernier moment, il s'assomme.",
+	&"spitter": "Les Cracheurs ? Saute leurs bulles et fonce : un coup roulé les fait taire.",
+	&"weaver": "Le Tisserand ? Sors vite des ronces, puis plonge sur lui.",
+	&"totem": "Abats d'abord le Totem : tant qu'il chante, les autres tiennent.",
+	&"dancer": "Le Danseur esquive un coup sur deux : esquive sa vrille, puis riposte.",
+	&"brute": "La Brute lève les poings avant de bondir : esquive, puis frappe quand elle souffle.",
+	&"trap": "Les pièges suivent la musique : écoute le temps d'avant.",
+}
+
 ## Muets : nom de chaque espèce, et nom d'un élite (espèce + particularité).
 const SPECIES_NAMES: Dictionary[StringName, String] = {
 	&"hopper": "Sautillant", &"flyer": "Volant", &"shielder": "Porte-bouclier", &"charger": "Cornu",
@@ -285,6 +344,7 @@ const VIBRATION_OFF := "Vibrations : non"
 const DEBUG_ON := "Infos techniques : oui"
 const DEBUG_OFF := "Infos techniques : non"
 const QUIT := "Rentrer au village"
+const QUIT_TO_TITLE := "Écran titre"
 const QUIT_CONFIRM := "Touche encore pour rentrer"
 const PAUSE_HELP := "Saut deux fois : salto. Frappe trois fois : enchaînement. Frappe en l'air : plongeon, plus fort de haut. Esquive : roulade, ou élan en l'air."
 

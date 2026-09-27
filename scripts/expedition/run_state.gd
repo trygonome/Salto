@@ -36,6 +36,12 @@ var elapsed: float = 0.0
 var encounters_seen: Array[StringName] = []
 ## L'élite de l'expédition est déjà paru.
 var elite_done: bool = false
+## Rencontres en plus dans le tirage des passages (case du tambourinaire, version 2.7).
+var extra_encounters: int = 0
+## Pour le Chef, au retour : ce qui a fait tomber le héros (espèce, &"trap" ; vide : rien), PV
+## restants du gardien quand on tombe devant lui (part ; négatif : pas de gardien).
+var fallen_to: StringName = &""
+var boss_left: float = -1.0
 var rng := RandomNumberGenerator.new()
 
 
@@ -110,9 +116,15 @@ func exit_rewards(count: int) -> Array[StringName]:
 	if room + 1 >= room_count - 1:
 		return [BOSS] as Array[StringName]
 	var pool: Array[StringName] = REWARDS.duplicate()
+	for i: int in extra_encounters:
+		pool.append(ENCOUNTER)
 	var picks: Array[StringName] = []
 	while picks.size() < count and not pool.is_empty():
-		picks.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+		var pick: StringName = pool.pop_at(rng.randi_range(0, pool.size() - 1))
+		picks.append(pick)
+		# Deux passages, deux récompenses différentes.
+		while pool.has(pick):
+			pool.erase(pick)
 	return picks
 
 

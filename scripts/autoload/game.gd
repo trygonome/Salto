@@ -49,6 +49,10 @@ var at_village: bool = false
 var run: RunState
 ## La prochaine scène de nuit lance la sortie tout de suite (Repartir, Nuit suivante).
 var start_on_load: bool = false
+## La prochaine expédition s'ouvre sur le village, où l'on marche (retour d'une expédition).
+var village_on_load: bool = false
+## Résumé de la dernière expédition (le Chef le commente au village ; vide : aucune).
+var last_summary: Dictionary = {}
 var rng := RandomNumberGenerator.new()
 
 
@@ -182,6 +186,7 @@ func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 	start_night(profile.night)
 	profile.begin_sortie()
 	run = RunState.new(seed_number, rooms, region if region != &"" else profile.region)
+	run.extra_encounters = Village.extra_encounters(profile)
 	playing = true
 	at_village = false
 	refresh_stats()
@@ -216,7 +221,9 @@ func end_run(kind: StringName) -> Dictionary:
 		&"kind": kind, &"room": reached, &"rooms": run.room_count, &"muets": run.muets_freed,
 		&"boons": run.boon_ranks(), &"feathers": run.feathers, &"level": profile.level, &"time": run.elapsed,
 		&"record": record, &"region": run.region, &"unlocked": unlocked,
+		&"fallen_to": run.fallen_to, &"boss_left": run.boss_left,
 	}
+	last_summary = summary
 	run = null
 	refresh_stats()
 	save()

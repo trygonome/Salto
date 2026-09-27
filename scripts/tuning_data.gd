@@ -1562,3 +1562,22 @@ extends Resource
 @export var boss_pillar_linger: float
 @export var boss_pillar_sink: float
 
+
+@export_group("Village vivant")
+## Cases à rebâtir avec les plumes d'or : prix de chaque rang (autel des esprits, case du
+## tambourinaire, source, scène).
+@export var village_costs: Dictionary[StringName, PackedInt32Array]
+## Source : PV de départ en plus, par rang. Scène : voix de la troupe pendant l'expédition (0 à 1).
+@export var village_spring_health: float
+@export var village_stage_band: float
+## On s'approche d'une case à tant de mètres pour lui parler ; on s'en éloigne d'autant de plus
+## avant qu'elle ne reparle.
+@export var village_plot_radius: float
+@export var village_plot_leave: float
+## Le Chef : un gardien presque libéré (part de ses PV restants), durée d'une réplique (s).
+@export var village_close_boss: float
+@export var village_line_time: float
+## Danseurs au village : au départ, et un de plus par case rebâtie ; premier salto de fête (s)
+## après une victoire.
+@export var village_dancers: int
+@export var village_party_flip: float

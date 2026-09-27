@@ -1145,3 +1145,17 @@ boss_pillar_height = 9
 boss_pillar_drop = 3.0
 boss_pillar_linger = 0.9
 boss_pillar_sink = 0.4
+village_costs = Dictionary[StringName, PackedInt32Array]({
+&"altar": PackedInt32Array(90),
+&"drum_hut": PackedInt32Array(70),
+&"spring": PackedInt32Array(50, 100, 160),
+&"stage": PackedInt32Array(110)
+})
+village_spring_health = 10.0
+village_stage_band = 0.35
+village_plot_radius = 1.8
+village_plot_leave = 1.2
+village_close_boss = 0.3
+village_line_time = 4.5
+village_dancers = 2
+village_party_flip = 0.6

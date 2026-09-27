@@ -198,3 +198,11 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Gardien des Ruines : 3 piliers de 0,9 m (un par temps, dégâts ×0,8 de sa frappe), annoncés, tombent de 3 m,
   restent 0,9 s puis s'enfoncent en 0,4 s. Reine des Cimes :
   vole, fond sur le héros ; couronne de bulles à l'écrasement dès la phase 2.
+
+## Village vivant (version 2.7)
+- Prix : autel des esprits 90 (un don de plus au choix), case du tambourinaire 70 (une rencontre de plus dans le
+  tirage des passages), source 50 / 100 / 160 (+10 PV au départ par rang), scène 110 (troupe à 35 % pendant
+  l'expédition, une couche de musique de plus au départ).
+- Une case parle à 1,8 m ; elle reparle une fois qu'on s'en est éloigné de 1,2 m de plus. Répliques du Chef : 4,5 s
+  chacune, l'une après l'autre. Gardien « presque libéré » : sous 30 % de ses PV.
+- Danseurs : 2, plus un par case rebâtie ; après une victoire, premiers saltos à 0,6 s d'écart.
