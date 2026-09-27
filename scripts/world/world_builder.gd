@@ -22,8 +22,11 @@ var gen: WorldGen
 var _unit: float = 0.0
 
 
-## Construit le monde ; `world` a déjà été généré.
+## Construit le monde ; `world` a déjà été généré. Un monde déjà construit est d'abord retiré.
 func build(world: WorldGen) -> void:
+	for child: Node in get_children():
+		remove_child(child)
+		child.free()
 	gen = world
 	_unit = Tuning.data.voxel_unit
 	_build_voxels()
@@ -145,7 +148,7 @@ func _build_border() -> void:
 	body.collision_layer = 1
 	body.collision_mask = 0
 	add_child(body)
-	var radius: float = WorldGen.WORLD_R * _unit + tuning.world_border_thickness / 2.0
+	var radius: float = gen.border_radius * _unit + tuning.world_border_thickness / 2.0
 	var count: int = tuning.world_border_segments
 	var width: float = TAU * radius / count * BORDER_OVERLAP
 	for i: int in count:

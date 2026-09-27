@@ -1,7 +1,7 @@
 class_name HeroStats
 extends RefCounted
-## Forces du héros, comme dans le prototype : ce que donnent son niveau, ses talents et les objets
-## qu'il porte. Recalculées quand le profil change (niveau, talent, équipement, forge).
+## Forces du héros, comme dans le prototype : ce que donnent son niveau, ses talents, les objets
+## qu'il porte et, en expédition, les dons des esprits. Recalculées quand l'un d'eux change.
 
 var max_health: float = 0.0
 ## Attaque de base (avant les multiplicateurs du coup, du rythme et du combo).
@@ -36,10 +36,17 @@ var second_wind: float = 0.0
 var shadow: bool = false
 var perfect_heal: float = 0.0
 var rainbow_damage: float = 1.0
+## Dons des esprits : brûlure des coups (part de l'attaque par seconde), dégâts de l'onde du 3e
+## coup (multiplicateur), roulade qui blesse (part de l'attaque ; 0 : non), dégâts d'un coup
+## parfait (multiplicateur).
+var burn: float = 0.0
+var finale_damage: float = 1.0
+var roll_damage: float = 0.0
+var perfect_damage: float = 1.0
 
 
-## Forces pour le profil `profile`.
-static func compute(profile: Profile, tuning: TuningData) -> HeroStats:
+## Forces pour le profil `profile` et, en expédition, les dons pris `boons` (don → rang).
+static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[StringName, int] = {}) -> HeroStats:
 	var stats := HeroStats.new()
 	var items: Array[ItemData] = profile.equipped_items()
 	var gear: Dictionary[StringName, float] = ItemMath.total_effects(items)
@@ -73,4 +80,25 @@ static func compute(profile: Profile, tuning: TuningData) -> HeroStats:
 	stats.shadow = legendaries.has(&"shadow")
 	stats.perfect_heal = tuning.legendary_heart_heal if legendaries.has(&"heart") else 0.0
 	stats.rainbow_damage = tuning.legendary_storm_damage if legendaries.has(&"storm") else 1.0
+	stats._apply_boons(boons, tuning)
 	return stats
+
+
+func _apply_boons(boons: Dictionary[StringName, int], tuning: TuningData) -> void:
+	var v: Callable = func(id: StringName) -> float: return Boons.value(id, Boons.rank(boons, id), tuning)
+	burn = v.call(&"ember")
+	if Boons.rank(boons, &"echo") > 0:
+		finale = true
+		finale_damage += v.call(&"echo")
+	roll_damage = v.call(&"thorns")
+	dive_damage += v.call(&"meteor")
+	dive_radius += v.call(&"meteor") * tuning.boon_meteor_radius_share
+	max_health = roundf(max_health + v.call(&"heart"))
+	perfect_window += v.call(&"metronome")
+	perfect_damage += v.call(&"metronome")
+	heal_per_muet += v.call(&"sap")
+	attack *= 1.0 + v.call(&"fury")
+	attack_speed += v.call(&"fury")
+	speed += v.call(&"swift")
+	roll += v.call(&"swift")
+	crit_chance += v.call(&"hawk")

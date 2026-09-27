@@ -72,6 +72,13 @@ func refresh() -> void:
 	else:
 		_chapter_small.text = GameTexts.TITLE_PITCH
 	_play.text = GameTexts.CONTINUE if profile.started else GameTexts.START
+	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
+	var expedition: bool = level != null and level.is_expedition()
+	_saga.visible = not expedition
+	if expedition:
+		_chapter.text = GameTexts.EXPEDITION_TITLE
+		_chapter_small.text = GameTexts.EXPEDITION_INFO % [profile.feathers, profile.best_room] if profile.best_room > 0 else GameTexts.EXPEDITION_PITCH
+		_play.text = GameTexts.EXPEDITION_START
 	_new_game.visible = profile.started
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME

@@ -389,6 +389,50 @@ muet_health_per_tier = 9.0
 muet_damage_per_tier = 3.0
 muet_health_per_night = 0.25
 muet_damage_per_night = 0.15
+run_rooms = 7
+room_radius = 30.0
+room_waves = 2
+room_wave_base = 3
+room_wave_per_room = 1.0
+room_wave_delay = 0.8
+room_exits = 2
+room_feathers_base = 20
+room_feathers_per_room = 5
+room_heal = 0.35
+boss_room_guards = 3
+room_entry_inset = 1.2
+room_exit_inset = 0.9
+room_boss_depth = 0.4
+room_spawn_min = 0.25
+room_spawn_max = 0.85
+room_spawn_hero_clearance = 3.5
+room_tier_per_room = 0.5
+room_fade_time = 0.25
+room_fade_layer = 20
+fx_spawn_ring = 0.8
+fx_spawn_ring_time = 0.5
+fx_heal_hue = 0.93
+boon_values = Dictionary[StringName, float]({
+&"echo": 0.5,
+&"ember": 0.35,
+&"fury": 0.12,
+&"hawk": 0.1,
+&"heart": 25.0,
+&"meteor": 0.35,
+&"metronome": 0.3,
+&"sap": 4.0,
+&"swift": 0.12,
+&"thorns": 0.8
+})
+boon_max_rank = 3
+boon_offer = 3
+boon_meteor_radius_share = 0.5
+burn_time = 3.0
+thorns_radius = 0.7
+fx_burn_cubes = 3
+fx_burn_speed = 0.5
+fx_burn_hue = 0.06
+burn_spark_period = 0.4
 muet_answers = Dictionary[StringName, PackedStringArray]({
 &"boss": PackedStringArray("rainbow"),
 &"charger": PackedStringArray("stunned"),

@@ -339,6 +339,14 @@ func end_roll() -> void:
 	_roll_end = _clock
 
 
+## Roulade épineuse (don) : les Muets traversés pendant la roulade sont blessés.
+func roll_strike() -> void:
+	if stats.roll_damage <= 0.0:
+		return
+	var make_hit: Callable = _make_hit.bind(stats.roll_damage, &"thorns", RhythmMath.Judgement.MISS, 0.0)
+	hitbox.activate(tuning.thorns_radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.roll_duration, make_hit)
+
+
 ## Direction du prochain coup : vers la cible la plus proche dans le cône d'orientation
 ## automatique, sinon la direction demandée (ou le regard).
 func aim_direction() -> Vector3:
@@ -478,6 +486,8 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 	_next_hit_critical = false
 	var attack: float = stats.attack
 	var move_multiplier: float = multiplier * RhythmMath.damage_multiplier(judgement, tuning)
+	if judgement == RhythmMath.Judgement.PERFECT:
+		move_multiplier *= stats.perfect_damage
 	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
 	var to_target: Vector3 = hurtbox.global_position - global_position
 	to_target.y = 0.0
@@ -489,6 +499,10 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
+	if stats.burn > 0.0 and hit.target:
+		var muet: Muet = hit.target.get_parent() as Muet
+		if muet:
+			muet.burn(stats.attack * stats.burn, tuning.burn_time)
 	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
 	if _pending_groove > 0.0:

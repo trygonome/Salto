@@ -16,6 +16,7 @@ func enter(_previous: StringName) -> void:
 	hero.visual.play_roll(hero.tuning.roll_duration)
 	hero.play_move_sound(&"roll")
 	hero.visual.animator.show_roll()
+	hero.roll_strike()
 
 
 func exit() -> void:

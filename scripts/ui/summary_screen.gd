@@ -41,6 +41,9 @@ func reopen() -> void:
 
 func _fill() -> void:
 	var s: Dictionary = _summary
+	if s.has(&"rows"):
+		_fill_rows(s)
+		return
 	var kind: StringName = s.get(&"kind", &"quit")
 	var night: bool = kind == &"night"
 	var finale: bool = s.get(&"finale", false)
@@ -56,14 +59,35 @@ func _fill() -> void:
 		if banked > 0:
 			rest = (GameTexts.SUMMARY_BANKED_MANY if banked > 1 else GameTexts.SUMMARY_BANKED_ONE) % [GameTexts.plural(banked, GameTexts.DRUM), drums - banked]
 		_sub.text = (GameTexts.SUMMARY_QUIT_SUB if kind == &"quit" else GameTexts.SUMMARY_FAINT_SUB) + rest
-	for child: Node in _stats.get_children():
-		child.queue_free()
-	var rows: Array = [
+	_set_rows([
 		[GameTexts.SUMMARY_DRUMS, "%d / %d" % [drums if night else s.get(&"banked", 0), drums]],
 		[GameTexts.SUMMARY_MUETS, str(s.get(&"muets", 0))],
 		[GameTexts.SUMMARY_LEVEL, str(s.get(&"level", 1))],
 		[GameTexts.SUMMARY_TIME, GameTexts.duration(s.get(&"time", 0.0))],
-	]
+	])
+	_gain.text = ""
+	_gain.visible = false
+	_again.text = (GameTexts.ENDLESS_NIGHT if finale else GameTexts.NEXT_NIGHT) if night else GameTexts.AGAIN
+	var profile: Profile = Game.profile
+	_bag.text = GameTexts.BAG_BUTTON
+	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+
+
+## Résumé déjà écrit par le niveau (expédition) : title, sub, rows ([nom, valeur]), again.
+func _fill_rows(s: Dictionary) -> void:
+	_title.text = s[&"title"]
+	_sub.text = s[&"sub"]
+	_set_rows(s[&"rows"])
+	_gain.visible = false
+	_again.text = s[&"again"]
+	_bag.text = GameTexts.BAG_BUTTON
+	var profile: Profile = Game.profile
+	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+
+
+func _set_rows(rows: Array) -> void:
+	for child: Node in _stats.get_children():
+		child.queue_free()
 	for row: Array in rows:
 		var name_label := Label.new()
 		name_label.text = row[0]
@@ -74,12 +98,6 @@ func _fill() -> void:
 		value.theme_type_variation = &"StatValue"
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_stats.add_child(value)
-	_gain.text = ""
-	_gain.visible = false
-	_again.text = (GameTexts.ENDLESS_NIGHT if finale else GameTexts.NEXT_NIGHT) if night else GameTexts.AGAIN
-	var profile: Profile = Game.profile
-	_bag.text = GameTexts.BAG_BUTTON
-	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
 
 
 func _restart(play: bool) -> void:

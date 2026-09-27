@@ -45,6 +45,8 @@ var stats: HeroStats
 var playing: bool = false
 ## Le héros est au village (le sac et les talents s'ouvrent depuis la pause).
 var at_village: bool = false
+## Expédition en cours (null : aucune).
+var run: RunState
 ## La prochaine scène de nuit lance la sortie tout de suite (Repartir, Nuit suivante).
 var start_on_load: bool = false
 var rng := RandomNumberGenerator.new()
@@ -64,6 +66,8 @@ func _enter_tree() -> void:
 func _process(delta: float) -> void:
 	if playing:
 		progress.advance(delta)
+		if run:
+			run.elapsed += delta
 
 
 ## Prépare la nuit `number` : sanctuaires dont le tambour est déjà au village (le profil n'est
@@ -173,6 +177,50 @@ func leave_village() -> void:
 	at_village = false
 
 
+## Une expédition commence : `rooms` clairières tirées de la graine `seed_number`.
+func start_run(seed_number: int, rooms: int) -> void:
+	start_night(profile.night)
+	profile.begin_sortie()
+	run = RunState.new(seed_number, rooms)
+	playing = true
+	at_village = false
+	refresh_stats()
+	save()
+	stats_changed.emit()
+
+
+## Prend le don des esprits `id` (ou le monte d'un rang) : les forces du héros changent.
+func take_boon(id: StringName) -> void:
+	run.take_boon(id)
+	refresh_stats()
+	stats_changed.emit()
+
+
+## Fin de l'expédition : `kind` vaut &"won" (Grand Muet libéré), &"faint" ou &"quit". L'expérience
+## et les plumes d'or rapportées s'ajoutent ; renvoie le résumé (kind, room, rooms, muets, boons,
+## feathers, level, time, record).
+func end_run(kind: StringName) -> Dictionary:
+	bank_xp()
+	playing = false
+	var reached: int = run.room + 1
+	var record: bool = reached > profile.best_room
+	profile.best_room = maxi(profile.best_room, reached)
+	profile.feathers += run.feathers
+	if kind == &"won":
+		profile.runs_won += 1
+	var summary: Dictionary = {
+		&"kind": kind, &"room": reached, &"rooms": run.room_count, &"muets": run.muets_freed,
+		&"boons": run.boon_ranks(), &"feathers": run.feathers, &"level": profile.level, &"time": run.elapsed,
+		&"record": record,
+	}
+	run = null
+	refresh_stats()
+	save()
+	at_village = true
+	sortie_ended.emit(summary)
+	return summary
+
+
 ## Ajoute l'expérience mise de côté pendant la sortie.
 func bank_xp() -> void:
 	if progress.xp_carried <= 0.0:
@@ -221,7 +269,10 @@ func profile_changed() -> void:
 
 
 func refresh_stats() -> void:
-	stats = HeroStats.compute(profile, Tuning.data)
+	var boons: Dictionary[StringName, int] = {}
+	if run:
+		boons = run.boons
+	stats = HeroStats.compute(profile, Tuning.data, boons)
 
 
 ## Fin de la sortie : `kind` vaut &"night" (nuit accomplie), &"faint" (évanoui) ou &"quit" (rentré

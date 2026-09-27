@@ -26,6 +26,11 @@ var finished: bool = false
 var banked: Array[bool] = [false, false, false]
 ## Muets libérés cette nuit qui dansent au village (espèce ; &"boss", &"king" : Grands Muets).
 var band: Array[StringName] = []
+## Expéditions : plumes d'or rapportées (pour le village), meilleure clairière atteinte, jungles
+## libérées.
+var feathers: int = 0
+var best_room: int = 0
+var runs_won: int = 0
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -209,6 +214,7 @@ func to_dict() -> Dictionary:
 		"version": VERSION,
 		"started": started, "night": night, "night_seed": night_seed, "nights_done": nights_done,
 		"finished": finished, "banked": banked.duplicate(), "band": saved_band,
+		"feathers": feathers, "best_room": best_room, "runs_won": runs_won,
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
@@ -235,6 +241,9 @@ static func from_dict(data: Dictionary) -> Profile:
 	if saved_band is Array:
 		for species: Variant in saved_band:
 			profile.band.append(StringName(str(species)))
+	profile.feathers = int(data.get("feathers", 0))
+	profile.best_room = int(data.get("best_room", 0))
+	profile.runs_won = int(data.get("runs_won", 0))
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))

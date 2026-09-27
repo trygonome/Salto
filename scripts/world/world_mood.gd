@@ -21,12 +21,16 @@ var _won: bool = false
 var _life: float = 0.0
 var _halo: float = 0.0
 var _burst: float = 0.0
+## Avancée imposée (0 à 1 ; négative : celle des tambours de la nuit) : en expédition, la jungle
+## reprend ses couleurs clairière après clairière.
+var _progress: float = -1.0
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
 
 func _ready() -> void:
 	add_to_group(&"world_mood")
+	RenderingServer.global_shader_parameter_set(&"salto_village", 1.0)
 	var tuning: TuningData = Tuning.data
 	_saturation = saturation_target(0, false, tuning)
 	_halo = tuning.groove_halo_min
@@ -58,6 +62,13 @@ func set_won(won: bool) -> void:
 ## Éclat de couleurs (Salto arc-en-ciel) : `amount` de saturation en plus, qui retombe.
 func pulse(amount: float) -> void:
 	_pulse = maxf(_pulse, amount)
+
+
+## Couleurs du monde selon l'avancée `fraction` (0 à 1) d'une expédition, au lieu des tambours.
+## `village` faux : pas de place ni de chemins dorés au sol.
+func set_progress(fraction: float, village: bool) -> void:
+	_progress = clampf(fraction, 0.0, 1.0)
+	RenderingServer.global_shader_parameter_set(&"salto_village", 1.0 if village else 0.0)
 
 
 ## Salto arc-en-ciel : le cercle du groove éclate loin autour du héros, tout le monde s'illumine.
@@ -119,11 +130,13 @@ func _process(delta: float) -> void:
 		beat = exp(-fposmod(Rhythm.song_time() / Rhythm.beat_length(), 1.0) * tuning.world_beat_decay)
 	RenderingServer.global_shader_parameter_set(&"salto_beat", beat)
 	_pulse = maxf(0.0, _pulse - delta * tuning.world_saturation_pulse_decay)
-	var target: float = saturation_target(Game.progress.drums_returned, _won, tuning) + _pulse
+	var levels: PackedFloat32Array = tuning.world_saturation_levels
+	var base: float = lerpf(levels[0], levels[levels.size() - 1], _progress) if _progress >= 0.0 else saturation_target(Game.progress.drums_returned, _won, tuning)
+	var target: float = base + _pulse
 	var rate: float = tuning.world_saturation_pulse_rate if _pulse > 0.0 else tuning.world_saturation_rate
 	_saturation += (target - _saturation) * Smoothing.weight(rate, delta)
 	RenderingServer.global_shader_parameter_set(&"salto_sat", _saturation)
-	var life: float = life_target(Game.progress.drums_returned, Game.progress.drums_required, _won)
+	var life: float = _progress * tuning.world_life_before_won if _progress >= 0.0 else life_target(Game.progress.drums_returned, Game.progress.drums_required, _won)
 	_life += (life - _life) * Smoothing.weight(tuning.world_saturation_rate, delta)
 	RenderingServer.global_shader_parameter_set(&"salto_life", _life)
 	for i: int in _sanctuaries.size():

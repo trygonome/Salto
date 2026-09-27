@@ -62,7 +62,7 @@ extends CanvasLayer
 @export var xp_carry_color: Color
 
 var _hero: Hero
-var _night: VoxelNight
+var _night: Level
 var _banners: Array[PackedStringArray] = []
 var _banner_busy: bool = false
 var _toast_left: float = 0.0
@@ -91,6 +91,7 @@ var _card_tween: Tween
 @onready var _xp_bar: ProgressBar = %XpBar
 @onready var _xp_carry: ColorRect = %XpCarry
 @onready var _drums: Array[PanelContainer] = [%Drum1, %Drum2, %Drum3]
+@onready var _drums_row: Control = $SafeArea/Top/Row/Corner/Drums
 @onready var _pause_button: Button = %PauseButton
 @onready var _quest: PanelContainer = %Quest
 @onready var _quest_icon: TextureRect = %QuestIcon
@@ -145,7 +146,9 @@ func _process(delta: float) -> void:
 	if _hero == null:
 		_find_hero()
 	if _night == null:
-		_night = get_tree().get_first_node_in_group(&"night_level") as VoxelNight
+		_night = get_tree().get_first_node_in_group(&"night_level") as Level
+		if _night:
+			_drums_row.visible = _night.shows_drums()
 	if not visible:
 		return
 	_update_me()
@@ -300,11 +303,12 @@ func _update_xp() -> void:
 ## Objectif : il bat quand il change ; pendant une sortie, une bannière l'annonce.
 func _update_quest() -> void:
 	var goal: Dictionary = _goal()
-	var key: String = String(goal.get(&"title", GameTexts.QUEST_WON))
+	var title: String = String(goal.get(&"title", GameTexts.QUEST_WON))
+	var key: String = title + String(goal.get(&"sub", ""))
 	if key != _quest_key:
 		_quest_key = key
 		_quest_icon.texture = quest_icons[goal.get(&"icon", &"won")]
-		_quest_title.text = key
+		_quest_title.text = title
 		_quest_sub.text = String(goal.get(&"sub", GameTexts.QUEST_WON_SUB))
 		_fit(_quest_title, _view_width() * quest_max_fraction)
 		_fit(_quest_sub, _view_width() * quest_max_fraction)
@@ -367,7 +371,7 @@ func _update_combo() -> void:
 func _update_marker() -> void:
 	var goal: Dictionary = _goal()
 	var camera: Camera3D = get_viewport().get_camera_3d()
-	if goal.is_empty() or _hero == null or camera == null:
+	if goal.is_empty() or not goal.has(&"point") or _hero == null or camera == null:
 		_marker.visible = false
 		return
 	var point: Vector3 = goal[&"point"]
@@ -376,7 +380,7 @@ func _update_marker() -> void:
 		_marker.visible = false
 		return
 	_marker.visible = true
-	var target: Vector3 = point + Vector3.UP * (marker_home_height if goal[&"kind"] == &"return" else marker_height)
+	var target: Vector3 = point + Vector3.UP * (marker_home_height if goal.get(&"kind", &"") == &"return" else marker_height)
 	var behind: bool = camera.is_position_behind(target)
 	var screen: Vector2 = camera.unproject_position(target)
 	var view: Vector2 = get_viewport().get_visible_rect().size

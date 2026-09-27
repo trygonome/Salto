@@ -26,6 +26,21 @@ const DANCERS: PackedVector2Array = [
 ]
 const DANCER_R := 1.0
 const SLOT_R := 1.6
+## Clairière d'expédition (u) : écart entre le bord et la première rangée d'arbres, entre les
+## rangées, espacement des arbres, dispersion ; demi-ouverture d'un passage (rad) ; obstacles
+## (rochers, souches), fleurs, essais de placement ; centre dégagé (rayon), demi-largeur de l'axe
+## des passages.
+const ROOM_RING_GAP := 3.0
+const ROOM_RING_STEP := 7.0
+const ROOM_TREE_SPACING := 7.5
+const ROOM_RING_JITTER := 2.5
+const ROOM_GAP_ANGLE := 0.28
+const ROOM_ROCKS := 3
+const ROOM_STUMPS := 2
+const ROOM_FLOWERS := 90
+const ROOM_TRIES := 400
+const ROOM_CENTER_CLEAR := 9.0
+const ROOM_LANE := 3.0
 ## Hauteur de la plume (ou du coffre) au-dessus du dernier rocher d'un perchoir (u).
 const PERCH_ABOVE := 1.2
 ## Clairière du cercle des gongs (u) : rayon libre, entre ces distances du village, à cette distance
@@ -77,6 +92,8 @@ var huts := PackedVector2Array()
 var totem_height: int = 0
 ## Centre de la clairière du cercle des gongs (u) ; Vector2.INF si aucune n'est libre.
 var gong_clearing := Vector2.INF
+## Rayon des murs invisibles du bord (u).
+var border_radius: float = WORLD_R
 
 var _rng: ProtoRandom
 
@@ -91,6 +108,8 @@ func generate(seed_value: int, nights_done: int) -> void:
 	sanctuaries.clear()
 	sanctuary_names.clear()
 	huts.clear()
+	gong_clearing = Vector2.INF
+	border_radius = WORLD_R
 	_add_village_solids()
 	var base: float = _rnd() * TAU
 	for i: int in SANCTUARY_COUNT:
@@ -135,6 +154,71 @@ func generate(seed_value: int, nights_done: int) -> void:
 			continue
 		_sv(p.x, 0.25, p.y, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
 	gong_clearing = _find_clearing(ProtoRandom.new(seed_value ^ CLEARING_SALT))
+
+
+## Clairière d'une expédition, centrée en 0 (rayon `radius` u) : deux rangées d'arbres serrés au
+## bord, sauf aux passages (angles `gaps`, en radians depuis le nord, dans le sens des aiguilles
+## d'une montre), des rochers, souches et champignons-trampolines à l'intérieur (le centre et
+## l'axe des passages restent dégagés), des fleurs.
+func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array) -> void:
+	_rng = ProtoRandom.new(seed_value)
+	voxels.clear()
+	shadows.clear()
+	solids.clear()
+	pickups.clear()
+	sanctuaries.clear()
+	sanctuary_names.clear()
+	huts.clear()
+	gong_clearing = Vector2.INF
+	border_radius = radius
+	for row: int in 2:
+		var ring: float = radius + ROOM_RING_GAP + row * ROOM_RING_STEP
+		var count: int = floori(TAU * ring / ROOM_TREE_SPACING)
+		for i: int in count:
+			var a: float = (i + _rnd() * 0.4 + row * 0.5) / count * TAU
+			if row == 0 and _near_gap(a, gaps):
+				continue
+			var p := Vector2(sin(a), -cos(a)) * (ring + _rnd() * ROOM_RING_JITTER)
+			_tree(p.x, p.y, 1.0, true, 0)
+	_room_place(_random_rock, ROOM_ROCKS + floori(_rnd() * 3.0), radius, gaps, 3.0)
+	_room_place(_stump, ROOM_STUMPS + floori(_rnd() * 2.0), radius, gaps, 2.0)
+	_room_place(_bouncer, 1, radius, gaps, 2.5)
+	for i: int in ROOM_FLOWERS:
+		var a: float = _rnd() * TAU
+		var r: float = _rnd() * (radius + ROOM_RING_GAP)
+		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+
+
+## Point d'un passage de la clairière (u) : sur le bord, à l'angle `angle` (depuis le nord).
+static func gap_point(angle: float, radius: float) -> Vector2:
+	return Vector2(sin(angle), -cos(angle)) * radius
+
+
+func _near_gap(angle: float, gaps: PackedFloat32Array) -> bool:
+	for gap: float in gaps:
+		if absf(angle_difference(angle, gap)) < ROOM_GAP_ANGLE:
+			return true
+	return false
+
+
+## Pose `count` obstacles avec `builder` dans la clairière, loin du centre, des passages et des
+## autres solides (marge `margin`).
+func _room_place(builder: Callable, count: int, radius: float, gaps: PackedFloat32Array, margin: float) -> void:
+	var placed: int = 0
+	for t: int in ROOM_TRIES:
+		if placed >= count:
+			return
+		var a: float = _rnd() * TAU
+		var r: float = ROOM_CENTER_CLEAR + _rnd() * (radius - ROOM_CENTER_CLEAR - margin)
+		var p := Vector2(sin(a), -cos(a)) * r
+		var lane: bool = false
+		for gap: float in gaps:
+			if segment_distance(p, Vector2.ZERO, gap_point(gap, radius)) < ROOM_LANE + margin:
+				lane = true
+		if lane or not _free_spot(p, margin + 1.5):
+			continue
+		builder.call(p.x, p.y)
+		placed += 1
 
 
 func voxel_count() -> int:

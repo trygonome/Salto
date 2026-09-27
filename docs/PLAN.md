@@ -99,6 +99,22 @@ E. **Une acrobatie par Muet** — réponse attendue (GDD §7) : dégâts, groove
 *Test : une nuit entière ; on comprend pourquoi on revient au village, pourquoi jouer en rythme,
 et ce que chaque Muet attend.*
 
+## Phase 5 : Expéditions (version 2.0)
+Constat (retours sur téléphone, version 1.3) : « un chouette truc, mais pas ce que je cherche » ;
+l'envie : un vrai petit RPG procédural, entraînant, pour les heures creuses, au combat manuel.
+Décision : un action-RPG façon Hades, qui réutilise le monde voxel, les Muets, le héros, les effets
+et la musique. Une **expédition** = une suite de clairières générées (graine de l'expédition) ;
+chaque clairière promet une récompense (don des esprits 1 parmi 3, soin, plumes d'or), lâche ses
+Muets chasseurs par vagues, puis ouvre ses passages qui annoncent la leur ; un Grand Muet garde la
+dernière. On garde l'expérience et les plumes d'or rapportées.
+Jalons :
+1. **Tester si c'est amusant** — 7 clairières, 2 vagues, 10 dons (brûlure, onde du 3e coup,
+   roulade épineuse, plongeon météore, PV, métronome, sève, furie, vitesse, critique), passages,
+   Grand Muet, résumé. *Test : a-t-on envie de relancer ?*
+2. **La carte** — élites, trésors, rencontres, reprise d'une expédition interrompue.
+3. **Le camp** — dépenser les plumes d'or en améliorations permanentes, déblocages.
+4. **Contenu** — dons rares et combinaisons, régions, boss.
+
 ## Phase 4 : finitions pour le téléphone (versions 1.2 et 1.3)
 - **1.2** — couleurs calmes (les teintes ondulent sans dériver), jauge qui retombe sans rythme,
   vibrations (réglage), d'après les vidéos du téléphone.

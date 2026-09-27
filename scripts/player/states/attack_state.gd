@@ -56,7 +56,7 @@ func physics_update(delta: float) -> void:
 		_struck = true
 		hero.strike(attack, _direction, _judgement)
 		if hero.stats.finale and attack == tuning.combo_attacks[tuning.combo_attacks.size() - 1]:
-			hero.quake(tuning.finale_quake_radius, tuning.finale_quake_damage, &"finale")
+			hero.quake(tuning.finale_quake_radius, tuning.finale_quake_damage * hero.stats.finale_damage, &"finale")
 	if _elapsed >= attack.chain_from and hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")
 	elif _elapsed >= attack.chain_from + tuning.move_cancel_delay and hero.input_move.length() > tuning.move_cancel_threshold:

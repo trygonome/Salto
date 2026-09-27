@@ -1,5 +1,5 @@
 class_name VoxelNight
-extends Node3D
+extends Level
 ## Une nuit dans le monde voxel du prototype. Génère le monde de la nuit (graine gardée d'une
 ## sortie à l'autre), pose le village, les trois sanctuaires et leurs tambours, les plumes
 ## arc-en-ciel des perchoirs. À l'écran titre, le village danse et le héros attend ; une sortie
@@ -56,8 +56,6 @@ var gen := WorldGen.new()
 var drums: Array[Node3D] = []
 var bosses: Array[EnemySpawner] = []
 var guards: Array[Array] = []
-## Sortie en cours (sinon : écran titre ou résumé).
-var in_sortie: bool = false
 ## Les Muets libérés cette nuit, qui dansent au village.
 var band: VillageBand
 ## Cercle des gongs de la nuit (null : aucun, nuits sans fin) ; perchoirs qui portent un coffre.

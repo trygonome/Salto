@@ -1,0 +1,103 @@
+[gd_scene load_steps=30 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/flyer.tscn" id="3_flyer"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/grand_muet.tscn" id="4_boss"]
+[ext_resource type="Environment" path="res://scenes/world/night_environment.tres" id="7_env"]
+[ext_resource type="Script" path="res://scripts/world/world_builder.gd" id="8_builder"]
+[ext_resource type="Material" path="res://scenes/world/voxel_static.tres" id="9_voxel"]
+[ext_resource type="Material" path="res://scenes/world/ground.tres" id="10_ground"]
+[ext_resource type="Material" path="res://scenes/world/blob_shadow.tres" id="11_shadow"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/bounce.wav" id="12_bounce"]
+[ext_resource type="Script" path="res://scripts/world/world_mood.gd" id="13_mood"]
+[ext_resource type="PackedScene" path="res://scenes/player/hero.tscn" id="17_hero"]
+[ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="18_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="19_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="20_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="21_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/summary_screen.tscn" id="22_summary"]
+[ext_resource type="PackedScene" path="res://scenes/ui/title_screen.tscn" id="27_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bag_screen.tscn" id="28_bag"]
+[ext_resource type="PackedScene" path="res://scenes/ui/talents_screen.tscn" id="29_talents"]
+[ext_resource type="PackedScene" path="res://scenes/ui/notebook_screen.tscn" id="43_notebook_screen"]
+[ext_resource type="PackedScene" path="res://scenes/expedition/exit_gate.tscn" id="50_gate"]
+[ext_resource type="PackedScene" path="res://scenes/ui/boon_screen.tscn" id="51_boon"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="23_debug"]
+[ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="24_ambience"]
+[ext_resource type="PackedScene" path="res://scenes/fx/effects.tscn" id="90_effects"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/spitter.tscn" id="93_spitter"]
+
+[node name="Expedition" type="Node3D"]
+script = ExtResource("1_night")
+hopper_scene = ExtResource("2_hopper")
+flyer_scene = ExtResource("3_flyer")
+shielder_scene = ExtResource("91_shielder")
+charger_scene = ExtResource("92_charger")
+spitter_scene = ExtResource("93_spitter")
+boss_scene = ExtResource("4_boss")
+gate_scene = ExtResource("50_gate")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("7_env")
+
+[node name="Light" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, 35, 0)
+light_color = Color(1, 0.94, 0.9, 1)
+light_energy = 1.1
+
+[node name="World" type="Node3D" parent="."]
+script = ExtResource("8_builder")
+voxel_material = ExtResource("9_voxel")
+ground_material = ExtResource("10_ground")
+shadow_material = ExtResource("11_shadow")
+bounce_sound = ExtResource("12_bounce")
+
+[node name="Mood" type="Node" parent="." node_paths=PackedStringArray("hero")]
+script = ExtResource("13_mood")
+hero = NodePath("../Hero")
+
+[node name="Foes" type="Node3D" parent="."]
+
+[node name="Pickups" type="Node3D" parent="."]
+
+[node name="Hero" parent="." node_paths=PackedStringArray("joystick") instance=ExtResource("17_hero")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.34)
+joystick = NodePath("../TouchControls/Joystick")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("18_rig")
+target = NodePath("../Hero")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+far = 80.0
+
+[node name="Ambience" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("24_ambience")
+volume_db = -4.0
+autoplay = true
+
+[node name="TouchControls" parent="." instance=ExtResource("19_touch")]
+
+[node name="HUD" parent="." instance=ExtResource("20_hud")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("21_pause")]
+
+[node name="SummaryScreen" parent="." instance=ExtResource("22_summary")]
+
+[node name="TitleScreen" parent="." instance=ExtResource("27_title")]
+
+[node name="BagScreen" parent="." instance=ExtResource("28_bag")]
+
+[node name="TalentsScreen" parent="." instance=ExtResource("29_talents")]
+
+[node name="NotebookScreen" parent="." instance=ExtResource("43_notebook_screen")]
+
+[node name="BoonScreen" parent="." instance=ExtResource("51_boon")]
+
+[node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
+
+[node name="Effects" parent="." instance=ExtResource("90_effects")]

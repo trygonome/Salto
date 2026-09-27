@@ -8,6 +8,8 @@ global uniform float salto_beat;
 // Vie de la jungle, de 0 (nuit muette : couleurs éteintes et immobiles) à 1 (nuit gagnée : toutes
 // les couleurs du prototype, qui dansent). Chaque tambour rapporté en rend une part.
 global uniform float salto_life;
+// 1 dans la nuit du village (place et chemins dorés au sol), 0 dans une clairière d'expédition.
+global uniform float salto_village;
 // Cercle du groove : rayon (m) autour du héros où la jungle retrouve toutes ses couleurs. La jauge
 // de groove le fait grandir ; le Salto arc-en-ciel le fait éclater.
 global uniform float salto_groove;

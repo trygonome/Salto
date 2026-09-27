@@ -11,6 +11,22 @@ Sensation visée : fluide, joyeuse, percutante. Le rythme récompense, il ne blo
 3. **Lisibilité** : chaque attaque ennemie s'annonce (son + signe au sol) ; chaque réussite se voit dans le monde, pas dans un texte.
 4. **La jungle revit** : chaque tambour rapporté rend des couleurs au monde et une couche à la musique.
 
+## 2 bis. Expéditions (mode principal depuis la version 2.0)
+Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
+- **Expédition** : 7 clairières générées à partir d'une graine (arbres serrés au bord, rochers, souches,
+  champignons-trampolines), la dernière gardée par un **Grand Muet**. Les Muets arrivent par vagues et
+  poursuivent le héros.
+- **Récompense de la clairière**, annoncée par le passage qui y mène : **don des esprits** (1 parmi 3),
+  **soin** (35 % des PV) ou **plumes d'or**. La première clairière donne un don.
+- **Dons des esprits** (rang 1 à 3 en les reprenant) : Pied de braise (les coups brûlent), Écho du tambour
+  (onde du 3e coup), Roulade épineuse, Plongeon météore, Cœur de la jungle (PV), Métronome (coups parfaits),
+  Sève (soin par Muet), Furie, Pieds légers, Œil du faucon (critique).
+- La jungle reprend ses couleurs et la musique ses couches de clairière en clairière.
+- **Fin** : Grand Muet libéré (jungle libérée), héros évanoui, ou retour depuis la pause. On garde
+  l'expérience (le niveau) et les plumes d'or, qui serviront au camp (jalon suivant).
+Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le
+combat, les Muets et le monde.
+
 ## 3. Boucle de jeu
 Une nuit = partir du village → atteindre un sanctuaire → vaincre le **Grand Muet** qui garde le tambour → rapporter le tambour.
 Trois tambours = nuit accomplie. Tomber = retour au village : on garde niveau, objets et tambours déjà rapportés.

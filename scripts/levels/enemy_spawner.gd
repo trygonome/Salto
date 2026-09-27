@@ -15,6 +15,8 @@ signal muet_freed(muet: Muet)
 
 ## Errant : il s'éloigne davantage de son poste qu'un gardien.
 var wanderer: bool = false
+## Chasseur (expédition) : il poursuit le héros partout.
+var hunter: bool = false
 ## Rang du sanctuaire gardé : plus loin, plus fort.
 var tier: int = 0
 ## Roi Muet, et nom affiché des Grands Muets.
@@ -36,6 +38,7 @@ func _spawn() -> void:
 	muet.position = position
 	if wanderer:
 		muet.guardian = false
+	muet.hunter = hunter
 	muet.tier = tier
 	muet.king = king
 	muet.display_name = display_name

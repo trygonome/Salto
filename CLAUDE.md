@@ -31,9 +31,10 @@ Godot **4.7.2**. Les scripts de `tools/` tournent sous Linux (sessions cloud, CI
 Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (dossier réglable par `SALTO_TOOLS_DIR`).
 - **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
   (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
-  La scène principale est la nuit dans le monde voxel (`scenes/levels/night.tscn`, monde généré à
-  partir d'une graine gardée d'une sortie à l'autre) : elle s'ouvre sur l'écran titre ; le parcours d'essai
-  (`scenes/levels/test_course.tscn`) se lance depuis l'éditeur (F6).
+  La scène principale est l'expédition (`scenes/levels/expedition.tscn`, action-RPG procédural : une suite
+  de clairières générées, dons des esprits, Grand Muet au bout) : elle s'ouvre sur l'écran titre. La nuit dans
+  le monde voxel (`scenes/levels/night.tscn`) et le parcours d'essai (`scenes/levels/test_course.tscn`) se
+  lancent depuis l'éditeur (F6).
   Le prototype de référence (`docs/prototype/salto-rpg.html`) s'ouvre dans un navigateur.
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
   sans fenêtre ; code de sortie non nul si un test échoue.

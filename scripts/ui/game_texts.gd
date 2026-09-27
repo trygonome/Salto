@@ -93,6 +93,57 @@ const BANNER_SANCTUARY_DETAIL := "Ramasse-le sur son autel"
 const BANNER_NIGHT_DONE := "Nuit accomplie"
 const BANNER_NIGHT_DONE_TITLE := "La jungle danse !"
 
+## Expédition : écran titre, clairières, récompenses, résumé.
+const EXPEDITION_TITLE := "Expédition"
+const EXPEDITION_PITCH := "Traverse les clairières, choisis tes dons, libère le Grand Muet."
+const EXPEDITION_START := "Partir en expédition"
+const EXPEDITION_INFO := "%d plumes d'or · meilleure : clairière %d"
+const ROOM_TITLE := "Clairière %d / %d"
+const ROOM_FIGHT := "Libère les Muets · %s"
+const ROOM_BOSS_TITLE := "Le Grand Muet"
+const ROOM_BOSS_SUB := "Libère-le pour sortir de la jungle"
+const ROOM_CHOOSE := "Choisis ton passage"
+const REWARD_NAMES: Dictionary[StringName, String] = {
+	&"boon": "don des esprits", &"heal": "soin", &"feathers": "plumes d'or", &"boss": "le Grand Muet",
+}
+const FEATHERS_FOUND := "+%d plumes d'or"
+const HEALED := "Soin : +%d PV"
+const BOON_TITLE := "Don des esprits"
+const BOON_SUB := "Choisis un don pour cette expédition"
+const BOON_RANK := "Rang %d"
+const BOON_NEW := "Nouveau"
+const BOON_NAMES: Dictionary[StringName, String] = {
+	&"ember": "Pied de braise", &"echo": "Écho du tambour", &"thorns": "Roulade épineuse",
+	&"meteor": "Plongeon météore", &"heart": "Cœur de la jungle", &"metronome": "Métronome",
+	&"sap": "Sève", &"fury": "Furie", &"swift": "Pieds légers", &"hawk": "Œil du faucon",
+}
+## Effet d'un don au rang offert (%d : sa valeur).
+const BOON_TEXTS: Dictionary[StringName, String] = {
+	&"ember": "Tes coups brûlent : %d % de ton attaque par seconde, 3 s.",
+	&"echo": "Ton 3e coup libère une onde (+%d % de dégâts).",
+	&"thorns": "Ta roulade blesse les Muets traversés (%d % de ton attaque).",
+	&"meteor": "Plongeon : +%d % de dégâts, onde plus large.",
+	&"heart": "+%d PV max.",
+	&"metronome": "Coups parfaits : +%d % de dégâts, fenêtre plus large.",
+	&"sap": "+%d PV par Muet libéré.",
+	&"fury": "+%d % de dégâts et de vitesse des coups.",
+	&"swift": "+%d % de vitesse de course et de roulade.",
+	&"hawk": "+%d % de chances de critique.",
+}
+## Dons qui se comptent en nombre (PV) ; les autres en pour cent.
+const BOON_FLAT: Array[StringName] = [&"heart", &"sap"]
+const RUN_WON := "Jungle libérée !"
+const RUN_LOST := "L'expédition s'arrête"
+const RUN_QUIT := "Retour au camp"
+const RUN_WON_SUB := "Le Grand Muet a retrouvé sa voix. Tu rapportes %s."
+const RUN_LOST_SUB := "Tu es tombé à la clairière %d. Tu rapportes %s."
+const RUN_QUIT_SUB := "Tu rentres de la clairière %d. Tu rapportes %s."
+const RUN_ROOMS := "Clairières"
+const RUN_BOONS := "Dons"
+const RUN_AGAIN := "Nouvelle expédition"
+const FEATHER_ONE := "%d plume d'or"
+const FEATHER_MANY := "%d plumes d'or"
+
 ## Carte d'une page du carnet trouvée.
 const PAGE_FOUND := "Page %d du carnet"
 
@@ -383,6 +434,18 @@ static func talent_effect(id: StringName, rank: int, tuning: TuningData) -> Stri
 static func duration(seconds: float) -> String:
 	var total: int = floori(seconds)
 	return "%d:%02d" % [floori(seconds / 60.0), total % 60]
+
+
+## « 1 plume d'or », « 3 plumes d'or ».
+static func feathers(count: int) -> String:
+	return (FEATHER_MANY if absi(count) > 1 else FEATHER_ONE) % count
+
+
+## Effet du don `id` au rang `level` (valeur totale à ce rang).
+static func boon_text(id: StringName, level: int, tuning: TuningData) -> String:
+	var value: float = Boons.value(id, level, tuning)
+	var amount: int = roundi(value) if BOON_FLAT.has(id) else roundi(value * 100.0)
+	return BOON_TEXTS[id].replace("%d", str(amount))
 
 
 ## Nombre de mots d'un texte (la ponctuation isolée ne compte pas).

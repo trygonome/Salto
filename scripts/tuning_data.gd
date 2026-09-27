@@ -357,6 +357,52 @@ extends Resource
 @export var muet_damage_per_tier: float
 @export var muet_health_per_night: float
 @export var muet_damage_per_night: float
+## Expédition : clairières par expédition (la dernière : le Grand Muet), rayon d'une clairière (u),
+## vagues par clairière, Muets par vague (au départ, en plus par clairière), attente avant une
+## vague (s), passages de sortie, plumes d'une clairière (au départ, en plus par clairière), soin
+## d'une clairière (part des PV), gardiens du Grand Muet.
+@export var run_rooms: int
+@export var room_radius: float
+@export var room_waves: int
+@export var room_wave_base: int
+@export var room_wave_per_room: float
+@export var room_wave_delay: float
+@export var room_exits: int
+@export var room_feathers_base: int
+@export var room_feathers_per_room: int
+@export var room_heal: float
+@export var boss_room_guards: int
+## Clairière : le héros entre à cette distance du bord (m), les passages sont à cette distance du
+## bord (m), le Grand Muet attend à cette part du rayon au nord ; les Muets apparaissent entre ces
+## parts du rayon, à cette distance au moins du héros (m) ; rang des Muets par clairière ; fondu
+## entre deux clairières (s) et son calque.
+@export var room_entry_inset: float
+@export var room_exit_inset: float
+@export var room_boss_depth: float
+@export var room_spawn_min: float
+@export var room_spawn_max: float
+@export var room_spawn_hero_clearance: float
+@export var room_tier_per_room: float
+@export var room_fade_time: float
+@export var room_fade_layer: int
+## Anneau d'apparition d'un Muet (rayon m, durée s), teinte des cubes du soin.
+@export var fx_spawn_ring: float
+@export var fx_spawn_ring_time: float
+@export var fx_heal_hue: float
+## Dons des esprits : valeur par rang de chaque don, rang au plus, dons offerts, part du bonus du
+## plongeon météore donnée au rayon, durée de la brûlure (s) et ses étincelles (s entre deux).
+@export var boon_values: Dictionary[StringName, float]
+@export var boon_max_rank: int
+@export var boon_offer: int
+@export var boon_meteor_radius_share: float
+@export var burn_time: float
+## Étincelles de la brûlure : cubes, vitesse (m/s), teinte.
+@export var fx_burn_cubes: int
+@export var fx_burn_speed: float
+@export var fx_burn_hue: float
+## Roulade épineuse : rayon autour du héros (m).
+@export var thorns_radius: float
+@export var burn_spark_period: float
 ## Réponse attendue par chaque Muet (docs/GDD.md §7) : coups qui la donnent (AttackData.id,
 ## « dive », « rainbow » ; « stunned » : tout coup quand il est étourdi, « behind » : tout coup
 ## qui passe à côté du bouclier). La bonne réponse fait plus de dégâts, remplit la jauge de groove

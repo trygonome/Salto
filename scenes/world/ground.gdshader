@@ -34,7 +34,7 @@ void fragment() {
 	vec2 s1 = salto_sanctuary_1.xy;
 	vec2 s2 = salto_sanctuary_2.xy;
 	float pd = min(seg(p, vec2(0.0), s0), min(seg(p, vec2(0.0), s1), seg(p, vec2(0.0), s2)));
-	float way = max(1.0 - smoothstep(13.5, 15.0, r), 1.0 - smoothstep(2.2, 3.0, pd));
+	float way = max(1.0 - smoothstep(13.5, 15.0, r), 1.0 - smoothstep(2.2, 3.0, pd)) * salto_village;
 	if (way > 0.5) {
 		h = fract(0.1 + sin(salto_time * 0.25 + r * 0.05) * 0.06 * salto_life);
 		s = 0.6;

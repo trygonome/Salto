@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="15_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="16_talisman"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/page.svg" id="40_page"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/heart.svg" id="41_heart"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/plume.svg" id="42_plume"]
 
 [sub_resource type="Gradient" id="Gradient_flash"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -37,6 +39,9 @@ page_icon = ExtResource("40_page")
 page_color = Color(1, 0.957, 0.839, 1)
 slot_icons = Array[Texture2D]([ExtResource("14_anklets"), ExtResource("15_mask"), ExtResource("16_talisman")])
 quest_icons = Dictionary[StringName, Texture2D]({
+&"boon": ExtResource("8_star"),
+&"feathers": ExtResource("42_plume"),
+&"heal": ExtResource("41_heart"),
 &"crown": ExtResource("7_crown"),
 &"drum": ExtResource("5_drum"),
 &"home": ExtResource("6_home"),

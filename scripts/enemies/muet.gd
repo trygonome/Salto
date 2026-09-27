@@ -13,6 +13,12 @@ signal freed(muet: Muet)
 @export var species: StringName
 ## Gardien (reste près de son poste) ou errant (s'en éloigne davantage).
 @export var guardian: bool
+## Chasseur (expédition) : il voit le héros de partout et le poursuit sans revenir à son poste.
+var hunter: bool = false
+## Brûlure en cours (don « Pied de braise ») : temps restant (s), dégâts par seconde, étincelles.
+var _burn_left: float = 0.0
+var _burn_dps: float = 0.0
+var _burn_spark: float = 0.0
 ## Vrai pour une espèce qui vole (pas de gravité ni de contact au sol).
 @export var flies: bool
 ## Annonce d'attaque posée au sol.
@@ -109,9 +115,38 @@ func _physics_process(delta: float) -> void:
 	if _knockback_left > 0.0:
 		_knockback_left -= delta
 	_contact_left -= delta
+	_update_burn(delta)
 	state_machine.physics_update(delta)
 	hitbox.update(delta)
 	_check_contact()
+
+
+## Brûlure (don « Pied de braise ») : `dps` dégâts par seconde pendant `duration` s.
+func burn(dps: float, duration: float) -> void:
+	if health.is_depleted():
+		return
+	_burn_dps = maxf(_burn_dps, dps)
+	_burn_left = duration
+
+
+func is_burning() -> bool:
+	return _burn_left > 0.0
+
+
+func _update_burn(delta: float) -> void:
+	if _burn_left <= 0.0 or health.is_depleted():
+		return
+	var tuning: TuningData = Tuning.data
+	_burn_left -= delta
+	health.take(_burn_dps * delta)
+	_burn_spark -= delta
+	if _burn_spark <= 0.0:
+		_burn_spark = tuning.burn_spark_period
+		var fx: Effects = effects()
+		if fx:
+			fx.burst(global_position + Vector3.UP * body.height, tuning.fx_burn_cubes, tuning.fx_burn_speed, tuning.fx_burn_hue)
+	if _burn_left <= 0.0:
+		_burn_dps = 0.0
 
 
 ## Loin du héros, sans cible, revenu à son poste et au repos (ni bond, ni recul, ni attaque en
@@ -201,11 +236,14 @@ func receive_beat(index: int) -> void:
 ## lancé, perdu si le Muet s'est trop éloigné de son poste ou si le héros est au village.
 func update_target() -> void:
 	var tuning: TuningData = Tuning.data
+	var hero: Hero = get_tree().get_first_node_in_group(&"hero") as Hero
+	if hunter:
+		target = hero if hero and not hero.fainted_now else null
+		return
 	var leash: float = tuning.muet_leash_guard if guardian else tuning.muet_leash_wander
 	if EnemyMath.beyond_leash(post, global_position, leash):
 		target = null
 		return
-	var hero: Hero = get_tree().get_first_node_in_group(&"hero") as Hero
 	if hero == null or in_safe_zone(hero.global_position):
 		target = null
 		return
