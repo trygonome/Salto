@@ -119,9 +119,75 @@ Jalons :
    **Version 2.2** (retour : « les menus manquent cruellement de style ») — écrans dans la direction
    artistique : bois sculpté en cubes, peaux de tambour, bandeau tissé, fond de jungle animé,
    ouvertures animées (voir GDD §11).
-2. **La carte** — élites, trésors, reprise d'une expédition interrompue.
-3. **Le camp** — dépenser les plumes d'or en améliorations permanentes, déblocages.
-4. **Contenu** — dons rares et combinaisons, régions, boss.
+La suite (carte, camp, contenu) est reprise et détaillée dans la phase 6.
+
+## Phase 6 : d'une maquette à un vrai jeu (versions 2.3 à 2.9)
+Constat (retours sur téléphone, version 2.2, et rapport de recherche) : « un début », mais un goût de
+maquette ; les graphismes, les donjons, les Muets et le combat « manquent de quelque chose » ; les plumes
+d'or ne servent à rien. Ordre choisi : d'abord ce qu'on sent à chaque seconde (le combat, les Muets), puis
+ce qu'on voit (graphismes, donjons), puis ce qui fait revenir (village, variété, confort).
+Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
+
+1. **2.3 — Combat : le choc et le contre.**
+   - *Équilibre des Muets* : chaque coup entame une jauge d'équilibre ; brisée, le Muet chancelle,
+     étourdi, et un **coup de grâce** (un salto qui le libère dans une gerbe de couleurs) l'achève.
+   - *Projection* : les coups forts envoient les Muets valser ; contre un arbre, un pilier ou un autre
+     Muet, ils prennent des dégâts d'impact (on les joue au billard).
+   - *Coup chargé* (Frappe maintenue) : lent, brise les boucliers et l'équilibre, projette loin.
+   - *Riposte* : une esquive parfaite (au dernier moment) ralentit le temps un instant, et le coup
+     suivant est une riposte critique.
+   - *Retours* : chaque type de coup a son son et son effet ; la musique enfle quand le combo tient.
+   *Test : les combats ont-ils du poids, a-t-on envie d'enchaîner et de contrer ?*
+2. **2.4 — Les Muets : un vrai bestiaire.**
+   - Ils attaquent **sur les temps de la musique** : on lit leurs attaques à l'oreille autant qu'à l'œil.
+   - Vagues **composées** (des rôles qui se complètent : un bouclier devant, un cracheur derrière…)
+     plutôt que tirées au hasard.
+   - Nouvelles espèces : le **tisserand** (pose des ronces), le **totem chanteur** (protège et accélère
+     les autres : à abattre d'abord), le **danseur** (esquive sur le temps, puis contre), la **brute**
+     (saisit le héros).
+   - **Élites** à particularités (rapide, cuirassé, éclate en mourant, appelle des renforts, doré : des
+     plumes), une par expédition au moins, qui garantit un don rare.
+   - **Grand Muet** en vraies phases, avec des attaques qui changent ; un gardien différent par région.
+   *Test : chaque combat pose-t-il un petit problème à résoudre ?*
+3. **2.5 — Graphismes du monde.**
+   - Lumière : soleil chaud et ombres froides, ombres portées des personnages, coins des cubes
+     assombris (occlusion), brume et ciel accordés à chaque région.
+   - Sol vivant : herbes hautes en cubes, terre, pierres, flaques, chemins ; plus de quadrillage uni.
+   - Végétation variée : fromagers à contreforts, palmiers, fougères, lianes ; des arbres de premier plan
+     qui ne cachent plus l'action.
+   - Ambiance : lucioles, pollen, feuilles qui tombent, eau animée ; héros et Muets détachés du décor
+     (lumière de bord).
+   *Test : sur une capture, le jeu paraît-il fini ?*
+4. **2.6 — Les donjons : des clairières faites main, des régions.**
+   - Clairières assemblées à partir de **modules faits à la main** (plateformes, escaliers, ponts,
+     fosses, bassins) : du relief, de la hauteur, des formes qui ne sont plus des cercles.
+   - **Dangers au tempo** (ronces qui sortent sur le temps, lianes qui fouettent), **éléments à
+     utiliser** (tambours à frapper qui étourdissent autour, jarres et bambous à casser, gongs).
+   - **3 régions** (Sous-bois, Ruines englouties, Canopée) : palette, musique, Muets et gardien propres ;
+     salles spéciales (trésor, secret, repos).
+   *Test : se souvient-on d'une clairière après la partie ?*
+5. **2.7 — Le village vivant.**
+   - Au retour, le Chef et les villageois **réagissent à l'expédition** (où l'on est tombé, contre qui,
+     le gardien presque vaincu, la première victoire…) : répliques courtes.
+   - Les **plumes d'or reconstruisent le village** en cubes : chaque case débloque quelque chose
+     (autel des esprits : un don de plus au choix ; case du tambourinaire : rencontres ; source : PV de
+     départ ; scène : musiques).
+   *Test : a-t-on envie de revenir au village entre deux expéditions ?*
+6. **2.8 — Des parties différentes.**
+   - **Instruments-armes** au départ : bâton de pluie (l'actuel), maracas jumelles (rapides),
+     tambour-marteau (lent, zones), sarbacane (à distance) : chacun ses enchaînements.
+   - **25 dons** environ, en familles (braise, rythme, racines, couleur), avec raretés et quelques
+     **dons doubles** (deux familles) ; nouvelles rencontres (la Tisseuse de couleurs, l'Écho solitaire,
+     l'Arbre muet…).
+   *Test : deux parties se jouent-elles différemment ?*
+7. **2.9 — Confort mobile.**
+   - **Reprendre une expédition interrompue** (appel, fermeture de l'application).
+   - Première expédition qui **apprend sans texte** (un seul sautillant, puis un porte-bouclier…).
+   - Réglage du **décalage audio** (calibration) ; **pactes** de difficulté contre plus de plumes.
+
+Écarté du rapport de recherche : pénalité des coups à contretemps (le rythme récompense, ne punit
+pas) ; couche audio native Oboe/AAudio (chantier moteur ; la calibration suffit) ; masque qui cache les
+annonces d'attaque (lisibilité d'abord).
 
 ## Phase 4 : finitions pour le téléphone (versions 1.2 et 1.3)
 - **1.2** — couleurs calmes (les teintes ondulent sans dériver), jauge qui retombe sans rythme,
