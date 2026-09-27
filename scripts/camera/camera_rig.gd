@@ -31,14 +31,19 @@ func _ready() -> void:
 
 ## Place la caméra tout de suite sur sa cible, sans glisser (départ, retour au village).
 func snap() -> void:
-	global_position = _desired_position()
+	var desired: Vector3 = _desired_position()
+	if desired.is_finite():
+		global_position = desired
 
 
 func _process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	if target:
-		var weight: float = Smoothing.weight(tuning.camera_follow_rate, delta)
-		global_position = global_position.lerp(_desired_position(), weight)
+		var desired: Vector3 = _desired_position()
+		# Une cible invalide (NaN) ne doit jamais emporter la caméra : elle l'attend où elle est.
+		if desired.is_finite():
+			var weight: float = Smoothing.weight(tuning.camera_follow_rate, delta)
+			global_position = global_position.lerp(desired, weight) if global_position.is_finite() else desired
 	_trauma = maxf(_trauma - tuning.shake_decay * delta, 0.0)
 	_camera.position = _base_offset + shake_offset(_trauma, _push_direction, _random_unit(), tuning)
 
@@ -52,7 +57,7 @@ static func shake_offset(trauma: float, push_direction: Vector3, jitter: Vector3
 
 func _on_shake_requested(trauma: float, direction: Vector3) -> void:
 	_trauma = minf(_trauma + trauma, 1.0)
-	_push_direction = Vector3(direction.x, 0.0, direction.z).normalized()
+	_push_direction = Vector3(direction.x, 0.0, direction.z).normalized() if direction.is_finite() else Vector3.ZERO
 
 
 func _random_unit() -> Vector3:

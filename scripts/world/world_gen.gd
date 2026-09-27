@@ -27,20 +27,37 @@ const DANCERS: PackedVector2Array = [
 const DANCER_R := 1.0
 const SLOT_R := 1.6
 ## Clairière d'expédition (u) : écart entre le bord et la première rangée d'arbres, entre les
-## rangées, espacement des arbres, dispersion ; demi-ouverture d'un passage (rad) ; obstacles
-## (rochers, souches), fleurs, essais de placement ; centre dégagé (rayon), demi-largeur de l'axe
-## des passages.
-const ROOM_RING_GAP := 3.0
+## rangées, espacement des arbres (première rangée, seconde), dispersion ; le mur invisible est à
+## cette distance derrière le bord ; demi-ouverture d'un passage (rad) ; buissons (rayon, en plus
+## au hasard) ; décor de chaque forme de clairière ; fleurs, essais de placement ; centre dégagé
+## (rayon), demi-largeur de l'axe des passages.
+const ROOM_RING_GAP := 1.5
 const ROOM_RING_STEP := 7.0
-const ROOM_TREE_SPACING := 7.5
-const ROOM_RING_JITTER := 2.5
-const ROOM_GAP_ANGLE := 0.28
+const ROOM_TREE_SPACING := 4.2
+const ROOM_TREE_SPACING_OUTER := 7.0
+const ROOM_RING_JITTER := 1.0
+const ROOM_WALL_BEHIND := 3.5
+const ROOM_GAP_ANGLE := 0.17
+const ROOM_BUSH_R := 2.2
+const ROOM_BUSH_R_JITTER := 0.8
 const ROOM_ROCKS := 3
 const ROOM_STUMPS := 2
+const ROOM_GROVE_TREES := 3
+const ROOM_GROVE_BUSHES := 2
+const ROOM_LOGS := 3
+const ROOM_MUSHROOMS := 4
+const ROOM_BOUNCERS := 2
+const ROOM_RUIN_RING := 0.58
+const ROOM_RUIN_PILLARS := 8
+const ROOM_ARENA_RING := 0.75
+const ROOM_ARENA_PILLARS := 10
+const ROOM_BROKEN_CHANCE := 0.35
 const ROOM_FLOWERS := 90
 const ROOM_TRIES := 400
 const ROOM_CENTER_CLEAR := 9.0
 const ROOM_LANE := 3.0
+## Formes de clairière d'expédition (hors celle du Grand Muet).
+const ROOM_KINDS: Array[StringName] = [&"clearing", &"ruins", &"grove", &"logs", &"mushrooms"]
 ## Hauteur de la plume (ou du coffre) au-dessus du dernier rocher d'un perchoir (u).
 const PERCH_ABOVE := 1.2
 ## Clairière du cercle des gongs (u) : rayon libre, entre ces distances du village, à cette distance
@@ -156,11 +173,12 @@ func generate(seed_value: int, nights_done: int) -> void:
 	gong_clearing = _find_clearing(ProtoRandom.new(seed_value ^ CLEARING_SALT))
 
 
-## Clairière d'une expédition, centrée en 0 (rayon `radius` u) : deux rangées d'arbres serrés au
-## bord, sauf aux passages (angles `gaps`, en radians depuis le nord, dans le sens des aiguilles
-## d'une montre), des rochers, souches et champignons-trampolines à l'intérieur (le centre et
-## l'axe des passages restent dégagés), des fleurs.
-func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array) -> void:
+## Clairière d'une expédition, centrée en 0 (rayon `radius` u), de la forme `kind` (voir
+## ROOM_KINDS ; &"arena" : celle du Grand Muet) : un mur d'arbres et de buissons au bord (le mur
+## invisible est derrière), sauf aux passages (angles `gaps`, en radians depuis le nord, dans le
+## sens des aiguilles d'une montre), puis le décor de sa forme (le centre et l'axe des passages
+## restent dégagés), des fleurs.
+func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kind: StringName = &"clearing") -> void:
 	_rng = ProtoRandom.new(seed_value)
 	voxels.clear()
 	shadows.clear()
@@ -170,23 +188,101 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array) -> 
 	sanctuary_names.clear()
 	huts.clear()
 	gong_clearing = Vector2.INF
-	border_radius = radius
-	for row: int in 2:
-		var ring: float = radius + ROOM_RING_GAP + row * ROOM_RING_STEP
-		var count: int = floori(TAU * ring / ROOM_TREE_SPACING)
-		for i: int in count:
-			var a: float = (i + _rnd() * 0.4 + row * 0.5) / count * TAU
-			if row == 0 and _near_gap(a, gaps):
-				continue
-			var p := Vector2(sin(a), -cos(a)) * (ring + _rnd() * ROOM_RING_JITTER)
-			_tree(p.x, p.y, 1.0, true, 0)
-	_room_place(_random_rock, ROOM_ROCKS + floori(_rnd() * 3.0), radius, gaps, 3.0)
-	_room_place(_stump, ROOM_STUMPS + floori(_rnd() * 2.0), radius, gaps, 2.0)
-	_room_place(_bouncer, 1, radius, gaps, 2.5)
+	border_radius = radius + ROOM_WALL_BEHIND
+	_room_border(radius, gaps)
+	match kind:
+		&"ruins":
+			_room_ruins(radius, gaps, ROOM_RUIN_RING, ROOM_RUIN_PILLARS, true)
+		&"arena":
+			_room_ruins(radius, gaps, ROOM_ARENA_RING, ROOM_ARENA_PILLARS, false)
+		&"grove":
+			_room_place(_inner_tree, ROOM_GROVE_TREES + floori(_rnd() * 2.0), radius, gaps, 3.5)
+			_room_place(_bush, ROOM_GROVE_BUSHES, radius, gaps, 3.0)
+		&"logs":
+			_room_place(_room_log, ROOM_LOGS + floori(_rnd() * 2.0), radius, gaps, 4.5)
+			_room_place(_stump, ROOM_STUMPS + 1, radius, gaps, 2.0)
+		&"mushrooms":
+			_room_place(_mushroom, ROOM_MUSHROOMS + floori(_rnd() * 2.0), radius, gaps, 3.5)
+			_room_place(_bouncer, ROOM_BOUNCERS, radius, gaps, 2.5)
+			_room_place(_perch, 1, radius, gaps, 5.5)
+		_:
+			_room_place(_random_rock, ROOM_ROCKS + floori(_rnd() * 3.0), radius, gaps, 3.0)
+			_room_place(_stump, ROOM_STUMPS + floori(_rnd() * 2.0), radius, gaps, 2.0)
+			_room_place(_bouncer, 1, radius, gaps, 2.5)
 	for i: int in ROOM_FLOWERS:
 		var a: float = _rnd() * TAU
-		var r: float = _rnd() * (radius + ROOM_RING_GAP)
+		var r: float = _rnd() * radius
 		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+
+
+## Le bord de la clairière : arbres et buissons serrés, en deux rangées (la première s'ouvre aux
+## passages).
+func _room_border(radius: float, gaps: PackedFloat32Array) -> void:
+	for row: int in 2:
+		var ring: float = radius + ROOM_RING_GAP + row * ROOM_RING_STEP
+		var count: int = floori(TAU * ring / (ROOM_TREE_SPACING if row == 0 else ROOM_TREE_SPACING_OUTER))
+		for i: int in count:
+			var a: float = (i + row * 0.5) / count * TAU
+			if _near_gap(a, gaps):
+				continue
+			var p := Vector2(sin(a), -cos(a)) * (ring + _rnd() * ROOM_RING_JITTER)
+			if row == 0 and i % 2 == 1:
+				_bush(p.x, p.y)
+			else:
+				_tree(p.x, p.y, 1.0, true, 0)
+
+
+## Ruines : un cercle de piliers (certains brisés, assez bas pour sauter dessus) et, au centre,
+## un autel où l'on peut monter.
+func _room_ruins(radius: float, gaps: PackedFloat32Array, ring_part: float, count: int, altar: bool) -> void:
+	var ring: float = radius * ring_part
+	for i: int in count:
+		var a: float = (i + 0.5) / count * TAU
+		var p := Vector2(sin(a), -cos(a)) * ring
+		var lane: bool = false
+		for gap: float in gaps:
+			if segment_distance(p, Vector2.ZERO, gap_point(gap, radius)) < ROOM_LANE + 1.5:
+				lane = true
+		if lane:
+			continue
+		var broken: bool = _rnd() < ROOM_BROKEN_CHANCE
+		var h: int = 2 if broken else 4 + floori(_rnd() * 3.0)
+		for y: int in h:
+			_sv(p.x, y * 1.1 + 0.55, p.y, 1.1, 4.74, 0.15, 0.28 + _rnd() * 0.06)
+			_sv(p.x + 0.9, y * 1.1 + 0.55, p.y, 1.1, 4.74, 0.15, 0.3 + _rnd() * 0.06)
+		_add_solid(p.x + 0.45, p.y, 1.3, h * 1.1)
+		_shadow(p.x, p.y, 1.8, 0.28)
+	if altar:
+		for x: int in range(-2, 3):
+			for z: int in range(-2, 3):
+				for y: int in 2:
+					_sv(x, y + 0.5, z, 1.0, 4.72, 0.18, 0.3 + _rnd() * 0.06)
+		_add_solid(0.0, 0.0, 2.6, ALTAR_HEIGHT)
+		_shadow(0.0, 0.0, 3.5, 0.3)
+
+
+## Buisson : une boule de feuillage basse, infranchissable.
+func _bush(x: float, z: float) -> void:
+	var r: float = ROOM_BUSH_R + _rnd() * ROOM_BUSH_R_JITTER
+	var hue: float = 0.26 + _rnd() * 0.14
+	var n: int = ceili(r)
+	for a: int in range(-n, n + 1):
+		for b: int in range(-n, n + 1):
+			for y: int in 3:
+				var d: float = Vector3(a, y * 1.2, b).length()
+				if d > r or d < r - 1.6:
+					continue
+				_sv(x + a * 0.9, y * 0.9 + 0.45, z + b * 0.9, 0.95, fmod(hue + d * 0.015, 1.0), 0.75, 0.3 + _rnd() * 0.1)
+	_add_solid(x, z, r * 0.85)
+	_shadow(x, z, r + 0.6, 0.3)
+
+
+func _inner_tree(x: float, z: float) -> void:
+	_tree(x, z, 1.0, true, 0)
+
+
+func _room_log(x: float, z: float) -> void:
+	_log(x, z, _rnd() * TAU)
 
 
 ## Point d'un passage de la clairière (u) : sur le bord, à l'angle `angle` (depuis le nord).

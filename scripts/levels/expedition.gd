@@ -15,6 +15,13 @@ extends Level
 @export var spitter_scene: PackedScene
 @export var boss_scene: PackedScene
 @export var gate_scene: PackedScene
+## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
+## Muets, de leurs ombres, des petits assemblages) ; pages du carnet (le vieux tambourinaire).
+@export var plume_scene: PackedScene
+@export var character_material: ShaderMaterial
+@export var character_shadow_material: Material
+@export var prop_material: Material
+@export var notebook: NotebookData
 
 ## Espèces de chaque clairière, de la première à l'avant-dernière (au-delà : la dernière liste).
 const ROOM_FOES: Array = [
@@ -32,6 +39,12 @@ const ENTRANCE := PI
 const EXIT_SPREAD := 0.55
 ## Les sanctuaires de l'ambiance sont repoussés à tant de rayons de clairière (hors de vue).
 const NO_SANCTUARY := 100.0
+## La source des anciens : rayon du bassin (cases d'un voxel du monde), gouttes qui jaillissent,
+## couleurs codées (eau vive, pierre).
+const SPRING_RADIUS := 3
+const SPRING_DROPS := 4
+const SPRING_WATER := Vector3(1.55, 0.8, 0.6)
+const SPRING_STONE := Vector3(4.72, 0.15, 0.36)
 
 var gen := WorldGen.new()
 ## Graine de la prochaine expédition (tirée au hasard).
@@ -46,6 +59,11 @@ var _ending: bool = false
 var _exit_angles := PackedFloat32Array()
 var _fade: ColorRect
 var _boss: Muet
+## Clairière en cours : rayon (u), forme ; rencontre en cours (vide : aucune), faite ou non.
+var _radius: float = 0.0
+var _kind: StringName = &"clearing"
+var _encounter: StringName = &""
+var _encounter_open: bool = false
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -75,6 +93,7 @@ func _ready() -> void:
 	_add_fade()
 	hero.fainted.connect(_on_hero_fainted)
 	boon_screen.chosen.connect(_on_boon_chosen)
+	boon_screen.choice_made.connect(_on_choice_made)
 	Rhythm.play(1)
 	Rhythm.set_band(0.0)
 	_build_camp()
@@ -87,6 +106,21 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Rhythm.stop()
+
+
+func _process(_delta: float) -> void:
+	# Une rencontre s'ouvre quand le héros s'approche du personnage.
+	if _encounter == &"" or _encounter_open or not in_sortie or _cleared:
+		return
+	if Vector2(hero.global_position.x, hero.global_position.z).length() < Tuning.data.encounter_radius:
+		_encounter_open = true
+		var tuning: TuningData = Tuning.data
+		var choices: PackedStringArray = []
+		var enabled: Array[bool] = []
+		for i: int in 2:
+			choices.append(GameTexts.encounter_choice(_encounter, i, _encounter_value(i)))
+			enabled.append(Encounters.can_choose(_encounter, i, Game.run.feathers, tuning))
+		boon_screen.open_choices(GameTexts.ENCOUNTER_NAMES[_encounter], GameTexts.ENCOUNTER_TEXTS[_encounter], choices, enabled)
 
 
 func is_expedition() -> bool:
@@ -104,19 +138,25 @@ func current_goal() -> Dictionary:
 	if run == null or not in_sortie:
 		return {}
 	var tuning: TuningData = Tuning.data
+	var title: String = GameTexts.ROOM_COUNT % [room_name(), run.room + 1, run.room_count]
 	if _cleared:
-		var goal: Dictionary = {&"title": GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], &"sub": GameTexts.ROOM_CHOOSE, &"icon": &"won"}
+		var goal: Dictionary = {&"title": title, &"sub": GameTexts.ROOM_CHOOSE, &"icon": &"won"}
 		if not _exit_angles.is_empty():
 			# Le repère montre le milieu des passages.
-			var p: Vector2 = WorldGen.gap_point(0.0, tuning.room_radius) * _unit
+			var p: Vector2 = WorldGen.gap_point(0.0, _radius) * _unit
 			goal[&"point"] = Vector3(p.x, 0.0, p.y)
 		return goal
 	if run.is_boss_room():
 		return {&"title": GameTexts.ROOM_BOSS_TITLE, &"sub": GameTexts.ROOM_BOSS_SUB, &"icon": &"crown"}
-	return {
-		&"title": GameTexts.ROOM_TITLE % [run.room + 1, run.room_count],
-		&"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward,
-	}
+	if _encounter != &"":
+		return {&"title": GameTexts.ENCOUNTER_NAMES[_encounter], &"sub": GameTexts.ROOM_ENCOUNTER, &"icon": RunState.ENCOUNTER, &"point": Vector3.ZERO}
+	return {&"title": title, &"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward}
+
+
+## Nom de la clairière en cours (selon sa forme, tiré de sa graine).
+func room_name() -> String:
+	var names: PackedStringArray = GameTexts.room_names(_kind)
+	return names[Game.run.name_index(names.size())] if Game.run else names[0]
 
 
 ## Part en expédition depuis l'écran titre (ou Repartir).
@@ -201,7 +241,9 @@ func _show_title() -> void:
 
 ## Clairière du camp (écran titre) : une clairière calme, sans Muets.
 func _build_camp() -> void:
-	gen.generate_room(next_seed, Tuning.data.room_radius, PackedFloat32Array([0.0]))
+	_radius = Tuning.data.room_radius
+	_kind = &"clearing"
+	gen.generate_room(next_seed, _radius, PackedFloat32Array(), _kind)
 	world.build(gen)
 	_place_hero()
 
@@ -213,28 +255,38 @@ func _enter_room() -> void:
 	_wave = 0
 	_remaining = 0
 	_boss = null
+	_encounter = &""
+	_encounter_open = false
+	_kind = run.room_kind()
+	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	for node: Node in foes.get_children() + pickups.get_children():
 		node.queue_free()
 	var exits: int = run.exit_count(tuning.room_exits)
 	_exit_angles = PackedFloat32Array()
 	for i: int in exits:
 		_exit_angles.append((i - (exits - 1) / 2.0) * EXIT_SPREAD)
-	var gaps: PackedFloat32Array = _exit_angles.duplicate()
-	gaps.append(ENTRANCE)
-	gen.generate_room(run.room_seed(), tuning.room_radius, gaps)
+	gen.generate_room(run.room_seed(), _radius, _exit_angles, _kind)
 	world.build(gen)
+	for p: Vector3 in gen.pickups:
+		var plume: Node3D = plume_scene.instantiate() as Node3D
+		plume.position = p * _unit
+		pickups.add_child(plume)
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
 	Rhythm.set_layers(mini(1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count), Rhythm.NIGHT_LAYERS.size()))
 	_place_hero()
 	if run.is_boss_room():
 		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.ROOM_BOSS_TITLE, "")
+	if run.reward == RunState.ENCOUNTER:
+		_encounter = run.pick_encounter(Encounters.IDS)
+		_place_npc()
+		return
 	get_tree().create_timer(tuning.room_wave_delay, false).timeout.connect(_start_wave)
 
 
 ## Le héros arrive par l'entrée (au sud), face à la clairière.
 func _place_hero() -> void:
 	var tuning: TuningData = Tuning.data
-	var start: Vector2 = WorldGen.gap_point(ENTRANCE, tuning.room_radius - tuning.room_entry_inset / _unit)
+	var start: Vector2 = WorldGen.gap_point(ENTRANCE, _radius - tuning.room_entry_inset / _unit)
 	hero.global_position = Vector3(start.x, 0.0, start.y) * _unit
 	hero.velocity = Vector3.ZERO
 	hero.face_now(Vector3.FORWARD)
@@ -248,7 +300,7 @@ func _start_wave() -> void:
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	if run.is_boss_room() and _wave == 0:
-		var spawner: EnemySpawner = _spawn(boss_scene, Vector2(0.0, -tuning.room_radius * tuning.room_boss_depth))
+		var spawner: EnemySpawner = _spawn(boss_scene, Vector2(0.0, -_radius * tuning.room_boss_depth))
 		spawner.display_name = GameTexts.ROOM_BOSS_TITLE
 		spawner.muet_freed.connect(func(muet: Muet) -> void: _on_boss_freed(muet), CONNECT_ONE_SHOT)
 		for i: int in tuning.boss_room_guards:
@@ -269,7 +321,7 @@ func _spawn_point() -> Vector2:
 	var best := Vector2.ZERO
 	for t: int in tuning.spawn_tries:
 		var a: float = _rng.randf() * TAU
-		var r: float = _rng.randf_range(tuning.room_spawn_min, tuning.room_spawn_max) * tuning.room_radius
+		var r: float = _rng.randf_range(tuning.room_spawn_min, tuning.room_spawn_max) * _radius
 		var p := Vector2(sin(a), -cos(a)) * r
 		if p.distance_to(from) < tuning.room_spawn_hero_clearance / _unit or _blocked(p, tuning.spawn_clearance / _unit):
 			continue
@@ -368,7 +420,7 @@ func _open_exits() -> void:
 	for i: int in mini(rewards.size(), _exit_angles.size()):
 		var gate: ExitGate = gate_scene.instantiate() as ExitGate
 		gate.reward = rewards[i]
-		var p: Vector2 = WorldGen.gap_point(_exit_angles[i], tuning.room_radius - tuning.room_exit_inset / _unit)
+		var p: Vector2 = WorldGen.gap_point(_exit_angles[i], _radius - tuning.room_exit_inset / _unit)
 		gate.position = Vector3(p.x, 0.0, p.y) * _unit
 		var inward: Vector2 = -p.normalized()
 		gate.rotation.y = atan2(inward.x, inward.y)
@@ -389,6 +441,115 @@ func _on_gate_chosen(reward: StringName) -> void:
 		_enter_room()
 		hero.reads_player_input = true)
 	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time)
+
+
+## Personnage de la rencontre, au centre de la clairière, tourné vers l'entrée.
+func _place_npc() -> void:
+	var tuning: TuningData = Tuning.data
+	var entry: Vector2 = WorldGen.gap_point(ENTRANCE, 1.0)
+	var yaw: float = EnemyMath.yaw_of(Vector3(entry.x, 0.0, entry.y))
+	var npc: Node3D
+	match _encounter:
+		&"spring":
+			npc = _spring()
+		&"merchant":
+			var body := MuetBody.new()
+			body.kind = &"hop"
+			body.material = character_material
+			body.shadow_material = character_shadow_material
+			pickups.add_child(body)
+			body.setup(tuning.hopper_scale * tuning.voxel_unit, tuning.hopper_radius)
+			body.show_healed()
+			body.target_yaw = yaw
+			body.rotation.y = yaw
+			return
+		_:
+			var villager := Villager.new()
+			pickups.add_child(villager)
+			if _encounter == &"drummer":
+				villager.setup(VoxelStyles.chief(), "npc_drummer", tuning.chief_scale, yaw, 0.0, INF, character_material, character_shadow_material, tuning.chief_shadow_radius)
+			else:
+				villager.setup(VoxelStyles.dancer(Game.run.room), "npc_%s" % _encounter, 1.0, yaw, 0.0, INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
+			return
+	pickups.add_child(npc)
+
+
+## La source des anciens : un bassin de cubes d'eau entouré de pierres.
+func _spring() -> Node3D:
+	var cells := PackedFloat32Array()
+	for x: int in range(-SPRING_RADIUS - 1, SPRING_RADIUS + 2):
+		for z: int in range(-SPRING_RADIUS - 1, SPRING_RADIUS + 2):
+			var d: float = Vector2(x, z).length()
+			if d <= SPRING_RADIUS:
+				VoxelMesh.add(cells, x, 0.2, z, SPRING_WATER)
+			elif d <= SPRING_RADIUS + 1.2:
+				VoxelMesh.add(cells, x, 0.5, z, SPRING_STONE)
+	for i: int in SPRING_DROPS:
+		VoxelMesh.add(cells, 0.0, 1.2 + i * 0.9, 0.0, SPRING_WATER, 0.6 - i * 0.12)
+	var mesh: MultiMeshInstance3D = VoxelMesh.create(cells, prop_material)
+	mesh.scale = Vector3.ONE * Tuning.data.voxel_unit
+	return mesh
+
+
+## Valeur affichée du choix `choice` de la rencontre en cours.
+func _encounter_value(choice: int) -> int:
+	var tuning: TuningData = Tuning.data
+	match [_encounter, choice]:
+		[&"spring", 1]:
+			return roundi(tuning.encounter_spring_cost * 100.0)
+		[&"merchant", 0]:
+			return tuning.encounter_merchant_price
+		[&"wounded", 0]:
+			return roundi(tuning.encounter_wounded_cost)
+		[&"wounded", 1]:
+			return tuning.encounter_wounded_feathers
+	return 0
+
+
+## Le choix `index` de la rencontre : son effet, puis les passages s'ouvrent (un don se choisit
+## d'abord).
+func _on_choice_made(index: int) -> void:
+	var tuning: TuningData = Tuning.data
+	var run: RunState = Game.run
+	_cleared = true
+	var boon: bool = false
+	match [_encounter, index]:
+		[&"spring", 0]:
+			hero.health.restore()
+			hud.show_toast(GameTexts.HEALED % roundi(hero.health.maximum))
+		[&"spring", 1]:
+			hero.health.current = maxf(1.0, hero.health.current - hero.health.maximum * tuning.encounter_spring_cost)
+			boon = true
+		[&"merchant", 0]:
+			run.feathers -= tuning.encounter_merchant_price
+			boon = true
+		[&"merchant", 1]:
+			hero.health.heal(hero.health.maximum * tuning.encounter_merchant_heal)
+		[&"drummer", 0]:
+			Game.take_boon(&"metronome")
+		[&"drummer", 1]:
+			var page: int = _next_page()
+			if page > 0:
+				Game.add_page(page)
+			hero.health.heal(hero.health.maximum * tuning.encounter_drummer_heal)
+		[&"wounded", 0]:
+			hero.health.current = maxf(1.0, hero.health.current - tuning.encounter_wounded_cost)
+			Game.add_item(Game.roll_gift(false))
+		[&"wounded", 1]:
+			run.feathers += tuning.encounter_wounded_feathers
+			hud.show_toast(GameTexts.FEATHERS_FOUND % tuning.encounter_wounded_feathers)
+	if boon:
+		boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
+	else:
+		_open_exits()
+
+
+## Première page du carnet pas encore trouvée (0 : toutes le sont).
+func _next_page() -> int:
+	for page: int in range(1, notebook.pages.size() + 1):
+		if not Game.profile.has_page(page):
+			return page
+	return 0
 
 
 ## Le Grand Muet libéré : la jungle éclate de couleurs, l'expédition est gagnée.

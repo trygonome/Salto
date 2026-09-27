@@ -51,3 +51,27 @@ func test_anticipation_proportionnelle_en_dessous() -> void:
 func test_anticipation_plafonnee_pendant_une_roulade_ou_un_elan() -> void:
 	var dashing := Vector3.LEFT * tuning.air_dash_speed
 	assert_almost_eq(CameraRig.lookahead_for(dashing, tuning).length(), tuning.camera_lookahead, 0.0001)
+
+
+func test_une_cible_invalide_n_emporte_jamais_la_camera() -> void:
+	var body := CharacterBody3D.new()
+	var rig := CameraRig.new()
+	var camera := Camera3D.new()
+	camera.name = "Camera3D"
+	rig.add_child(camera)
+	rig.target = body
+	add_child_autofree(body)
+	add_child_autofree(rig)
+	await get_tree().process_frame
+	var before: Vector3 = rig.global_position
+	body.global_position = Vector3(NAN, 0.0, 0.0)
+	rig._process(0.1)
+	rig.snap()
+	assert_true(rig.global_position.is_finite(), "la caméra attend où elle est")
+	assert_eq(rig.global_position, before)
+	body.global_position = Vector3(1.0, 0.0, 2.0)
+	rig.snap()
+	assert_true(rig.global_position.is_finite(), "et repart dès que la cible revient")
+	rig._on_shake_requested(0.5, Vector3(NAN, 0.0, NAN))
+	rig._process(0.1)
+	assert_true(camera.position.is_finite(), "une secousse sans direction valide ne la casse pas")

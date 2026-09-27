@@ -1,7 +1,8 @@
 class_name FlyerDiveState
 extends MuetState
-## Volant, piqué : il file tout droit le long de la ligne annoncée, passe au ras du sol à
-## mi-chemin puis remonte, en blessant au contact.
+## Volant, piqué : il file tout droit le long de la ligne annoncée et, au ras du sol, s'écrase :
+## étourdi un moment, à portée d'un simple coup (esquiver le piqué, puis frapper). Il blesse au
+## contact pendant le piqué.
 
 var _start: Vector3 = Vector3.ZERO
 var _direction: Vector3 = Vector3.FORWARD
@@ -34,5 +35,16 @@ func physics_update(delta: float) -> void:
 	muet.velocity = Vector3.ZERO
 	muet.body.set_motion(false, tuning.flyer_swoop_lean, 0.0, false, true)
 	muet.global_position = EnemyMath.swoop_position(_start, _direction, _length, muet.post.y, tuning.flyer_dive_low, fraction, tuning.flyer_dive_curve)
-	if fraction >= 1.0:
-		machine.transition_to(&"Hover")
+	if fraction >= tuning.flyer_crash_fraction:
+		_crash()
+
+
+## Au plus bas de son piqué, il s'écrase dans la poussière, étourdi.
+func _crash() -> void:
+	var tuning: TuningData = Tuning.data
+	muet.body.squash(-tuning.muet_squash_land)
+	var fx: Effects = muet.effects()
+	if fx:
+		fx.dust(muet.global_position, tuning.fx_flyer_crash_dust, tuning.fx_flyer_crash_speed)
+		fx.stunned_against_wall(muet.global_position + Vector3.UP * muet.body.height)
+	muet.stun(tuning.flyer_grounded_time)

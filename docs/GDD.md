@@ -13,11 +13,23 @@ Sensation visée : fluide, joyeuse, percutante. Le rythme récompense, il ne blo
 
 ## 2 bis. Expéditions (mode principal depuis la version 2.0)
 Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
-- **Expédition** : 7 clairières générées à partir d'une graine (arbres serrés au bord, rochers, souches,
-  champignons-trampolines), la dernière gardée par un **Grand Muet**. Les Muets arrivent par vagues et
-  poursuivent le héros.
+- **Expédition** : 7 clairières générées à partir d'une graine, la dernière gardée par un **Grand Muet**.
+  Les Muets arrivent par vagues et poursuivent le héros.
+- **Clairières** (version 2.1) : chacune a sa forme, sa taille (de 7,8 à 10,4 m de rayon) et son nom, tirés
+  de sa graine. Le bord est un **mur d'arbres et de buissons** qu'on voit (le mur invisible est juste
+  derrière), ouvert seulement aux passages. Formes : **clairière** (rochers, souches, un champignon-trampoline),
+  **ruines** (cercle de piliers, certains brisés à sauter, autel au centre), **bosquet** (arbres au milieu du
+  combat), **troncs couchés** (à contourner ou sauter), **champignonnière** (trampolines et un grand
+  champignon portant une plume arc-en-ciel), et l'**arène** du Grand Muet (cercle de piliers).
 - **Récompense de la clairière**, annoncée par le passage qui y mène : **don des esprits** (1 parmi 3),
-  **soin** (35 % des PV) ou **plumes d'or**. La première clairière donne un don.
+  **soin** (35 % des PV), **plumes d'or** ou **rencontre** (passage « ? »). La première clairière donne un don.
+- **Rencontres** (version 2.1) : une clairière calme, sans Muets ; un personnage au centre, on s'en approche
+  et il parle ; deux choix, puis les passages s'ouvrent. Chacune une fois par expédition :
+  - *La source des anciens* : boire (tous les PV) ou y plonger la main (un don, contre 25 % des PV) ;
+  - *Le marchand muet* : 40 plumes d'or pour un don, ou le saluer (un peu de soin) ;
+  - *Le vieux tambourinaire* (Kamba) : apprendre son rythme (Métronome, un rang) ou écouter son histoire
+    (une page du carnet, un peu de soin) ;
+  - *Un villageois perdu* : le soigner (−20 PV, il offre un objet) ou lui montrer le chemin (+15 plumes d'or).
 - **Dons des esprits** (rang 1 à 3 en les reprenant) : Pied de braise (les coups brûlent), Écho du tambour
   (onde du 3e coup), Roulade épineuse, Plongeon météore, Cœur de la jungle (PV), Métronome (coups parfaits),
   Sève (soin par Muet), Furie, Pieds légers, Œil du faucon (critique).
@@ -68,7 +80,7 @@ Anciens musiciens du village : bouche cousue, grands yeux, antennes aux couleurs
 | Muet | Comportement | Réponse attendue | Coup qui la donne |
 |---|---|---|---|
 | Sautillant | avance par bonds, contact | enchaînement de base | armada (3e coup) |
-| Volant | tourne au-dessus, pique après une ligne rouge au sol | sauter pour le frapper, esquiver le piqué | coup en l'air (plongeon) |
+| Volant | tourne au-dessus, pique après une ligne rouge au sol, puis s'écrase au sol, étourdi (1,6 s) | esquiver le piqué, puis le frapper au sol | coup en l'air (plongeon) ou tout coup quand il est étourdi |
 | Porte-bouclier | bloque de face, se tourne lentement | passer derrière ou plonger dessus | tout coup de dos, plongeon |
 | Cornu | charge en ligne droite après 2 temps d'annonce, s'assomme contre les arbres | esquive au dernier moment ou saut | tout coup quand il est assommé |
 | Cracheur | garde ses distances, crache des bulles | sauter par-dessus, s'approcher | coup roulé |

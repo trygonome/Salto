@@ -227,7 +227,7 @@ func blocked(at: Vector3) -> void:
 	word(GameTexts.WORD_BLOCKED, at, block_color)
 
 
-## Cornu assommé contre un obstacle.
+## Cornu assommé contre un obstacle, volant écrasé au sol.
 func stunned_against_wall(at: Vector3) -> void:
 	var tuning: TuningData = Tuning.data
 	burst(at, tuning.fx_stun_cubes, tuning.fx_stun_speed, tuning.fx_stun_hue)

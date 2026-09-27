@@ -86,12 +86,84 @@ func test_une_clairiere_garde_ses_passages_degages() -> void:
 	var gen := WorldGen.new()
 	var gaps := PackedFloat32Array([-0.28, 0.28, PI])
 	gen.generate_room(99, tuning.room_radius, gaps)
-	assert_eq(gen.border_radius, tuning.room_radius)
+	assert_eq(gen.border_radius, tuning.room_radius + WorldGen.ROOM_WALL_BEHIND)
 	assert_gt(gen.voxel_count(), 0)
 	for gap: float in gaps:
 		var door: Vector2 = WorldGen.gap_point(gap, tuning.room_radius)
 		for s: WorldGen.Solid in gen.solids:
 			assert_gt(WorldGen.segment_distance(Vector2(s.x, s.z), Vector2.ZERO, door), s.r, "rien sur le chemin du passage")
+
+
+func test_le_bord_d_une_clairiere_est_un_mur_d_arbres_visible() -> void:
+	var hero_width: float = 2.0 * tuning.hero_radius / tuning.voxel_unit
+	for kind: StringName in WorldGen.ROOM_KINDS + [&"arena"] as Array[StringName]:
+		var gen := WorldGen.new()
+		var radius: float = tuning.room_radius_max
+		var gaps := PackedFloat32Array([-0.28, 0.28, PI])
+		gen.generate_room(7, radius, gaps, kind)
+		var row: float = radius + WorldGen.ROOM_RING_GAP + WorldGen.ROOM_RING_JITTER
+		assert_gt(gen.border_radius, row, "le mur invisible est derrière la rangée d'arbres (%s)" % kind)
+		assert_lt(gen.border_radius - row, hero_width, "juste derrière : on voit où la clairière s'arrête")
+		var a: float = 0.0
+		while a < TAU:
+			a += 0.05
+			var near_gap: bool = false
+			for gap: float in gaps:
+				near_gap = near_gap or absf(angle_difference(a, gap)) < WorldGen.ROOM_GAP_ANGLE * 2.0
+			if near_gap:
+				continue
+			# Entre deux arbres ou buissons voisins du bord, pas de trou où passer.
+			var p: Vector2 = WorldGen.gap_point(a, radius + WorldGen.ROOM_RING_GAP + WorldGen.ROOM_RING_JITTER / 2.0)
+			var nearest: float = INF
+			for s: WorldGen.Solid in gen.solids:
+				nearest = minf(nearest, p.distance_to(Vector2(s.x, s.z)) - s.r)
+			assert_lt(nearest, WorldGen.ROOM_TREE_SPACING / 2.0, "un arbre ou un buisson à %.2f rad (%s)" % [a, kind])
+
+
+func test_chaque_clairiere_a_sa_forme_et_sa_taille() -> void:
+	var run := RunState.new(42, 30)
+	var again := RunState.new(42, 30)
+	var kinds: Dictionary[StringName, bool] = {}
+	for room: int in run.room_count - 1:
+		run.room = room
+		again.room = room
+		assert_eq(run.room_kind(), again.room_kind(), "même graine, même forme")
+		assert_true(WorldGen.ROOM_KINDS.has(run.room_kind()))
+		kinds[run.room_kind()] = true
+		var radius: float = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
+		assert_between(radius, tuning.room_radius_min, tuning.room_radius_max)
+		assert_eq(radius, again.room_radius(tuning.room_radius_min, tuning.room_radius_max))
+		var names: PackedStringArray = GameTexts.room_names(run.room_kind())
+		assert_between(run.name_index(names.size()), 0, names.size() - 1)
+	assert_gt(kinds.size(), 2, "des clairières variées")
+	run.reward = RunState.ENCOUNTER
+	run.room = 2
+	assert_eq(run.room_kind(), &"clearing", "une rencontre se fait dans une clairière calme")
+	run.room = run.room_count - 1
+	assert_eq(run.room_kind(), &"arena", "l'arène du Grand Muet")
+	for kind: StringName in WorldGen.ROOM_KINDS:
+		assert_true(GameTexts.ROOM_NAMES.has(kind), String(kind))
+	var gen := WorldGen.new()
+	gen.generate_room(3, tuning.room_radius, PackedFloat32Array([0.0]), &"mushrooms")
+	assert_eq(gen.pickups.size(), 1, "une plume arc-en-ciel sur le grand champignon")
+
+
+func test_les_rencontres_ne_se_repetent_pas() -> void:
+	var run := RunState.new(5, 7)
+	var seen: Dictionary[StringName, bool] = {}
+	for i: int in Encounters.IDS.size():
+		seen[run.pick_encounter(Encounters.IDS)] = true
+	assert_eq(seen.size(), Encounters.IDS.size(), "chacune une fois")
+	assert_true(Encounters.IDS.has(run.pick_encounter(Encounters.IDS)), "puis elles peuvent revenir")
+	assert_false(Encounters.can_choose(&"merchant", 0, tuning.encounter_merchant_price - 1, tuning), "le marchand veut ses plumes")
+	assert_true(Encounters.can_choose(&"merchant", 0, tuning.encounter_merchant_price, tuning))
+	assert_true(Encounters.can_choose(&"merchant", 1, 0, tuning))
+	for id: StringName in Encounters.IDS:
+		assert_true(GameTexts.ENCOUNTER_NAMES.has(id) and GameTexts.ENCOUNTER_TEXTS.has(id), String(id))
+		for i: int in 2:
+			var choice: String = GameTexts.encounter_choice(id, i, 12)
+			assert_true(choice.contains(BoonScreen.CHOICE_SPLIT), "« action : effet » (%s)" % choice)
+			assert_false(choice.contains("%d"), choice)
 
 
 func _open_level() -> void:
@@ -198,3 +270,35 @@ func test_tomber_termine_l_expedition_et_garde_les_plumes() -> void:
 	var summary: SummaryScreen = level.get_node("SummaryScreen") as SummaryScreen
 	assert_eq((summary.get_node("%Title") as Label).text, GameTexts.RUN_LOST)
 	assert_eq((summary.get_node("%Again") as Button).text, GameTexts.RUN_AGAIN)
+
+
+## Rencontre (la source, seule qui reste) : pas de Muets, le repère mène au centre, les choix
+## s'ouvrent près du personnage, et après le choix, les passages.
+func test_une_rencontre_se_parle_puis_ouvre_les_passages() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	Game.run.reward = RunState.ENCOUNTER
+	Game.run.encounters_seen.assign([&"merchant", &"drummer", &"wounded"])
+	level.call(&"_enter_room")
+	for i: int in 30:
+		await get_tree().physics_frame
+	assert_eq(_muets().size(), 0, "pas de combat")
+	var goal: Dictionary = level.current_goal()
+	assert_eq(goal[&"icon"], RunState.ENCOUNTER)
+	assert_eq(goal[&"title"], GameTexts.ENCOUNTER_NAMES[&"spring"])
+	assert_eq(goal[&"point"], Vector3.ZERO, "le repère mène au personnage")
+	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
+	assert_false(screen.is_open(), "loin du personnage, rien ne s'ouvre")
+	hero.health.current = 1.0
+	hero.global_position = Vector3(0.0, 0.0, tuning.encounter_radius / 2.0)
+	for i: int in 3:
+		await get_tree().process_frame
+	assert_true(screen.is_open(), "on s'approche : la source parle")
+	var cards: Array[Node] = screen.get_node("%Cards").get_children()
+	assert_eq(cards.size(), 2)
+	(cards[0] as Button).pressed.emit()
+	assert_eq(hero.health.current, hero.health.maximum, "boire : tous les PV")
+	await get_tree().process_frame
+	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
+	assert_eq(gates.size(), tuning.room_exits, "les passages s'ouvrent")

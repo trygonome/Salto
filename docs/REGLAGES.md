@@ -89,7 +89,7 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 | Muet | PV | Dégâts | Rayon | Particularités |
 |---|---|---|---|---|
 | Sautillant | 30 | 9 | 1,5 u | bond de 2,2 u à chaque temps |
-| Volant | 20 | 8 | 1,2 u | vole à 7,2 u ; tourne à 6,5 u du héros ; piqué tous les 5 temps, annonce 1 temps, piqué 0,85 s |
+| Volant | 20 | 8 | 1,2 u | vole à 7,2 u ; tourne à 6,5 u du héros ; piqué tous les 5 temps, annonce 1 temps, piqué 0,85 s ; s'écrase à mi-piqué, étourdi 1,6 s (version 2.1) |
 | Porte-bouclier | 40 | 10 | 1,6 u | tourne à 2,6 rad/s ; bloque de face (±72°) ; coup de bouclier au contact |
 | Cornu | 62 | 22 (contact 45 %) | 2,0 u | annonce 2 temps (suit le héros pendant le premier) ; charge à 21 u/s sur 22 u ; assommé 2,2 s contre un obstacle, subit ×1,5 |
 | Cracheur | 22 | 9 | 1,4 u | reste entre 7 et 11 u ; bulle à 9 u/s pendant 3,4 s, à hauteur de bouche |
@@ -132,3 +132,13 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   Son chœur est à pleine voix à partir de 8 Muets, au village ; on l'entend jusqu'à 22 m.
 - Cercle des gongs : 4 gongs (ré, mi, fa#, la) sur un cercle de 1,9 m, mélodie de 3, 4 puis 5 notes ;
   il la joue après 2 temps dans sa zone (3,2 m).
+
+## Expéditions (versions 2.0 et 2.1)
+- 7 clairières ; 2 vagues de 3 Muets + 1 par clairière ; niveau des Muets + 0,5 par clairière.
+- Clairière : rayon de 30 à 40 u (7,8 à 10,4 m) selon sa graine ; bord : une rangée d'arbres et de buissons
+  à 1,5 u du rayon (un tous les 4,2 u), une seconde à 8,5 u ; mur invisible à 3,5 u derrière le rayon.
+  Passages : 2 (1 vers le Grand Muet), écartés de 0,55 rad, dégagés sur 0,17 rad de part et d'autre.
+- Récompenses : soin 35 % des PV ; plumes d'or 20 + 5 par clairière ; don 1 parmi 3, rang 3 au plus.
+- Rencontres : s'ouvrent à 1,6 m du personnage. Source : boire (tous les PV) ou un don contre 25 % des PV ;
+  marchand : un don contre 40 plumes d'or, ou 15 % des PV ; tambourinaire : Métronome (un rang), ou une
+  page du carnet et 15 % des PV ; villageois perdu : un objet contre 20 PV, ou 15 plumes d'or.

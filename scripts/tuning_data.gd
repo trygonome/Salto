@@ -377,6 +377,19 @@ extends Resource
 ## parts du rayon, à cette distance au moins du héros (m) ; rang des Muets par clairière ; fondu
 ## entre deux clairières (s) et son calque.
 @export var room_entry_inset: float
+## Rayon d'une clairière (u), tiré entre ces deux valeurs.
+@export var room_radius_min: float
+@export var room_radius_max: float
+## Rencontres : distance du personnage où elle s'ouvre (m) ; la source (part des PV coûtée par un
+## don), le marchand (prix d'un don en plumes d'or, part des PV soignée), le tambourinaire (part des
+## PV soignée avec son histoire), le villageois perdu (PV pour le soigner, plumes pour le chemin).
+@export var encounter_radius: float
+@export var encounter_spring_cost: float
+@export var encounter_merchant_price: int
+@export var encounter_merchant_heal: float
+@export var encounter_drummer_heal: float
+@export var encounter_wounded_cost: float
+@export var encounter_wounded_feathers: int
 @export var room_exit_inset: float
 @export var room_boss_depth: float
 @export var room_spawn_min: float
@@ -403,6 +416,12 @@ extends Resource
 ## Roulade épineuse : rayon autour du héros (m).
 @export var thorns_radius: float
 @export var burn_spark_period: float
+## Volant : il s'écrase à cette part de son piqué (au plus bas) et reste étourdi au sol (s) ;
+## poussière de la chute (grains, m/s).
+@export var flyer_crash_fraction: float
+@export var flyer_grounded_time: float
+@export var fx_flyer_crash_dust: int
+@export var fx_flyer_crash_speed: float
 ## Réponse attendue par chaque Muet (docs/GDD.md §7) : coups qui la donnent (AttackData.id,
 ## « dive », « rainbow » ; « stunned » : tout coup quand il est étourdi, « behind » : tout coup
 ## qui passe à côté du bouclier). La bonne réponse fait plus de dégâts, remplit la jauge de groove

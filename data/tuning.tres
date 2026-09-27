@@ -401,6 +401,15 @@ room_feathers_per_room = 5
 room_heal = 0.35
 boss_room_guards = 3
 room_entry_inset = 1.2
+room_radius_min = 30.0
+room_radius_max = 40.0
+encounter_radius = 1.6
+encounter_spring_cost = 0.25
+encounter_merchant_price = 40
+encounter_merchant_heal = 0.15
+encounter_drummer_heal = 0.15
+encounter_wounded_cost = 20.0
+encounter_wounded_feathers = 15
 room_exit_inset = 0.9
 room_boss_depth = 0.4
 room_spawn_min = 0.25
@@ -433,10 +442,14 @@ fx_burn_cubes = 3
 fx_burn_speed = 0.5
 fx_burn_hue = 0.06
 burn_spark_period = 0.4
+flyer_crash_fraction = 0.5
+flyer_grounded_time = 1.6
+fx_flyer_crash_dust = 8
+fx_flyer_crash_speed = 0.6
 muet_answers = Dictionary[StringName, PackedStringArray]({
 &"boss": PackedStringArray("rainbow"),
 &"charger": PackedStringArray("stunned"),
-&"flyer": PackedStringArray("air_kick"),
+&"flyer": PackedStringArray("air_kick", "stunned"),
 &"hopper": PackedStringArray("armada"),
 &"shielder": PackedStringArray("dive", "rainbow", "behind"),
 &"spitter": PackedStringArray("rolling_kick")

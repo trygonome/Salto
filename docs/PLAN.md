@@ -111,7 +111,12 @@ Jalons :
 1. **Tester si c'est amusant** — 7 clairières, 2 vagues, 10 dons (brûlure, onde du 3e coup,
    roulade épineuse, plongeon météore, PV, métronome, sève, furie, vitesse, critique), passages,
    Grand Muet, résumé. *Test : a-t-on envie de relancer ?*
-2. **La carte** — élites, trésors, rencontres, reprise d'une expédition interrompue.
+   **Version 2.1** (retours : écran flou qui bloque, murs invisibles, volants qui punissent trop,
+   génération pauvre) — écran flou corrigé (caméra et héros protégés d'une position invalide, rien ne
+   bouge pendant un arrêt sur image) ; bord des clairières en mur d'arbres visible ; volant qui s'écrase
+   après son piqué, à frapper au sol ; 5 formes de clairière nommées (+ l'arène), taille variable ;
+   4 rencontres à choix (passage « ? »).
+2. **La carte** — élites, trésors, reprise d'une expédition interrompue.
 3. **Le camp** — dépenser les plumes d'or en améliorations permanentes, déblocages.
 4. **Contenu** — dons rares et combinaisons, régions, boss.
 

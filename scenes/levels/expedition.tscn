@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -29,6 +29,11 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter.tscn" id="93_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/plume_pickup.tscn" id="30_plume"]
+[ext_resource type="Material" path="res://scenes/world/voxel_rig.tres" id="16_actor"]
+[ext_resource type="Material" path="res://scenes/world/actor_shadow.tres" id="26_actor_shadow"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="33_voxel_actor"]
+[ext_resource type="Resource" path="res://data/notebook.tres" id="42_notebook"]
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_night")
@@ -39,6 +44,11 @@ charger_scene = ExtResource("92_charger")
 spitter_scene = ExtResource("93_spitter")
 boss_scene = ExtResource("4_boss")
 gate_scene = ExtResource("50_gate")
+plume_scene = ExtResource("30_plume")
+character_material = ExtResource("16_actor")
+character_shadow_material = ExtResource("26_actor_shadow")
+prop_material = ExtResource("33_voxel_actor")
+notebook = ExtResource("42_notebook")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = ExtResource("7_env")

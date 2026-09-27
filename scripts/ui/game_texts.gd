@@ -105,6 +105,35 @@ const ROOM_BOSS_SUB := "Libère-le pour sortir de la jungle"
 const ROOM_CHOOSE := "Choisis ton passage"
 const REWARD_NAMES: Dictionary[StringName, String] = {
 	&"boon": "don des esprits", &"heal": "soin", &"feathers": "plumes d'or", &"boss": "le Grand Muet",
+	&"encounter": "rencontre",
+}
+## Noms des clairières, par forme (tirés de la graine).
+const ROOM_NAMES: Dictionary[StringName, PackedStringArray] = {
+	&"clearing": ["Clairière des Lianes", "Clairière du Silence", "Pré des Lucioles", "Clairière aux Pierres"],
+	&"ruins": ["Ruines du Tambour Brisé", "Cercle des Anciens", "Autel Oublié", "Temple Muet"],
+	&"grove": ["Bosquet des Murmures", "Sous-bois des Échos", "Bosquet Endormi"],
+	&"logs": ["Troncs Couchés", "Chablis du Vieux Fromager", "Passage des Troncs"],
+	&"mushrooms": ["Champignonnière", "Jardin des Chapeaux", "Clairière qui Rebondit"],
+	&"arena": ["Arène du Grand Muet"],
+}
+const ROOM_COUNT := "%s · %d/%d"
+const ROOM_ENCOUNTER := "Rencontre · approche-toi"
+## Rencontres : nom, ce qu'on voit ou entend, deux choix (%d : valeur du réglage).
+const ENCOUNTER_NAMES: Dictionary[StringName, String] = {
+	&"spring": "La source des anciens", &"merchant": "Le marchand muet",
+	&"drummer": "Le vieux tambourinaire", &"wounded": "Un villageois perdu",
+}
+const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
+	&"spring": "Une eau claire chante entre les pierres. On dit qu'elle se souvient de la musique.",
+	&"merchant": "Un Muet libéré a gardé quelques trésors. Il ne parle pas encore, mais il te montre ses plumes d'or.",
+	&"drummer": "« Le rythme est en toi, petit. Assieds-toi, écoute le vieux Kamba. »",
+	&"wounded": "« Je cherchais les tambours… les Muets m'ont surpris. Je ne retrouve plus le village. »",
+}
+const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
+	&"spring": ["Boire : tous tes PV reviennent", "Y plonger la main : un don, contre %d % de tes PV"],
+	&"merchant": ["Donner %d plumes d'or : un don", "Le saluer : un peu de soin"],
+	&"drummer": ["Apprendre son rythme : Métronome, un rang", "Écouter son histoire : une page du carnet, un peu de soin"],
+	&"wounded": ["Le soigner (−%d PV) : il t'offre un objet", "Lui montrer le chemin : +%d plumes d'or"],
 }
 const FEATHERS_FOUND := "+%d plumes d'or"
 const HEALED := "Soin : +%d PV"
@@ -177,7 +206,7 @@ const HINTS: Dictionary[StringName, String] = {
 	&"dive": "En l'air, frappe : plongeon !",
 	&"beat": "Frappe quand l'anneau se referme",
 	&"special": "Jauge pleine : frappe !",
-	&"answer_flyer": "Saute, frappe en l'air !",
+	&"answer_flyer": "Esquive le piqué, frappe !",
 	&"answer_shielder": "Saute, plonge dessus !",
 	&"answer_charger": "Esquive, puis frappe !",
 	&"answer_spitter": "Roule, puis frappe !",
@@ -434,6 +463,18 @@ static func talent_effect(id: StringName, rank: int, tuning: TuningData) -> Stri
 static func duration(seconds: float) -> String:
 	var total: int = floori(seconds)
 	return "%d:%02d" % [floori(seconds / 60.0), total % 60]
+
+
+## Noms possibles d'une clairière de la forme `kind`. (Passer par get() : dans Godot 4.7,
+## `dico[variable]` sur un dictionnaire typé de PackedStringArray renvoie un tableau faux.)
+static func room_names(kind: StringName) -> PackedStringArray:
+	return ROOM_NAMES.get(kind, ROOM_NAMES[&"clearing"])
+
+
+## Choix `index` de la rencontre `id`, sa valeur de réglage à la place de %d.
+static func encounter_choice(id: StringName, index: int, value: int) -> String:
+	var choices: PackedStringArray = ENCOUNTER_CHOICES.get(id, PackedStringArray())
+	return choices[index].replace("%d", str(value)) if index < choices.size() else ""
 
 
 ## « 1 plume d'or », « 3 plumes d'or ».

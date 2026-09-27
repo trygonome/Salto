@@ -4,13 +4,15 @@ extends RefCounted
 ## graine, la clairière en cours, la récompense promise par le passage choisi, les dons pris, les
 ## plumes gagnées et ce qui compte pour le résumé. Tirages reproductibles depuis la graine.
 
-## Récompenses d'une clairière : don des esprits (1 parmi 3), soin, plumes ; le Grand Muet
-## (dernière clairière : le libérer termine l'expédition).
+## Récompenses d'une clairière : don des esprits (1 parmi 3), soin, plumes, rencontre (un
+## personnage et un choix, sans combat) ; le Grand Muet (dernière clairière : le libérer termine
+## l'expédition).
 const BOON := &"boon"
 const HEAL := &"heal"
 const FEATHERS := &"feathers"
+const ENCOUNTER := &"encounter"
 const BOSS := &"boss"
-const REWARDS: Array[StringName] = [BOON, HEAL, FEATHERS]
+const REWARDS: Array[StringName] = [BOON, HEAL, FEATHERS, ENCOUNTER]
 
 var seed_value: int = 0
 ## Clairières de l'expédition (la dernière : le Grand Muet) ; clairière en cours (0 : la première).
@@ -23,6 +25,8 @@ var boons: Dictionary[StringName, int] = {}
 var feathers: int = 0
 var muets_freed: int = 0
 var elapsed: float = 0.0
+## Rencontres déjà faites (une seule fois chacune par expédition).
+var encounters_seen: Array[StringName] = []
 var rng := RandomNumberGenerator.new()
 
 
@@ -40,6 +44,36 @@ func is_boss_room() -> bool:
 ## Graine de la clairière en cours (même expédition, mêmes clairières).
 func room_seed() -> int:
 	return hash([seed_value, room])
+
+
+## Forme de la clairière en cours : l'arène pour le Grand Muet, une clairière calme pour une
+## rencontre, sinon tirée de sa graine parmi WorldGen.ROOM_KINDS.
+func room_kind() -> StringName:
+	if is_boss_room():
+		return &"arena"
+	if reward == ENCOUNTER:
+		return &"clearing"
+	return WorldGen.ROOM_KINDS[posmod(room_seed(), WorldGen.ROOM_KINDS.size())]
+
+
+## Rayon de la clairière en cours (u), tiré de sa graine entre `smallest` et `largest`.
+func room_radius(smallest: float, largest: float) -> float:
+	return lerpf(smallest, largest, float(posmod(room_seed() >> 8, 1000)) / 999.0)
+
+
+## Nom de la clairière en cours parmi `count` noms possibles pour sa forme.
+func name_index(count: int) -> int:
+	return posmod(room_seed() >> 16, maxi(count, 1))
+
+
+## Tire la rencontre de la clairière en cours parmi `ids`, sans répéter celles déjà faites.
+func pick_encounter(ids: Array[StringName]) -> StringName:
+	var pool: Array[StringName] = ids.filter(func(id: StringName) -> bool: return not encounters_seen.has(id))
+	if pool.is_empty():
+		pool = ids.duplicate()
+	var id: StringName = pool[rng.randi_range(0, pool.size() - 1)]
+	encounters_seen.append(id)
+	return id
 
 
 ## Nombre de passages de sortie de la clairière en cours (un seul vers le Grand Muet).

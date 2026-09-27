@@ -147,6 +147,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Arrêt sur image : le temps ne passe pas. Un pas de physique de durée nulle peut rendre une
+	# position invalide (NaN) : rien ne bouge pendant l'arrêt.
+	if delta <= 0.0:
+		return
 	_clock += delta
 	coyote_left = maxf(coyote_left - delta, 0.0)
 	roll_cooldown_left = maxf(roll_cooldown_left - delta, 0.0)
@@ -160,7 +164,7 @@ func _physics_process(delta: float) -> void:
 	hitbox.update(delta)
 	visual.update_pose(facing_yaw, delta)
 	visual.visible = _hurt_invuln_left <= 0.0 or fposmod(_hurt_invuln_left, tuning.hurt_blink_period) < tuning.hurt_blink_period / 2.0
-	if global_position.y < _spawn.origin.y - tuning.respawn_fall_depth:
+	if global_position.y < _spawn.origin.y - tuning.respawn_fall_depth or not global_position.is_finite():
 		respawn()
 
 
@@ -276,9 +280,17 @@ func try_air_jump() -> bool:
 
 ## Déplace le corps selon `velocity`, en montant les petites marches.
 func move(delta: float) -> void:
+	if not velocity.is_finite():
+		velocity = Vector3.ZERO
 	var falling_speed: float = 0.0 if is_on_floor() else -velocity.y
+	var before: Vector3 = global_position
 	_step_up(delta)
 	move_and_slide()
+	# Rarement, le moteur physique rend une position invalide : on reste où l'on était.
+	if not global_position.is_finite() or not velocity.is_finite():
+		global_position = before
+		velocity = Vector3.ZERO
+		return
 	if falling_speed > 0.0 and is_on_floor():
 		_on_landed(falling_speed)
 	if is_on_floor():

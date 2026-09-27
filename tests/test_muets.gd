@@ -212,6 +212,19 @@ func test_le_volant_annonce_puis_pique_sur_le_heros() -> void:
 	assert_eq(hero.health.current, hero.health.maximum - tuning.flyer_damage)
 
 
+func test_apres_son_pique_le_volant_s_ecrase_et_se_frappe_au_sol() -> void:
+	await _spawn_on_flat_ground()
+	var flyer: Muet = await _add_muet(Flyer, Vector3(0.0, 0.0, -1.5))
+	await _step(40)
+	await _ready_to_act(flyer)
+	await _wait_muet_state(flyer, &"Dive")
+	await _wait_muet_state(flyer, &"Stunned")
+	assert_lt(flyer.global_position.y - hero.global_position.y, tuning.attack_vertical_reach, "au ras du sol")
+	var hit: HitData = _hit_from_hero(1.0, &"martelo", flyer)
+	assert_true(flyer.hurtbox.receive(hit))
+	assert_true(hit.answer, "esquiver le piqué puis frapper : la réponse qu'il attend")
+
+
 func test_le_grand_muet_frappe_dans_son_cercle() -> void:
 	await _spawn_on_flat_ground()
 	var boss: Muet = await _add_muet(GrandMuet, Vector3(0.0, 0.0, -tuning.boss_slam_radius * 0.7))
@@ -453,6 +466,21 @@ func test_pendant_un_arret_sur_image_les_muets_restent_en_place() -> void:
 	assert_true(flyer.global_position.is_finite(), "pas de division par zéro")
 	assert_true(hopper.global_position.is_finite())
 	assert_eq(flyer.global_position, before)
+
+
+func test_pendant_un_arret_sur_image_le_heros_reste_en_place() -> void:
+	await _spawn_on_flat_ground()
+	hero.input_move = Vector2(1.0, 0.0)
+	await _step(10)
+	var before: Vector3 = hero.global_position
+	hero._physics_process(0.0)
+	assert_true(hero.global_position.is_finite(), "pas de position invalide")
+	assert_eq(hero.global_position, before, "rien ne bouge pendant l'arrêt")
+	# Si le moteur rend malgré tout une position invalide, le héros reste où il était.
+	hero.velocity = Vector3(NAN, 0.0, 0.0)
+	hero.move(1.0 / 60.0)
+	assert_true(hero.global_position.is_finite())
+	assert_true(hero.velocity.is_finite())
 
 
 func test_loin_du_heros_un_muet_revenu_a_son_poste_s_endort() -> void:
