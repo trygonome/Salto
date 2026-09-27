@@ -618,6 +618,76 @@ def sfx_sing():
     return out
 
 
+def udu(freq, length=0.5):
+    """Udu (jarre d'argile) : un « boum » creux dont la note glisse vers le bas."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    f = freq * (1 + 0.5 * np.exp(-t / 0.03))
+    phase = 2 * np.pi * np.cumsum(f) / RATE
+    return (np.sin(phase) + 0.25 * np.sin(2.01 * phase)) * env(n, 0.004, 0.16)
+
+
+def drop(freq, length=0.25):
+    """Goutte d'eau : une note qui monte très vite, courte et ronde."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    f = freq * (1 + 0.8 * (1 - np.exp(-t / 0.012)))
+    phase = 2 * np.pi * np.cumsum(f) / RATE
+    return np.sin(phase) * env(n, 0.001, 0.05)
+
+
+def layer_sunken():
+    """Ruines englouties : udus graves, gouttes d'eau sur la gamme, un bourdon d'eau profond."""
+    rng = np.random.default_rng(260)
+    buf = np.zeros(LOOP_SAMPLES)
+    for bar in range(BARS):
+        b0 = bar * BEATS_PER_BAR
+        for beat_offset, d in [(0.0, 0), (1.5, 2), (2.5, 0), (3.0, 4)]:
+            add(buf, b0 + beat_offset, udu(degree(d, -2)), 0.5)
+        for k in range(3):
+            pos = b0 + rng.integers(0, 8) / 2
+            add(buf, pos, drop(degree(int(rng.integers(5, 12)), 0)), 0.16)
+    t = np.arange(LOOP_SAMPLES) / RATE
+    swell = 0.5 + 0.5 * np.sin(2 * np.pi * t / (LOOP_SAMPLES / RATE / 2))
+    buf += np.sin(2 * np.pi * degree(0, -2) * t) * (0.05 + 0.05 * swell)
+    return buf
+
+
+def whistle(freq, length):
+    """Oiseau des cimes : un sifflet qui glisse vers le haut puis retombe."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    f = freq * (1 + 0.12 * np.sin(np.pi * t / length))
+    phase = 2 * np.pi * np.cumsum(f) / RATE
+    shape = np.minimum(t / 0.02, 1.0) * np.minimum((length - t) / 0.04, 1.0).clip(0, 1)
+    return np.sin(phase) * shape
+
+
+def bamboo(freq, length=0.12):
+    """Bambou frappé : un claquement boisé, très court."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    return (np.sin(2 * np.pi * freq * t) + 0.5 * np.sin(2 * np.pi * freq * 2.76 * t)) * env(n, 0.0005, 0.025)
+
+
+def layer_canopy():
+    """Canopée : bambous en doubles croches, appels d'oiseaux sur la gamme, dans les aigus."""
+    rng = np.random.default_rng(261)
+    buf = np.zeros(LOOP_SAMPLES)
+    for bar in range(BARS):
+        b0 = bar * BEATS_PER_BAR
+        for sixteenth in range(16):
+            if sixteenth % 4 == 0 or rng.random() < 0.35:
+                accent = 0.6 if sixteenth % 4 == 0 else 0.3
+                add(buf, b0 + sixteenth / 4, bamboo(degree(7 + sixteenth % 3, 1)), 0.22 * accent)
+        if bar % 2 == 0:
+            for k, d in enumerate([9, 11, 10]):
+                add(buf, b0 + 1 + k * 0.5, whistle(degree(d, 0), 0.22), 0.12)
+        else:
+            add(buf, b0 + 2.5, whistle(degree(int(rng.integers(8, 13)), 0), 0.5), 0.1)
+    return buf
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -679,6 +749,9 @@ def main():
     write(ROOT / "assets/audio/sfx/riposte.wav", sfx_riposte(), peak=0.7)
     # Bestiaire 2.4.
     write(ROOT / "assets/audio/sfx/sing.wav", sfx_sing(), peak=0.55)
+    # Régions 2.6 : une couche de musique par région, au gain des couches de la nuit.
+    for name, buf in (("region_sunken", layer_sunken()), ("region_canopy", layer_canopy())):
+        write(ROOT / "assets/audio/music" / f"{name}.wav", buf * layer_gain, peak=np.max(np.abs(buf)) * layer_gain)
 
 
 if __name__ == "__main__":

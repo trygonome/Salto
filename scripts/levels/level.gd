@@ -32,3 +32,8 @@ func call_help(_muet: Muet, _count: int) -> void:
 func on_elite_freed(_muet: Muet) -> void:
 	pass
 
+
+## Vitesse de marche au point `position` (m), en part de la normale : l'eau ralentit.
+func terrain_speed(_position: Vector3) -> float:
+	return 1.0
+

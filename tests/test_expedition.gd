@@ -194,6 +194,8 @@ func _free_all() -> void:
 		var hit := HitData.new()
 		hit.damage = muet.health.maximum * 10.0
 		hit.direction = Vector3.FORWARD
+		# (Le coup chargé passe les boucliers et ne s'esquive pas.)
+		hit.move = &"charged"
 		muet.hurtbox.receive(hit)
 	for i: int in 3:
 		await get_tree().physics_frame
@@ -374,3 +376,108 @@ func test_un_long_titre_d_ecran_ne_se_coupe_pas_au_milieu_d_un_mot() -> void:
 	assert_eq((screen.get_node("%Title") as Label).theme_type_variation, &"ScreenTitleSmall")
 	screen.hide_screen()
 	get_tree().paused = false
+
+
+## Donjons 2.6 : le feu de camp (repos) soigne ou affûte un don déjà pris.
+func test_le_feu_de_camp_soigne_ou_affute_un_don() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	Game.run.room = 1
+	Game.run.reward = RunState.REST
+	level.call(&"_enter_room")
+	await get_tree().process_frame
+	assert_eq(level.current_goal()[&"icon"], RunState.REST)
+	assert_true(level.get_node("Pickups").find_child("Flames", true, false) != null, "un feu de camp")
+	hero.health.current = 1.0
+	hero.global_position = Vector3(0.0, 0.0, tuning.encounter_radius / 2.0)
+	for i: int in 3:
+		await get_tree().process_frame
+	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
+	assert_true(screen.is_open())
+	var cards: Array[Node] = screen.get_node("%Cards").get_children()
+	assert_true((cards[1] as Button).disabled, "aucun don à affûter")
+	(cards[0] as Button).pressed.emit()
+	assert_almost_eq(hero.health.current, 1.0 + hero.health.maximum * tuning.rest_heal, 0.01, "se reposer")
+	# Avec un don pris, le feu l'affûte.
+	Game.take_boon(&"ember")
+	Game.run.reward = RunState.REST
+	level.call(&"_enter_room")
+	hero.global_position = Vector3(0.0, 0.0, tuning.encounter_radius / 2.0)
+	for i: int in 3:
+		await get_tree().process_frame
+	cards = screen.get_node("%Cards").get_children()
+	assert_false((cards[1] as Button).disabled)
+	(cards[1] as Button).pressed.emit()
+	assert_eq(Boons.rank(Game.run.boons, &"ember"), 2, "un rang de plus")
+
+
+func test_le_tresor_et_le_passage_secret() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	Game.run.room = 1
+	Game.run.reward = RunState.TREASURE
+	Game.run.elite_done = true
+	level.call(&"_enter_room")
+	# (Des renforts peuvent arriver : on libère jusqu'à ce que la clairière soit nettoyée.)
+	for i: int in 600:
+		if level.get(&"_cleared"):
+			break
+		if not _muets().is_empty():
+			await _free_all()
+		await get_tree().physics_frame
+	var chests: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n.has_signal(&"opened"))
+	assert_eq(chests.size(), 1, "un coffre au trésor")
+	var feathers: int = Game.run.feathers
+	chests[0].emit_signal(&"opened")
+	assert_eq(Game.run.feathers, feathers + tuning.treasure_feathers, "des plumes d'or")
+	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
+	assert_true(screen.is_open(), "et un don")
+	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
+	await get_tree().process_frame
+	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
+	assert_eq(gates.size(), tuning.room_exits)
+	level.call(&"_on_secret_revealed", Vector3.ZERO, Vector2(8.0, 0.0))
+	gates = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
+	assert_eq(gates.size(), tuning.room_exits + 1, "le rocher fêlé ouvre un passage secret")
+	assert_eq((gates[gates.size() - 1] as ExitGate).reward, RunState.SECRET)
+
+
+func test_chaque_region_a_son_gardien_et_s_ouvre_en_le_liberant() -> void:
+	Game.profile.regions_won.assign([Regions.UNDERGROWTH])
+	Game.profile.region = Regions.SUNKEN
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	assert_eq(Game.run.region, Regions.SUNKEN)
+	assert_eq(Rhythm.region(), Regions.SUNKEN, "la musique de la région")
+	Game.run.room = Game.run.room_count - 1
+	level.call(&"_enter_room")
+	await _wait_muets()
+	var bosses: Array[Muet] = _muets().filter(func(m: Muet) -> bool: return m.is_boss())
+	assert_eq(bosses.size(), 1)
+	assert_eq(bosses[0].display_name, GameTexts.GUARDIAN_NAMES[Regions.SUNKEN], "le Gardien des Ruines")
+	assert_eq(level.current_goal()[&"title"], GameTexts.GUARDIAN_NAMES[Regions.SUNKEN])
+	var s: Dictionary = Game.end_run(&"won")
+	assert_eq(s[&"unlocked"], Regions.CANOPY, "la Canopée s'ouvre")
+	assert_true(Game.profile.regions_won.has(Regions.SUNKEN))
+	var rows: Array = Expedition.summary_of(s)[&"rows"]
+	assert_eq(rows[rows.size() - 1][1], GameTexts.REGION_NAMES[Regions.CANOPY], "le résumé l'annonce")
+	get_tree().paused = false
+
+
+func test_l_ecran_titre_choisit_la_region() -> void:
+	await _open_level()
+	var title: TitleScreen = level.get_node("TitleScreen") as TitleScreen
+	assert_true((title.get_node("%Region") as Control).visible)
+	assert_eq((title.get_node("%RegionName") as Label).text, GameTexts.REGION_NAMES[Regions.UNDERGROWTH])
+	(title.get_node("%RegionNext") as Button).pressed.emit()
+	assert_eq((title.get_node("%RegionName") as Label).text, GameTexts.REGION_NAMES[Regions.SUNKEN])
+	assert_true((title.get_node("%Play") as Button).disabled, "fermée : on ne peut pas y partir")
+	assert_eq(Game.profile.region, Regions.UNDERGROWTH)
+	Game.profile.regions_won.assign([Regions.UNDERGROWTH])
+	(title.get_node("%RegionPrev") as Button).pressed.emit()
+	(title.get_node("%RegionNext") as Button).pressed.emit()
+	assert_false((title.get_node("%Play") as Button).disabled)
+	assert_eq(Game.profile.region, Regions.SUNKEN, "ouverte : c'est là qu'on partira")

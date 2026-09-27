@@ -1512,3 +1512,53 @@ extends Resource
 @export var leaf_size: float
 @export var leaf_fall_speed: float
 
+@export_group("Donjons")
+## L'eau ralentit (part de la vitesse) le héros et les Muets.
+@export var water_speed: float
+## Pièges au tempo : épines (rayon m, période en temps, hauteur au repos en part), liane fouet
+## (longueur, largeur m, période) ; dégâts au héros et aux Muets, coup à l'équilibre des Muets ;
+## montée (s) et part du temps où le piège reste dressé.
+@export var trap_spike_radius: float
+@export var trap_spike_period: int
+@export var trap_spike_rest: float
+@export var trap_whip_length: float
+@export var trap_whip_width: float
+@export var trap_whip_period: int
+@export var trap_damage: float
+@export var trap_muet_damage: float
+@export var trap_poise: float
+@export var trap_rise_time: float
+@export var trap_hold_fraction: float
+## Tambour de guerre : taille du modèle, rayon (m), portée de l'onde (m), étourdissement (s), coup
+## à l'équilibre, recharge (s), battement quand il est prêt (taille).
+@export var war_drum_scale: float
+@export var war_drum_radius: float
+@export var war_drum_reach: float
+@export var war_drum_stun: float
+@export var war_drum_poise: float
+@export var war_drum_cooldown: float
+@export var war_drum_pulse: float
+## Jarres et rocher fêlé : taille d'une case (m), rayons (m), coups pour le rocher, contenu d'une
+## jarre (plumes d'or, sinon soin : chance et part des PV).
+@export var breakable_cell: float
+@export var jar_radius: float
+@export var boulder_radius: float
+@export var boulder_hits: int
+@export var jar_feathers_min: int
+@export var jar_feathers_max: int
+@export var jar_heal_chance: float
+@export var jar_heal: float
+## Salles spéciales : repos (soin, part des PV), trésor (plumes d'or du coffre), secret (plumes).
+@export var rest_heal: float
+@export var treasure_feathers: int
+@export var secret_feathers: int
+## Gardien des Ruines, pluie de piliers : nombre (un par temps), rayon (m), dégâts (part de sa
+## frappe), hauteur (cases), hauteur d'où il tombe (m), temps avant qu'il ne s'enfonce, enfoncement (s).
+@export var boss_pillar_count: int
+@export var boss_pillar_radius: float
+@export var boss_pillar_damage_factor: float
+@export var boss_pillar_height: int
+@export var boss_pillar_drop: float
+@export var boss_pillar_linger: float
+@export var boss_pillar_sink: float
+

@@ -18,6 +18,11 @@ const NIGHT_LAYERS: Array[String] = [
 ]
 ## Couche de la troupe du village.
 const BAND_LAYER := "res://assets/audio/music/night_band.wav"
+## Couche propre à une région d'expédition (version 2.6), jouée par-dessus les autres.
+const REGION_LAYERS: Dictionary[StringName, String] = {
+	&"sunken": "res://assets/audio/music/region_sunken.wav",
+	&"canopy": "res://assets/audio/music/region_canopy.wav",
+}
 
 var _player := AudioStreamPlayer.new()
 var _music: AudioStreamSynchronized
@@ -27,6 +32,7 @@ var _last_position: float = 0.0
 var _last_beat: int = -1
 var _audible_layers: int = 0
 var _band: float = 0.0
+var _region: StringName = &""
 
 
 func _ready() -> void:
@@ -38,12 +44,17 @@ func _ready() -> void:
 func play(layers: int) -> void:
 	var tuning: TuningData = Tuning.data
 	_music = AudioStreamSynchronized.new()
-	_music.stream_count = NIGHT_LAYERS.size() + 1
+	_music.stream_count = NIGHT_LAYERS.size() + 1 + REGION_LAYERS.size()
 	for i: int in NIGHT_LAYERS.size():
 		_music.set_sync_stream(i, load(NIGHT_LAYERS[i]) as AudioStream)
 		_music.set_sync_stream_volume(i, tuning.music_volume_db if i < layers else tuning.music_silent_db)
 	_music.set_sync_stream(NIGHT_LAYERS.size(), load(BAND_LAYER) as AudioStream)
 	_music.set_sync_stream_volume(NIGHT_LAYERS.size(), band_volume_db(_band, tuning))
+	var index: int = NIGHT_LAYERS.size() + 1
+	for region: StringName in REGION_LAYERS:
+		_music.set_sync_stream(index, load(REGION_LAYERS[region]) as AudioStream)
+		_music.set_sync_stream_volume(index, tuning.music_volume_db if region == _region else tuning.music_silent_db)
+		index += 1
 	_loop_length = _music.get_sync_stream(0).get_length()
 	_audible_layers = layers
 	_loops = 0
@@ -90,6 +101,25 @@ func set_band(amount: float) -> void:
 	_band = clampf(amount, 0.0, 1.0)
 	if _music:
 		_music.set_sync_stream_volume(NIGHT_LAYERS.size(), band_volume_db(_band, Tuning.data))
+
+
+## Fait entendre la couche de la région `region` (vide ou inconnue : aucune), en fondu.
+func set_region(region: StringName) -> void:
+	_region = region
+	if _music == null:
+		return
+	var tuning: TuningData = Tuning.data
+	var index: int = NIGHT_LAYERS.size() + 1
+	for id: StringName in REGION_LAYERS:
+		var channel: int = index
+		var target: float = tuning.music_volume_db if id == region else tuning.music_silent_db
+		var set_volume: Callable = func(db: float) -> void: _music.set_sync_stream_volume(channel, db)
+		create_tween().tween_method(set_volume, _music.get_sync_stream_volume(channel), target, tuning.music_layer_fade_time)
+		index += 1
+
+
+func region() -> StringName:
+	return _region
 
 
 func band_amount() -> float:

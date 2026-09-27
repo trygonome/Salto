@@ -29,3 +29,14 @@ static func offer(rng: RandomNumberGenerator, owned: Dictionary[StringName, int]
 	while picks.size() < count and not pool.is_empty():
 		picks.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
 	return picks
+
+
+## Un don déjà pris et pas encore au rang maximal, tiré au hasard (vide : aucun) : le feu de camp
+## l'affûte d'un rang.
+static func sharpen_pick(rng: RandomNumberGenerator, owned: Dictionary[StringName, int], tuning: TuningData) -> StringName:
+	var pool: Array[StringName] = []
+	for id: StringName in IDS:
+		var level: int = rank(owned, id)
+		if level > 0 and level < tuning.boon_max_rank:
+			pool.append(id)
+	return pool[rng.randi_range(0, pool.size() - 1)] if not pool.is_empty() else &""

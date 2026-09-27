@@ -4,7 +4,10 @@ extends Node3D
 ## caché peut n'apparaître qu'une fois révélé (cercle des gongs). Si sa page est déjà dans le
 ## carnet, il est ouvert et vide.
 
-## Page du carnet qu'il contient (numéro à partir de 1).
+## Le héros vient de l'ouvrir.
+signal opened
+
+## Page du carnet qu'il contient (numéro à partir de 1 ; 0 : un coffre au trésor d'expédition).
 @export var page: int
 ## Caché au départ (révélé par reveal()).
 @export var hidden: bool
@@ -61,7 +64,7 @@ func _ready() -> void:
 	_lid.position = Vector3(0.0, HEIGHT * cell, -(HALF_Z + 0.5) * cell)
 	lid_mesh.position = Vector3(0.0, 0.0, 0.5 * cell)
 	_zone.body_entered.connect(_on_body_entered)
-	if Game.profile.has_page(page):
+	if page > 0 and Game.profile.has_page(page):
 		# Déjà trouvé : il attend, ouvert et vide.
 		_opened = true
 		_lid.rotation.x = deg_to_rad(-lid_open_deg)
@@ -98,4 +101,6 @@ func _on_body_entered(body: Node3D) -> void:
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.burst(global_position + Vector3.UP * HEIGHT * cell, tuning.fx_plume_cubes, tuning.fx_plume_speed)
-	Game.add_page(page)
+	if page > 0:
+		Game.add_page(page)
+	opened.emit()

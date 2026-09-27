@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3]
+[gd_scene load_steps=46 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -39,6 +39,12 @@
 [ext_resource type="Material" path="res://scenes/world/actor_shadow.tres" id="26_actor_shadow"]
 [ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="33_voxel_actor"]
 [ext_resource type="Resource" path="res://data/notebook.tres" id="42_notebook"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/ruins_guardian.tscn" id="60_ruins"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/canopy_guardian.tscn" id="61_canopy"]
+[ext_resource type="PackedScene" path="res://scenes/fx/telegraph.tscn" id="62_telegraph"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="63_drum_model"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="64_drum_sound"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="65_chest"]
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_night")
@@ -52,7 +58,13 @@ totem_scene = ExtResource("95_totem")
 dancer_scene = ExtResource("96_dancer")
 brute_scene = ExtResource("97_brute")
 boss_scene = ExtResource("4_boss")
+ruins_guardian_scene = ExtResource("60_ruins")
+canopy_guardian_scene = ExtResource("61_canopy")
 gate_scene = ExtResource("50_gate")
+telegraph_scene = ExtResource("62_telegraph")
+war_drum_model = ExtResource("63_drum_model")
+war_drum_sound = ExtResource("64_drum_sound")
+chest_scene = ExtResource("65_chest")
 plume_scene = ExtResource("30_plume")
 character_material = ExtResource("16_actor")
 character_shadow_material = ExtResource("26_actor_shadow")

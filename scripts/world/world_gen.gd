@@ -73,6 +73,24 @@ const PALM_BEND := 0.008
 const LIANA_BOTTOM := 2.4
 const POND_RADIUS_MIN := 3.0
 const POND_RADIUS_MAX := 4.5
+## Modules (version 2.6, u) : rivière (largeur), ponts (largeur, place en part du rayon), estrades
+## (demi-côté, hauteur, profondeur de la marche), plateformes de la Canopée (demi-côté, hauteur) ;
+## jarres (au moins, au plus), chances d'un tambour de guerre et d'un rocher fêlé ; tambour (rayon,
+## hauteur).
+const RIVER_WIDTH := 7.0
+const BRIDGE_WIDTH := 4.0
+const BRIDGE_OFFSET := 0.45
+const DAIS_HALF := 3.0
+const DAIS_HEIGHT := 2.0
+const DAIS_STEP_DEPTH := 2.0
+const PLATFORM_HALF := 3.5
+const PLATFORM_HEIGHT := 3.0
+const JARS_MIN := 2
+const JARS_MAX := 4
+const DRUM_CHANCE := 0.55
+const SECRET_CHANCE := 0.25
+const DRUM_RADIUS := 1.6
+const DRUM_HEIGHT := 4.0
 ## Hauteur de la plume (ou du coffre) au-dessus du dernier rocher d'un perchoir (u).
 const PERCH_ABOVE := 1.2
 ## Clairière du cercle des gongs (u) : rayon libre, entre ces distances du village, à cette distance
@@ -128,6 +146,21 @@ var gong_clearing := Vector2.INF
 var border_radius: float = WORLD_R
 ## Mares : x, z, rayon (u), à la suite (version 2.5).
 var ponds := PackedFloat32Array()
+## Version 2.6 (modules faits main) : estrades, plateformes et passerelles (boîtes pleines depuis le
+## sol : centre x, z, demi-largeurs, hauteur, en u) ; rivières (rectangles d'eau : centre, demi-
+## largeurs) ; ponts (rectangles où l'eau ne ralentit pas) ; pièges au tempo (kind : spikes ou whip,
+## x, z, angle, phase) ; tambours de guerre, jarres (positions) ; rocher fêlé du secret
+## (Vector2.INF : aucun).
+var boxes: Array[Rect2] = []
+var box_heights := PackedFloat32Array()
+var waters: Array[Rect2] = []
+var bridges: Array[Rect2] = []
+var traps: Array[Dictionary] = []
+var drums := PackedVector2Array()
+var jars := PackedVector2Array()
+var secret := Vector2.INF
+## Décalage de teinte des feuillages et des herbes (région de l'expédition).
+var foliage_shift: float = 0.0
 
 var _rng: ProtoRandom
 
@@ -143,6 +176,7 @@ func generate(seed_value: int, nights_done: int) -> void:
 	sanctuary_names.clear()
 	huts.clear()
 	ponds.clear()
+	_clear_modules()
 	gong_clearing = Vector2.INF
 	border_radius = WORLD_R
 	_add_village_solids()
@@ -206,6 +240,7 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 	sanctuary_names.clear()
 	huts.clear()
 	ponds.clear()
+	_clear_modules()
 	gong_clearing = Vector2.INF
 	border_radius = radius + ROOM_WALL_BEHIND
 	_room_border(radius, gaps)
@@ -222,6 +257,10 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 			_room_place(_room_log, ROOM_LOGS + floori(_rnd() * 2.0), radius, gaps, 4.5)
 			_room_place(_stump, ROOM_STUMPS + 1, radius, gaps, 2.0)
 			_room_place(_fern, ROOM_FERNS - 2, radius, gaps, 2.0)
+		&"flooded":
+			_room_flooded(radius, gaps)
+		&"heights":
+			_room_heights(radius, gaps)
 		&"mushrooms":
 			_room_place(_mushroom, ROOM_MUSHROOMS + floori(_rnd() * 2.0), radius, gaps, 3.5)
 			_room_place(_bouncer, ROOM_BOUNCERS, radius, gaps, 2.5)
@@ -240,6 +279,8 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
 	_grass(radius, ROOM_GRASS)
 	_pebbles(radius, ROOM_PEBBLES)
+	if kind != &"arena":
+		_room_props(radius, gaps, kind)
 
 
 ## Le bord de la clairière : arbres et buissons serrés, en deux rangées (la première s'ouvre aux
@@ -397,6 +438,154 @@ func _liana(lx: float, lz: float, top: float) -> void:
 		i += 1
 
 
+func _clear_modules() -> void:
+	boxes.clear()
+	box_heights.clear()
+	waters.clear()
+	bridges.clear()
+	traps.clear()
+	drums.clear()
+	jars.clear()
+	secret = Vector2.INF
+
+
+## Vrai si le point `p` (u) est dans l'eau (rivière ou mare) et pas sur un pont.
+func water_at(p: Vector2) -> bool:
+	for bridge: Rect2 in bridges:
+		if bridge.has_point(p):
+			return false
+	for water: Rect2 in waters:
+		if water.has_point(p):
+			return true
+	for i: int in ponds.size() / 3:
+		if p.distance_to(Vector2(ponds[i * 3], ponds[i * 3 + 1])) < ponds[i * 3 + 2]:
+			return true
+	return false
+
+
+## Boîte pleine posée au sol (estrade, plateforme, passerelle) : cubes de pierre ou de bois
+## (`wood`), dessus plus clair, et son obstacle. Rectangle et hauteur en u.
+func _box(rect: Rect2, height: float, wood: bool) -> void:
+	boxes.append(rect)
+	box_heights.append(height)
+	var hue: float = 4.07 if wood else 4.72
+	var sat: float = 0.4 if wood else 0.15
+	var cols: int = ceili(rect.size.x)
+	var rows: int = ceili(rect.size.y)
+	var layers: int = ceili(height)
+	for i: int in cols:
+		for j: int in rows:
+			var x: float = rect.position.x + (i + 0.5) * rect.size.x / cols
+			var z: float = rect.position.y + (j + 0.5) * rect.size.y / rows
+			var edge: bool = i == 0 or j == 0 or i == cols - 1 or j == rows - 1
+			for y: int in layers:
+				var top: bool = y == layers - 1
+				if not edge and not top:
+					continue
+				var plank: float = 0.04 * float((i + (j if wood else 0)) % 2)
+				_sv(x, (y + 0.5) * height / layers, z, maxf(rect.size.x / cols, rect.size.y / rows) * 1.02, hue, sat, (0.4 if top else 0.3) + plank + _rnd() * 0.04)
+
+
+## Estrade avec une marche d'un côté (on y monte sans sauter).
+func _dais(center: Vector2, half: float, height: float, facing: Vector2, wood: bool) -> void:
+	_box(Rect2(center - Vector2.ONE * half, Vector2.ONE * half * 2.0), height, wood)
+	var step_center: Vector2 = center + facing * (half + DAIS_STEP_DEPTH / 2.0)
+	var across := Vector2(absf(facing.y), absf(facing.x))
+	var step_size: Vector2 = across * half * 1.2 + Vector2(absf(facing.x), absf(facing.y)) * DAIS_STEP_DEPTH
+	_box(Rect2(step_center - step_size, step_size * 2.0), height / 2.0, wood)
+	_shadow(center.x, center.y, half * 1.6, 0.25)
+
+
+## Rivière des Ruines englouties : une bande d'eau d'est en ouest à franchir sur deux ponts de
+## planches (ou en pataugeant, lentement) ; une estrade de chaque côté ; des épines rythmiques au
+## bout des ponts ; des piliers.
+func _room_flooded(radius: float, gaps: PackedFloat32Array) -> void:
+	var z: float = (_rnd() - 0.6) * radius * 0.4
+	var half_width: float = RIVER_WIDTH / 2.0
+	var river := Rect2(-radius - ROOM_RING_GAP, z - half_width, (radius + ROOM_RING_GAP) * 2.0, RIVER_WIDTH)
+	waters.append(river)
+	for side: float in [-1.0, 1.0]:
+		var bx: float = side * radius * BRIDGE_OFFSET
+		var bridge := Rect2(bx - BRIDGE_WIDTH / 2.0, z - half_width - 1.0, BRIDGE_WIDTH, RIVER_WIDTH + 2.0)
+		bridges.append(bridge)
+		for j: int in ceili(bridge.size.y):
+			for i: int in ceili(BRIDGE_WIDTH):
+				_sv(bridge.position.x + i + 0.5, 0.35, bridge.position.y + j + 0.5, 1.0, 4.07, 0.45, 0.36 + (j % 2) * 0.05)
+		traps.append({&"kind": &"spikes", &"x": bx, &"z": z - side * (half_width + 2.5), &"angle": 0.0, &"phase": 0 if side < 0.0 else 1})
+	for side: float in [-1.0, 1.0]:
+		var dz: float = z + side * (half_width + DAIS_HALF + 5.0)
+		var dx: float = -side * radius * 0.35
+		if absf(dz) < radius - DAIS_HALF * 2.0 and _free_spot(Vector2(dx, dz), DAIS_HALF + 2.0):
+			_dais(Vector2(dx, dz), DAIS_HALF, DAIS_HEIGHT, Vector2(0.0, side), false)
+	_room_ruins(radius, gaps, ROOM_RUIN_RING, 6, false)
+
+
+## Hauteurs de la Canopée : deux plateformes de bois à marches, reliées par une passerelle, une
+## plume arc-en-ciel sur la plus haute ; des lianes qui fouettent au temps.
+func _room_heights(radius: float, gaps: PackedFloat32Array) -> void:
+	var a: float = _rnd() * TAU
+	var spots: Array[Vector2] = []
+	for k: int in 2:
+		var angle: float = a + k * PI + (_rnd() - 0.5) * 0.6
+		var p := Vector2(sin(angle), -cos(angle)) * radius * 0.5
+		var lane: bool = false
+		for gap: float in gaps:
+			if segment_distance(p, Vector2.ZERO, gap_point(gap, radius)) < ROOM_LANE + PLATFORM_HALF + 1.5:
+				lane = true
+		if lane:
+			p = p.rotated(PI / 2.0)
+		spots.append(p)
+		# La marche regarde vers le centre de la clairière.
+		var facing: Vector2 = Vector2(-signf(p.x), 0.0) if absf(p.x) > absf(p.y) else Vector2(0.0, -signf(p.y))
+		_dais(p, PLATFORM_HALF, PLATFORM_HEIGHT + k, facing, true)
+		for i: int in 4:
+			var corner: Vector2 = p + Vector2(1.0 if i % 2 == 0 else -1.0, 1.0 if i < 2 else -1.0) * PLATFORM_HALF
+			_liana(corner.x, corner.y, ROOM_LIANA_TOP)
+	var high: Vector2 = spots[1]
+	pickups.append(Vector3(high.x, PLATFORM_HEIGHT + 1.0 + PERCH_ABOVE, high.y))
+	for k: int in 2:
+		var angle: float = a + PI / 2.0 + k * PI
+		var p := Vector2(sin(angle), -cos(angle)) * radius * 0.45
+		traps.append({&"kind": &"whip", &"x": p.x, &"z": p.y, &"angle": angle + PI / 2.0, &"phase": k * 2})
+
+
+## Décor de jeu de toute clairière de combat : jarres à casser au pied des arbres, parfois un tambour
+## de guerre, parfois un rocher fêlé qui cache un passage secret ; des épines rythmiques dans
+## les Ruines et la Canopée.
+func _room_props(radius: float, gaps: PackedFloat32Array, kind: StringName) -> void:
+	for i: int in JARS_MIN + floori(_rnd() * (JARS_MAX - JARS_MIN + 1)):
+		var a: float = _rnd() * TAU
+		var p := Vector2(sin(a), -cos(a)) * (radius - 2.0 - _rnd() * 3.0)
+		if not _near_gap(a, gaps) and _free_spot(p, 1.5):
+			jars.append(p)
+	if _rnd() < DRUM_CHANCE:
+		var placed: bool = false
+		for t: int in ROOM_TRIES:
+			if placed:
+				break
+			var a: float = _rnd() * TAU
+			var p := Vector2(sin(a), -cos(a)) * (ROOM_CENTER_CLEAR + _rnd() * (radius * 0.5))
+			if _free_spot(p, 3.0) and not water_at(p):
+				drums.append(p)
+				_add_solid(p.x, p.y, DRUM_RADIUS, DRUM_HEIGHT)
+				placed = true
+	if _rnd() < SECRET_CHANCE:
+		for t: int in ROOM_TRIES:
+			var a: float = _rnd() * TAU
+			if _near_gap(a, gaps):
+				continue
+			var p := Vector2(sin(a), -cos(a)) * (radius - 1.5)
+			if _free_spot(p, 2.5):
+				secret = p
+				break
+	if kind == &"ruins" or kind == &"grove":
+		for i: int in 1 + floori(_rnd() * 2.0):
+			var a: float = _rnd() * TAU
+			var p := Vector2(sin(a), -cos(a)) * (ROOM_CENTER_CLEAR + _rnd() * radius * 0.4)
+			if _free_spot(p, 2.0):
+				traps.append({&"kind": &"spikes", &"x": p.x, &"z": p.y, &"angle": 0.0, &"phase": i})
+
+
 ## Mare : un bassin d'eau (dessiné par WorldBuilder), bordé de pierres.
 func _room_pond(x: float, z: float) -> void:
 	var r: float = POND_RADIUS_MIN + _rnd() * (POND_RADIUS_MAX - POND_RADIUS_MIN)
@@ -508,6 +697,9 @@ func _rnd() -> float:
 
 
 func _sv(x: float, y: float, z: float, size: float, hue: float, saturation: float, lightness: float) -> void:
+	# Couleurs du monde (mode 0 : feuillages, herbes) : la région décale leur teinte.
+	if hue < 1.0 and foliage_shift != 0.0:
+		hue = fposmod(hue + foliage_shift, 1.0)
 	voxels.append_array(PackedFloat32Array([x, y, z, hue, saturation, lightness, size]))
 
 

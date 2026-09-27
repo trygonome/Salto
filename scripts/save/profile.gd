@@ -31,6 +31,9 @@ var band: Array[StringName] = []
 var feathers: int = 0
 var best_room: int = 0
 var runs_won: int = 0
+## Régions dont le gardien a été libéré (version 2.6), et région choisie pour partir.
+var regions_won: Array[StringName] = []
+var region: StringName = Regions.UNDERGROWTH
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -215,6 +218,7 @@ func to_dict() -> Dictionary:
 		"started": started, "night": night, "night_seed": night_seed, "nights_done": nights_done,
 		"finished": finished, "banked": banked.duplicate(), "band": saved_band,
 		"feathers": feathers, "best_room": best_room, "runs_won": runs_won,
+		"regions_won": Array(regions_won).map(func(r: StringName) -> String: return String(r)), "region": String(region),
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
@@ -244,6 +248,11 @@ static func from_dict(data: Dictionary) -> Profile:
 	profile.feathers = int(data.get("feathers", 0))
 	profile.best_room = int(data.get("best_room", 0))
 	profile.runs_won = int(data.get("runs_won", 0))
+	for r: Variant in data.get("regions_won", []):
+		if Regions.IDS.has(StringName(str(r))):
+			profile.regions_won.append(StringName(str(r)))
+	var chosen := StringName(str(data.get("region", Regions.UNDERGROWTH)))
+	profile.region = chosen if Regions.unlocked(profile.regions_won).has(chosen) else Regions.UNDERGROWTH
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))

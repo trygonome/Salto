@@ -226,6 +226,16 @@ func intended_direction() -> Vector3:
 	return facing_direction() if direction.is_zero_approx() else direction.normalized()
 
 
+var _level: Level
+
+
+## Part de la vitesse de course permise par le sol sous le héros (l'eau ralentit, version 2.6).
+func terrain_speed() -> float:
+	if not is_instance_valid(_level):
+		_level = get_tree().get_first_node_in_group(&"night_level") as Level
+	return _level.terrain_speed(global_position) if _level else 1.0
+
+
 func horizontal_velocity() -> Vector3:
 	return Vector3(velocity.x, 0.0, velocity.z)
 

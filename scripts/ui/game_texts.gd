@@ -104,8 +104,8 @@ const ROOM_BOSS_TITLE := "Le Grand Muet"
 const ROOM_BOSS_SUB := "Libère-le pour sortir de la jungle"
 const ROOM_CHOOSE := "Choisis ton passage"
 const REWARD_NAMES: Dictionary[StringName, String] = {
-	&"boon": "don des esprits", &"heal": "soin", &"feathers": "plumes d'or", &"boss": "le Grand Muet",
-	&"encounter": "rencontre",
+	&"boon": "don des esprits", &"heal": "soin", &"feathers": "plumes d'or", &"boss": "le gardien",
+	&"encounter": "rencontre", &"rest": "repos", &"treasure": "trésor", &"secret": "secret",
 }
 ## Noms des clairières, par forme (tirés de la graine).
 const ROOM_NAMES: Dictionary[StringName, PackedStringArray] = {
@@ -114,7 +114,9 @@ const ROOM_NAMES: Dictionary[StringName, PackedStringArray] = {
 	&"grove": ["Bosquet des Murmures", "Sous-bois des Échos", "Bosquet Endormi"],
 	&"logs": ["Troncs Couchés", "Chablis du Vieux Fromager", "Passage des Troncs"],
 	&"mushrooms": ["Champignonnière", "Jardin des Chapeaux", "Clairière qui Rebondit"],
-	&"arena": ["Arène du Grand Muet"],
+	&"arena": ["Arène du Gardien"],
+	&"flooded": ["Gué des Pierres", "Rivière Muette", "Bras Engloutis"],
+	&"heights": ["Passerelles des Cimes", "Plateformes du Vent", "Belvédère des Lianes"],
 }
 const ROOM_COUNT := "%s · %d/%d"
 const ROOM_ENCOUNTER := "Rencontre · approche-toi"
@@ -122,21 +124,25 @@ const ROOM_ENCOUNTER := "Rencontre · approche-toi"
 const ENCOUNTER_NAMES: Dictionary[StringName, String] = {
 	&"spring": "La source des anciens", &"merchant": "Le marchand muet",
 	&"drummer": "Le vieux tambourinaire", &"wounded": "Un villageois perdu",
+	&"rest": "Le feu de camp",
 }
 const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
 	&"spring": "Une eau claire chante entre les pierres. On dit qu'elle se souvient de la musique.",
 	&"merchant": "Un Muet libéré a gardé quelques trésors. Il ne parle pas encore, mais il te montre ses plumes d'or.",
 	&"drummer": "« Le rythme est en toi, petit. Assieds-toi, écoute le vieux Kamba. »",
 	&"wounded": "« Je cherchais les tambours… les Muets m'ont surpris. Je ne retrouve plus le village. »",
+	&"rest": "Un feu crépite entre les racines. Ici, les Muets ne viennent pas.",
 }
 const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
 	&"spring": ["Boire : tous tes PV reviennent", "Y plonger la main : un don, contre %d % de tes PV"],
 	&"merchant": ["Donner %d plumes d'or : un don", "Le saluer : un peu de soin"],
 	&"drummer": ["Apprendre son rythme : Métronome, un rang", "Écouter son histoire : une page du carnet, un peu de soin"],
 	&"wounded": ["Le soigner (−%d PV) : il t'offre un objet", "Lui montrer le chemin : +%d plumes d'or"],
+	&"rest": ["Te reposer : +%d % de PV", "Affûter un don : un rang de plus"],
 }
 const FEATHERS_FOUND := "+%d plumes d'or"
 const HEALED := "Soin : +%d PV"
+const BOON_SHARPENED := "%s : un rang de plus"
 const BOON_TITLE := "Don des esprits"
 const BOON_SUB := "Choisis un don pour cette expédition"
 const BOON_RANK := "Rang %d"
@@ -197,7 +203,20 @@ const WORD_BREAK := "Brisé !"
 const WORD_GRACE := "Grâce !"
 const WORD_RIPOSTE := "Riposte !"
 const WORD_EVADED := "Esquivé !"
-const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL, WORD_BREAK, WORD_GRACE, WORD_RIPOSTE, WORD_EVADED]
+const WORD_SECRET := "Un passage !"
+const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL, WORD_BREAK, WORD_GRACE, WORD_RIPOSTE, WORD_EVADED, WORD_SECRET]
+
+## Régions (version 2.6) et leurs gardiens.
+const REGION_NAMES: Dictionary[StringName, String] = {
+	&"undergrowth": "Sous-bois", &"sunken": "Ruines englouties", &"canopy": "Canopée",
+}
+const REGION_LOCKED := "Libère le gardien d'avant"
+const RUN_REGION := "Région"
+const RUN_UNLOCKED := "Nouvelle région"
+const GUARDIAN_NAMES: Dictionary[StringName, String] = {
+	&"undergrowth": "Le Grand Muet", &"sunken": "Le Gardien des Ruines", &"canopy": "La Reine des Cimes",
+}
+const REGION_UNLOCKED := "Nouvelle région : %s"
 
 ## Muets : nom de chaque espèce, et nom d'un élite (espèce + particularité).
 const SPECIES_NAMES: Dictionary[StringName, String] = {
@@ -505,6 +524,11 @@ static func elite_name(species: StringName, affix: StringName) -> String:
 ## « 1 plume d'or », « 3 plumes d'or ».
 static func feathers(count: int) -> String:
 	return (FEATHER_MANY if absi(count) > 1 else FEATHER_ONE) % count
+
+
+## Nom du don `id`.
+static func boon_name(id: StringName) -> String:
+	return BOON_NAMES.get(id, String(id))
 
 
 ## Effet du don `id` au rang `level` (valeur totale à ce rang).

@@ -4,6 +4,9 @@ extends MuetState
 ## étourdi un moment, à portée d'un simple coup (esquiver le piqué, puis frapper). Il blesse au
 ## contact pendant le piqué.
 
+## Couronne de bulles quand la Reine des Cimes s'écrase (à partir de sa phase 2) ; vide pour un volant.
+@export var orb_scene: PackedScene
+
 var _start: Vector3 = Vector3.ZERO
 var _direction: Vector3 = Vector3.FORWARD
 var _length: float = 0.0
@@ -21,7 +24,7 @@ func enter(_previous: StringName) -> void:
 	var tuning: TuningData = Tuning.data
 	_elapsed = 0.0
 	muet.face(_direction)
-	muet.strike(tuning.flyer_radius, CombatMath.FULL_CIRCLE_DEG, _direction, tuning.flyer_dive_time, muet.damage_of(&"damage"), false)
+	muet.strike(maxf(tuning.flyer_radius, muet.stat(&"radius")), CombatMath.FULL_CIRCLE_DEG, _direction, tuning.flyer_dive_time, muet.damage_of(&"damage"), muet.is_boss())
 
 
 func exit() -> void:
@@ -47,4 +50,6 @@ func _crash() -> void:
 	if fx:
 		fx.dust(muet.global_position, tuning.fx_flyer_crash_dust, tuning.fx_flyer_crash_speed)
 		fx.stunned_against_wall(muet.global_position + Vector3.UP * muet.body.height)
+	if muet.is_boss() and muet.phase() >= 2:
+		muet.orb_crown(orb_scene)
 	muet.stun(tuning.flyer_grounded_time)

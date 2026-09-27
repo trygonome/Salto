@@ -35,12 +35,16 @@ static func available(room: int) -> Array[Dictionary]:
 
 
 ## Compose une vague de la clairière `room` : un modèle possible tiré par `rng` (pas `avoid`, le
-## modèle de la vague précédente, s'il y a le choix), complété jusqu'à `count` Muets. Renvoie
-## { id, foes }.
-static func compose(room: int, count: int, rng: RandomNumberGenerator, avoid: StringName = &"") -> Dictionary:
+## modèle de la vague précédente, s'il y a le choix ; les `favorites` de la région une fois sur
+## deux), complété jusqu'à `count` Muets. Renvoie { id, foes }.
+static func compose(room: int, count: int, rng: RandomNumberGenerator, avoid: StringName = &"", favorites: Array = []) -> Dictionary:
 	var pool: Array[Dictionary] = available(room)
 	if pool.size() > 1:
 		pool = pool.filter(func(template: Dictionary) -> bool: return template[&"id"] != avoid)
+	# La région a ses vagues de prédilection : une fois sur deux, on les préfère.
+	var liked: Array[Dictionary] = pool.filter(func(template: Dictionary) -> bool: return favorites.has(template[&"id"]))
+	if not liked.is_empty() and rng.randf() < 0.5:
+		pool = liked
 	var template: Dictionary = pool[rng.randi_range(0, pool.size() - 1)]
 	var foes: Array[StringName] = []
 	for species: StringName in template[&"foes"]:

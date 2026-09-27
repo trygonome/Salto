@@ -24,6 +24,8 @@ var _burst: float = 0.0
 ## Avancée imposée (0 à 1 ; négative : celle des tambours de la nuit) : en expédition, la jungle
 ## reprend ses couleurs clairière après clairière.
 var _progress: float = -1.0
+## Teinte fixe de la brume (0 à 1 ; négative : elle tourne lentement), celle d'une région.
+var _fog_hue: float = -1.0
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
@@ -69,6 +71,11 @@ func pulse(amount: float) -> void:
 func set_progress(fraction: float, village: bool) -> void:
 	_progress = clampf(fraction, 0.0, 1.0)
 	RenderingServer.global_shader_parameter_set(&"salto_village", 1.0 if village else 0.0)
+
+
+## Brume d'une teinte fixe `hue` (0 à 1) ; négative : la teinte tourne lentement (Sous-bois, nuit).
+func set_fog_hue(hue: float) -> void:
+	_fog_hue = hue
 
 
 ## Salto arc-en-ciel : le cercle du groove éclate loin autour du héros, tout le monde s'illumine.
@@ -142,7 +149,8 @@ func _process(delta: float) -> void:
 	for i: int in _sanctuaries.size():
 		_freed[i] += (_freed_target[i] - _freed[i]) * Smoothing.weight(tuning.world_freed_rate, delta)
 	_push_sanctuaries()
-	var fog: Color = hsl(fmod(_time * tuning.fog_hue_speed, 1.0), tuning.fog_saturation * minf(1.0, _saturation), tuning.fog_lightness)
+	var hue: float = _fog_hue if _fog_hue >= 0.0 else fmod(_time * tuning.fog_hue_speed, 1.0)
+	var fog: Color = hsl(hue, tuning.fog_saturation * minf(1.0, _saturation), tuning.fog_lightness)
 	RenderingServer.global_shader_parameter_set(&"salto_fog_color", Vector4(fog.r, fog.g, fog.b, 1.0))
 	if is_instance_valid(hero):
 		RenderingServer.global_shader_parameter_set(&"salto_player", hero.global_position + Vector3.UP * tuning.cutaway_height)

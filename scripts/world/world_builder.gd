@@ -55,6 +55,22 @@ func _build_ponds() -> void:
 		pond.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		pond.position = Vector3(gen.ponds[i * 3] * _unit, tuning.pond_height, gen.ponds[i * 3 + 1] * _unit)
 		add_child(pond)
+	var square: Material = null
+	for i: int in gen.waters.size():
+		if square == null:
+			square = water_material.duplicate()
+			(square as ShaderMaterial).set_shader_parameter(&"round", false)
+		var rect: Rect2 = gen.waters[i]
+		var plane := PlaneMesh.new()
+		plane.size = rect.size * _unit
+		var river := MeshInstance3D.new()
+		river.name = "River%d" % i
+		river.mesh = plane
+		river.material_override = square
+		river.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var center: Vector2 = rect.get_center() * _unit
+		river.position = Vector3(center.x, tuning.pond_height, center.y)
+		add_child(river)
 
 
 ## Point du monde en mètres, pour un point du prototype (x, z en u) au niveau du sol.
@@ -151,6 +167,17 @@ func _build_solids() -> void:
 		body.add_child(shape)
 		if s.kind == WorldGen.BOUNCE:
 			_add_bounce_pad(s)
+	# Estrades, plateformes et passerelles : des boîtes pleines depuis le sol.
+	for i: int in gen.boxes.size():
+		var rect: Rect2 = gen.boxes[i]
+		var height: float = gen.box_heights[i] * _unit
+		var box := BoxShape3D.new()
+		box.size = Vector3(rect.size.x * _unit, height, rect.size.y * _unit)
+		var shape := CollisionShape3D.new()
+		shape.shape = box
+		var center: Vector2 = rect.get_center() * _unit
+		shape.position = Vector3(center.x, height / 2.0, center.y)
+		body.add_child(shape)
 
 
 func _add_bounce_pad(s: WorldGen.Solid) -> void:

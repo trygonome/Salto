@@ -2,7 +2,8 @@ class_name TitleScreen
 extends ScreenLayer
 ## Écran titre du prototype, par-dessus le village qui danse : SALTO, la saga des cinq nuits (faites,
 ## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
-## Talents, Carnet, Nouvelle partie (touchée deux fois).
+## Talents, Carnet, Nouvelle partie (touchée deux fois). En expédition (version 2.6) : la région
+## où partir, choisie entre les flèches (une région fermée dit comment l'ouvrir).
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
@@ -10,6 +11,8 @@ extends ScreenLayer
 @export var notebook: NotebookData
 
 var _reset_armed: bool = false
+## Région montrée entre les flèches (vide : celle du profil).
+var _shown_region: StringName = &""
 
 @onready var _saga: HBoxContainer = %Saga
 @onready var _chapter: Label = %Chapter
@@ -19,6 +22,8 @@ var _reset_armed: bool = false
 @onready var _talents: Button = %Talents
 @onready var _notebook: Button = %Notebook
 @onready var _new_game: Button = %NewGame
+@onready var _region: HBoxContainer = %Region
+@onready var _region_name: Label = %RegionName
 
 
 func _ready() -> void:
@@ -31,6 +36,8 @@ func _ready() -> void:
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
 	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
 	_new_game.pressed.connect(_on_new_game)
+	(%RegionPrev as Button).pressed.connect(_step_region.bind(-1))
+	(%RegionNext as Button).pressed.connect(_step_region.bind(1))
 
 
 func _band_anchor() -> Control:
@@ -83,16 +90,46 @@ func refresh() -> void:
 	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
 	var expedition: bool = level != null and level.is_expedition()
 	_saga.visible = not expedition
+	_region.visible = expedition
+	_play.disabled = false
 	if expedition:
 		_chapter.text = GameTexts.EXPEDITION_TITLE
 		_chapter_small.text = GameTexts.EXPEDITION_INFO % [profile.feathers, profile.best_room] if profile.best_room > 0 else GameTexts.EXPEDITION_PITCH
 		_play.text = GameTexts.EXPEDITION_START
+		_show_region()
 	_new_game.visible = profile.started
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME
 	_bag.text = GameTexts.BAG_BUTTON
 	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
+
+
+## Région affichée : son nom ; fermée, comment l'ouvrir (et on ne peut pas y partir).
+func _show_region() -> void:
+	var profile: Profile = Game.profile
+	var open_regions: Array[StringName] = Regions.unlocked(profile.regions_won)
+	var shown: StringName = _shown_region if _shown_region != &"" else profile.region
+	_region_name.text = GameTexts.REGION_NAMES.get(shown, "")
+	var locked: bool = not open_regions.has(shown)
+	if locked:
+		_chapter_small.text = GameTexts.REGION_LOCKED
+		_play.disabled = true
+	(%RegionPrev as Button).disabled = Regions.IDS.find(shown) <= 0
+	(%RegionNext as Button).disabled = Regions.IDS.find(shown) >= Regions.IDS.size() - 1
+
+
+## Montre la région d'à côté ; ouverte, elle devient celle où partir (le camp prend ses couleurs).
+func _step_region(step: int) -> void:
+	var profile: Profile = Game.profile
+	var shown: StringName = _shown_region if _shown_region != &"" else profile.region
+	var index: int = clampi(Regions.IDS.find(shown) + step, 0, Regions.IDS.size() - 1)
+	_shown_region = Regions.IDS[index]
+	if Regions.unlocked(profile.regions_won).has(_shown_region):
+		profile.region = _shown_region
+		Game.save()
+	get_tree().call_group(&"night_level", &"preview_region", _shown_region)
+	refresh()
 
 
 func _on_play() -> void:

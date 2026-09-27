@@ -34,6 +34,23 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   (onde du 3e coup), Roulade épineuse, Plongeon météore, Cœur de la jungle (PV), Métronome (coups parfaits),
   Sève (soin par Muet), Furie, Pieds légers, Œil du faucon (critique).
 - La jungle reprend ses couleurs et la musique ses couches de clairière en clairière.
+- **Régions** (version 2.6) : on choisit à l'écran titre où partir (flèches autour du nom) ; libérer le gardien
+  d'une région ouvre la suivante (le résumé l'annonce). Chacune ses formes de clairière, son herbe, sa terre, son
+  feuillage, sa brume, sa couche de musique, ses vagues préférées et son **gardien** :
+  - *Sous-bois* : clairières, bosquets, troncs, champignonnières ; le **Grand Muet**.
+  - *Ruines englouties* (sarcelle, udus et gouttes d'eau) : ruines, **rivières** à franchir sur des ponts
+    (l'eau ralentit, héros comme Muets), estrades ; le **Gardien des Ruines**, en pierre moussue, qui fait
+    tomber des **piliers** annoncés (un cercle rouge) ou frappe le sol, en alternance.
+  - *Canopée* (vert-jaune, bambous et oiseaux) : **plateformes** et passerelles en hauteur, lianes fouets ;
+    la **Reine des Cimes**, ailée, qui fond sur le héros et sème une couronne de bulles en s'écrasant.
+- **Décor de jeu** (version 2.6) : **épines** qui jaillissent au tempo (un cercle rouge le temps d'avant) et
+  **lianes fouets** qui balaient une ligne annoncée ; elles blessent aussi les Muets (on les y projette).
+  **Tambours de guerre** à frapper : une onde étourdit et ébranle les Muets autour, le groove monte ; puis il se
+  recharge (il bat au rythme quand il est prêt). **Jarres** (plumes d'or ou un peu de soin) ; **rocher fêlé**
+  (3 coups) qui ouvre un **passage secret** vers un trésor sans combat.
+- **Salles spéciales** (version 2.6), annoncées par leur passage : **repos** (un feu de camp : +40 % des PV,
+  ou affûter un don déjà pris d'un rang), **trésor** (un coffre après le combat : 35 plumes d'or et un don),
+  **secret** (un coffre sans combat : 50 plumes d'or et un don).
 - **Fin** : Grand Muet libéré (jungle libérée), héros évanoui, ou retour depuis la pause. On garde
   l'expérience (le niveau) et les plumes d'or, qui serviront au camp (jalon suivant).
 Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le

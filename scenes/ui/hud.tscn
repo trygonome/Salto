@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -19,6 +19,9 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/heart.svg" id="41_heart"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/plume.svg" id="42_plume"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/talk.svg" id="43_talk"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/fire.svg" id="44_fire"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/chest.svg" id="45_chest"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/secret.svg" id="46_secret"]
 
 [sub_resource type="Gradient" id="Gradient_flash"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -44,6 +47,9 @@ quest_icons = Dictionary[StringName, Texture2D]({
 &"encounter": ExtResource("43_talk"),
 &"feathers": ExtResource("42_plume"),
 &"heal": ExtResource("41_heart"),
+&"rest": ExtResource("44_fire"),
+&"treasure": ExtResource("45_chest"),
+&"secret": ExtResource("46_secret"),
 &"crown": ExtResource("7_crown"),
 &"drum": ExtResource("5_drum"),
 &"home": ExtResource("6_home"),

@@ -185,3 +185,16 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Lucioles : 36, vie 5 s, jusqu'à 2,2 m ; feuilles : 14, vie 7 s, chute 0,45 m/s. Halo lumineux (niveaux 2 et 3,
   intensité 0,7) sur ce qui dépasse le blanc.
 
+
+## Donjons (version 2.6)
+- Eau (rivière, mare) : vitesse de marche ×0,6, sauf sur les ponts. Rivière de 7 u, ponts de 4 u.
+- Épines : 0,75 m, tous les 2 temps (annoncées le temps d'avant), 10 dégâts au héros, 12 et 12 d'équilibre aux
+  Muets, dressées 45 % d'un temps. Liane fouet : 3,2 m sur 0,8 m, tous les 4 temps.
+- Tambour de guerre (55 % des clairières de combat) : onde de 3,8 m, étourdit 1,4 s, 20 d'équilibre ; se
+  recharge en 8 s.
+- Jarres (2 à 4 par clairière) : 2 à 4 plumes d'or, ou 30 % de chances d'un soin de 6 %. Rocher fêlé (25 % des
+  clairières) : 3 coups.
+- Repos : +40 % des PV ou un rang de plus à un don. Trésor : 35 plumes d'or et un don ; secret : 50 et un don.
+- Gardien des Ruines : 3 piliers de 0,9 m (un par temps, dégâts ×0,8 de sa frappe), annoncés, tombent de 3 m,
+  restent 0,9 s puis s'enfoncent en 0,4 s. Reine des Cimes :
+  vole, fond sur le héros ; couronne de bulles à l'écrasement dès la phase 2.

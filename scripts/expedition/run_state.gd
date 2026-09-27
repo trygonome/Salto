@@ -12,9 +12,16 @@ const HEAL := &"heal"
 const FEATHERS := &"feathers"
 const ENCOUNTER := &"encounter"
 const BOSS := &"boss"
-const REWARDS: Array[StringName] = [BOON, HEAL, FEATHERS, ENCOUNTER]
+## Version 2.6 : repos (un feu de camp, pas de combat), trésor (un coffre après le combat),
+## secret (derrière un rocher fêlé : un trésor sans combat).
+const REST := &"rest"
+const TREASURE := &"treasure"
+const SECRET := &"secret"
+const REWARDS: Array[StringName] = [BOON, HEAL, FEATHERS, ENCOUNTER, REST, TREASURE]
 
 var seed_value: int = 0
+## Région de l'expédition (voir Regions).
+var region: StringName = Regions.UNDERGROWTH
 ## Clairières de l'expédition (la dernière : le Grand Muet) ; clairière en cours (0 : la première).
 var room_count: int = 0
 var room: int = 0
@@ -32,9 +39,10 @@ var elite_done: bool = false
 var rng := RandomNumberGenerator.new()
 
 
-func _init(seed_number: int, rooms: int) -> void:
+func _init(seed_number: int, rooms: int, run_region: StringName = Regions.UNDERGROWTH) -> void:
 	seed_value = seed_number
 	room_count = rooms
+	region = run_region
 	rng.seed = seed_number
 
 
@@ -48,14 +56,15 @@ func room_seed() -> int:
 	return hash([seed_value, room])
 
 
-## Forme de la clairière en cours : l'arène pour le Grand Muet, une clairière calme pour une
-## rencontre, sinon tirée de sa graine parmi WorldGen.ROOM_KINDS.
+## Forme de la clairière en cours : l'arène pour le gardien, une clairière calme pour une
+## rencontre ou un repos, sinon tirée de sa graine parmi les formes de la région.
 func room_kind() -> StringName:
 	if is_boss_room():
 		return &"arena"
-	if reward == ENCOUNTER:
+	if reward == ENCOUNTER or reward == REST or reward == SECRET:
 		return &"clearing"
-	return WorldGen.ROOM_KINDS[posmod(room_seed(), WorldGen.ROOM_KINDS.size())]
+	var kinds: Array = Regions.KINDS.get(region, WorldGen.ROOM_KINDS)
+	return kinds[posmod(room_seed(), kinds.size())]
 
 
 ## Rayon de la clairière en cours (u), tiré de sa graine entre `smallest` et `largest`.

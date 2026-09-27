@@ -226,6 +226,15 @@ func _update_sleep() -> void:
 		velocity = Vector3.ZERO
 
 
+var _level: Level
+
+
+func _terrain_speed() -> float:
+	if not is_instance_valid(_level):
+		_level = get_tree().get_first_node_in_group(&"night_level") as Level
+	return _level.terrain_speed(global_position) if _level else 1.0
+
+
 ## Le héros de la nuit (gardé en mémoire).
 func _hero() -> Hero:
 	if not is_instance_valid(_hero_ref):
@@ -441,6 +450,9 @@ func move(horizontal: Vector3, delta: float) -> void:
 		velocity.y -= tuning.muet_gravity * delta
 	if _knockback_left > 0.0:
 		flat = _knockback
+	elif not flies:
+		# L'eau ralentit (voir Level.terrain_speed).
+		flat *= _terrain_speed()
 	velocity.x = flat.x
 	velocity.z = flat.z
 	var before: Vector3 = global_position
@@ -480,6 +492,24 @@ func telegraph() -> Telegraph:
 	var mark: Telegraph = telegraph_scene.instantiate() as Telegraph
 	get_parent().add_child(mark)
 	return mark
+
+
+## Couronne de bulles de silence tout autour de lui (Grand Muet, Reine des Cimes).
+func orb_crown(orb_scene: PackedScene) -> void:
+	var tuning: TuningData = Tuning.data
+	if orb_scene == null:
+		return
+	var turn: float = rng.randf() * TAU
+	for i: int in tuning.boss_orb_count:
+		var angle: float = turn + TAU * i / tuning.boss_orb_count
+		var direction := Vector3(cos(angle), 0.0, sin(angle))
+		var orb: SilenceOrb = orb_scene.instantiate() as SilenceOrb
+		orb.direction = direction
+		orb.speed = tuning.boss_orb_speed
+		orb.damage = damage_of(&"damage") * tuning.boss_orb_damage_factor
+		orb.source = self
+		get_parent().add_child(orb)
+		orb.global_position = Vector3(global_position.x, post.y, global_position.z) + direction * tuning.boss_orb_spawn_distance + Vector3.UP * tuning.spitter_orb_height
 
 
 ## Étourdit le Muet pendant `duration` secondes.

@@ -16,6 +16,8 @@ const STRETCH := {&"totem": 1.9}
 const BOSS_RADIUS := 3.3
 const KING_RADIUS := 3.8
 const BOSS_HUE := 0.7
+## Gardiens des régions (version 2.6) : teinte selon la forme (pierre des Ruines, or de la Canopée).
+const BOSS_HUES := {&"stone": 0.58, &"fly": 0.12}
 const KING_HUE := 0.8
 ## Épaisseur de la coquille de cubes (cases).
 const SHELL := 1.45
@@ -29,7 +31,7 @@ const RAINBOW := 3.0
 ## wing_right, shield) et leurs points d'attache (wing_left_at…), le rayon de la boule (radius).
 static func build(kind: StringName, boss: bool, king: bool, tip_hue: float, elite: bool = false) -> Dictionary:
 	var r: float = KING_RADIUS if king else (BOSS_RADIUS if boss else float(RADIUS[kind]))
-	var hue: float = (KING_HUE if king else BOSS_HUE) if boss else float(HUE[kind])
+	var hue: float = (KING_HUE if king else float(BOSS_HUES.get(kind, BOSS_HUE))) if boss else float(HUE[kind])
 	var stretch: float = 1.0 if boss else float(STRETCH.get(kind, 1.0))
 	var body := PackedFloat32Array()
 	var eyes := PackedFloat32Array()
@@ -49,6 +51,9 @@ static func build(kind: StringName, boss: bool, king: bool, tip_hue: float, elit
 					color = Vector3(RAINBOW + posmod(y + 64, 9) / 9.0, 0.9, 0.55)
 				elif kind == &"brute" and not boss:
 					color.y = 0.7
+				elif kind == &"stone" and boss:
+					# Le Gardien des Ruines : de la pierre, de la mousse sur le dessus.
+					color = Vector3(FIXED + (0.3 if y > r * 0.55 else hue), 0.45 if y > r * 0.55 else 0.14, 0.3 + shade)
 				VoxelMesh.add(body, x, y, z, color)
 	# Sommet de la boule (cases) : plus haut pour le totem.
 	var top: float = r * stretch
@@ -103,11 +108,13 @@ static func build(kind: StringName, boss: bool, king: bool, tip_hue: float, elit
 			for i: int in 5:
 				VoxelMesh.add(body, 0.0, crown + 1.2 + i * 0.6, 0.0, Vector3(RAINBOW + 0.5 if i == 4 else FIXED + 0.13, 0.9, 0.6), 0.8 - i * 0.08)
 	var shape: Dictionary = {&"body": body, &"eyes": eyes, &"radius": r, &"stretch": stretch}
-	if kind == &"fly" and not boss:
+	if kind == &"fly":
+		# Ailes du volant (et de la Reine des Cimes, plus grandes).
+		var span: int = 7 if boss else 4
 		for sx: float in [-1.0, 1.0]:
 			var wing := PackedFloat32Array()
-			for i: int in 4:
-				for j: int in 3 - (1 if i > 1 else 0):
+			for i: int in span:
+				for j: int in 3 - (1 if i > span / 2 else 0):
 					VoxelMesh.add(wing, sx * (i + 0.5), j * 0.8 - 0.2, -0.3, Vector3(RAINBOW + i * 0.12, 0.9, 0.6), 0.85)
 			var side: String = "left" if sx < 0.0 else "right"
 			shape[StringName("wing_" + side)] = wing

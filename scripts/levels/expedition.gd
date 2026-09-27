@@ -6,6 +6,9 @@ extends Level
 ## La dernière clairière est gardée par un Grand Muet : le libérer termine l'expédition. Tomber
 ## (ou rentrer depuis la pause) aussi ; on garde l'expérience et les plumes d'or rapportées.
 ## Avant de partir, l'écran titre s'affiche sur une clairière de camp.
+## Version 2.6 : trois régions (couleurs, formes de clairière, gardien), pièges au tempo, tambours de
+## guerre, jarres, rocher fêlé qui ouvre un passage secret, salles de repos et de trésor ; l'eau
+## ralentit.
 
 ## Muets à faire apparaître, par espèce, et le Grand Muet ; passage de sortie.
 @export var hopper_scene: PackedScene
@@ -18,7 +21,14 @@ extends Level
 @export var dancer_scene: PackedScene
 @export var brute_scene: PackedScene
 @export var boss_scene: PackedScene
+@export var ruins_guardian_scene: PackedScene
+@export var canopy_guardian_scene: PackedScene
 @export var gate_scene: PackedScene
+## Décor de jeu (version 2.6) : annonce au sol (pièges), modèle et son du tambour de guerre, coffre.
+@export var telegraph_scene: PackedScene
+@export var war_drum_model: PackedScene
+@export var war_drum_sound: AudioStream
+@export var chest_scene: PackedScene
 ## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
 ## Muets, de leurs ombres, des petits assemblages) ; pages du carnet (le vieux tambourinaire).
 @export var plume_scene: PackedScene
@@ -27,8 +37,11 @@ extends Level
 @export var prop_material: Material
 @export var notebook: NotebookData
 
-## Gardiens du Grand Muet.
+## Gardiens du gardien, par région.
 const BOSS_GUARDS: Array[StringName] = [&"hopper", &"flyer"]
+const REGION_GUARDS: Dictionary[StringName, Array] = {
+	&"undergrowth": [&"hopper", &"flyer"], &"sunken": [&"shielder", &"spitter"], &"canopy": [&"flyer", &"dancer"],
+}
 ## Angle de l'entrée (sud) et écart entre deux passages de sortie (rad, autour du nord).
 const ENTRANCE := PI
 const EXIT_SPREAD := 0.55
@@ -40,6 +53,18 @@ const SPRING_RADIUS := 3
 const SPRING_DROPS := 4
 const SPRING_WATER := Vector3(1.55, 0.8, 0.6)
 const SPRING_STONE := Vector3(4.72, 0.15, 0.36)
+## Le feu de camp (salle de repos) : pierres autour (rayon, en voxels), bûches, flammes.
+const CAMPFIRE_STONES := 8
+const CAMPFIRE_RADIUS := 2.2
+const CAMPFIRE_WOOD := Vector3(0.07, 0.5, 0.25)
+const CAMPFIRE_FLAMES := 14
+const CAMPFIRE_FLAME_TIME := 0.8
+const CAMPFIRE_FLAME_SPREAD := 12.0
+const CAMPFIRE_FLAME_SPEED := 3.0
+const CAMPFIRE_FLAME_BASE := 0.6
+const CAMPFIRE_FLAME_CUBE := 0.5
+const CAMPFIRE_FLAME_HOT := Color(1.0, 0.85, 0.3)
+const CAMPFIRE_FLAME_COOL := Color(0.95, 0.25, 0.1, 0.0)
 
 var gen := WorldGen.new()
 ## Graine de la prochaine expédition (tirée au hasard).
@@ -63,6 +88,9 @@ var _encounter_open: bool = false
 var _last_template: StringName = &""
 var _elite_boon: bool = false
 var _ambient: AmbientFx
+## Passage secret ouvert par le rocher fêlé (Vector2.INF : aucun) ; coffre de la salle (trésor, secret).
+var _secret_at := Vector2.INF
+var _chest: Node3D
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -108,6 +136,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Rhythm.stop()
+	Rhythm.set_region(&"")
 
 
 func _process(_delta: float) -> void:
@@ -123,9 +152,10 @@ func _process(_delta: float) -> void:
 		var tuning: TuningData = Tuning.data
 		var choices: PackedStringArray = []
 		var enabled: Array[bool] = []
+		var sharpenable: bool = Boons.sharpen_pick(RandomNumberGenerator.new(), Game.run.boons, tuning) != &""
 		for i: int in 2:
 			choices.append(GameTexts.encounter_choice(_encounter, i, _encounter_value(i)))
-			enabled.append(Encounters.can_choose(_encounter, i, Game.run.feathers, tuning))
+			enabled.append(Encounters.can_choose(_encounter, i, Game.run.feathers, tuning, sharpenable))
 		boon_screen.open_choices(GameTexts.ENCOUNTER_NAMES[_encounter], GameTexts.ENCOUNTER_TEXTS[_encounter], choices, enabled)
 
 
@@ -153,9 +183,10 @@ func current_goal() -> Dictionary:
 			goal[&"point"] = Vector3(p.x, 0.0, p.y)
 		return goal
 	if run.is_boss_room():
-		return {&"title": GameTexts.ROOM_BOSS_TITLE, &"sub": GameTexts.ROOM_BOSS_SUB, &"icon": &"crown"}
+		return {&"title": GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), &"sub": GameTexts.ROOM_BOSS_SUB, &"icon": &"crown"}
 	if _encounter != &"":
-		return {&"title": GameTexts.ENCOUNTER_NAMES[_encounter], &"sub": GameTexts.ROOM_ENCOUNTER, &"icon": RunState.ENCOUNTER, &"point": Vector3.ZERO}
+		var icon: StringName = RunState.REST if _encounter == &"rest" else RunState.ENCOUNTER
+		return {&"title": GameTexts.ENCOUNTER_NAMES[_encounter], &"sub": GameTexts.ROOM_ENCOUNTER, &"icon": icon, &"point": Vector3.ZERO}
 	return {&"title": title, &"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward}
 
 
@@ -168,7 +199,7 @@ func room_name() -> String:
 ## Part en expédition depuis l'écran titre (ou Repartir).
 func start_sortie() -> void:
 	var tuning: TuningData = Tuning.data
-	Game.start_run(next_seed, tuning.run_rooms)
+	Game.start_run(next_seed, tuning.run_rooms, Game.profile.region)
 	in_sortie = true
 	_ending = false
 	hero.begin_sortie()
@@ -206,16 +237,21 @@ static func summary_of(s: Dictionary) -> Dictionary:
 	var kind: StringName = s[&"kind"]
 	var brought: String = GameTexts.feathers(s[&"feathers"])
 	var sub: String = GameTexts.RUN_WON_SUB % brought if kind == &"won" else (GameTexts.RUN_LOST_SUB if kind == &"faint" else GameTexts.RUN_QUIT_SUB) % [s[&"room"], brought]
+	var rows: Array = [
+		[GameTexts.RUN_REGION, GameTexts.REGION_NAMES.get(s.get(&"region", Regions.UNDERGROWTH), "")],
+		[GameTexts.RUN_ROOMS, "%d / %d" % [s[&"room"], s[&"rooms"]]],
+		[GameTexts.SUMMARY_MUETS, str(s[&"muets"])],
+		[GameTexts.RUN_BOONS, str(s[&"boons"])],
+		[GameTexts.SUMMARY_LEVEL, str(s[&"level"])],
+		[GameTexts.SUMMARY_TIME, GameTexts.duration(s[&"time"])],
+	]
+	var unlocked: StringName = s.get(&"unlocked", &"")
+	if unlocked != &"":
+		rows.append([GameTexts.RUN_UNLOCKED, GameTexts.REGION_NAMES.get(unlocked, "")])
 	return {
 		&"title": GameTexts.RUN_WON if kind == &"won" else (GameTexts.RUN_LOST if kind == &"faint" else GameTexts.RUN_QUIT),
 		&"sub": sub,
-		&"rows": [
-			[GameTexts.RUN_ROOMS, "%d / %d" % [s[&"room"], s[&"rooms"]]],
-			[GameTexts.SUMMARY_MUETS, str(s[&"muets"])],
-			[GameTexts.RUN_BOONS, str(s[&"boons"])],
-			[GameTexts.SUMMARY_LEVEL, str(s[&"level"])],
-			[GameTexts.SUMMARY_TIME, GameTexts.duration(s[&"time"])],
-		],
+		&"rows": rows,
 		&"again": GameTexts.RUN_AGAIN,
 	}
 
@@ -232,9 +268,17 @@ func summon_guards(boss: Muet) -> void:
 	if alive >= tuning.boss_summon_min_guards:
 		return
 	var center := Vector2(boss.global_position.x, boss.global_position.z) / _unit
+	var guards: Array = REGION_GUARDS.get(Game.run.region, BOSS_GUARDS) if Game.run else BOSS_GUARDS
 	for k: int in tuning.boss_summon_count:
 		var angle: float = _rng.randf() * TAU
-		_spawn(_scene_of(BOSS_GUARDS[k % BOSS_GUARDS.size()]), center + Vector2(cos(angle), sin(angle)) * tuning.boss_summon_distance / _unit)
+		_spawn(_scene_of(guards[k % guards.size()]), center + Vector2(cos(angle), sin(angle)) * tuning.boss_summon_distance / _unit)
+
+
+## Écran titre : le camp prend les couleurs de la région montrée.
+func preview_region(region: StringName) -> void:
+	if in_sortie:
+		return
+	_build_camp(region)
 
 
 func _show_title() -> void:
@@ -246,9 +290,12 @@ func _show_title() -> void:
 
 
 ## Clairière du camp (écran titre) : une clairière calme, sans Muets.
-func _build_camp() -> void:
+func _build_camp(region: StringName = &"") -> void:
 	_radius = Tuning.data.room_radius
 	_kind = &"clearing"
+	if region == &"":
+		region = Game.profile.region if Game.profile else Regions.UNDERGROWTH
+	_apply_region(region)
 	gen.generate_room(next_seed, _radius, PackedFloat32Array(), _kind)
 	world.build(gen)
 	_ambient.setup(_radius * _unit)
@@ -265,8 +312,11 @@ func _enter_room() -> void:
 	_encounter = &""
 	_encounter_open = false
 	_elite_boon = false
+	_secret_at = Vector2.INF
+	_chest = null
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
+	_apply_region(run.region)
 	for node: Node in foes.get_children() + pickups.get_children():
 		node.queue_free()
 	var exits: int = run.exit_count(tuning.room_exits)
@@ -280,16 +330,108 @@ func _enter_room() -> void:
 		var plume: Node3D = plume_scene.instantiate() as Node3D
 		plume.position = p * _unit
 		pickups.add_child(plume)
+	if not run.is_boss_room() and run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET:
+		_place_room_props()
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
 	Rhythm.set_layers(mini(1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count), Rhythm.NIGHT_LAYERS.size()))
 	_place_hero()
 	if run.is_boss_room():
-		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.ROOM_BOSS_TITLE, "")
+		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), "")
 	if run.reward == RunState.ENCOUNTER:
 		_encounter = run.pick_encounter(Encounters.IDS)
 		_place_npc()
 		return
+	if run.reward == RunState.REST:
+		_encounter = &"rest"
+		_place_npc()
+		return
+	if run.reward == RunState.SECRET:
+		# Le secret : un trésor, sans combat.
+		_cleared = true
+		_place_chest()
+		return
 	get_tree().create_timer(tuning.room_wave_delay, false).timeout.connect(_start_wave)
+
+
+## Couleurs de la région : feuillage, sol, brume ; sa couche de musique.
+func _apply_region(region: StringName) -> void:
+	gen.foliage_shift = Regions.FOLIAGE_SHIFT.get(region, 0.0)
+	var ground: ShaderMaterial = world.ground_material
+	if ground:
+		ground.set_shader_parameter(&"grass_hsl", Regions.GRASS.get(region, Regions.GRASS[Regions.UNDERGROWTH]))
+		ground.set_shader_parameter(&"dirt_color", Regions.DIRT.get(region, Regions.DIRT[Regions.UNDERGROWTH]))
+	mood.set_fog_hue(Regions.FOG_HUE.get(region, -1.0))
+	Rhythm.set_region(region)
+
+
+## Décor de jeu d'une clairière de combat : pièges au tempo, tambours de guerre, jarres, rocher fêlé.
+func _place_room_props() -> void:
+	for trap_data: Dictionary in gen.traps:
+		var trap := BeatTrap.new()
+		trap.kind = trap_data[&"kind"]
+		trap.phase = trap_data[&"phase"]
+		trap.angle = trap_data[&"angle"]
+		trap.telegraph_scene = telegraph_scene
+		trap.material = prop_material
+		trap.position = Vector3(trap_data[&"x"], 0.0, trap_data[&"z"]) * _unit
+		pickups.add_child(trap)
+	for p: Vector2 in gen.drums:
+		var drum := WarDrum.new()
+		drum.model_scene = war_drum_model
+		drum.sound = war_drum_sound
+		drum.position = Vector3(p.x, 0.0, p.y) * _unit
+		pickups.add_child(drum)
+	for p: Vector2 in gen.jars:
+		pickups.add_child(_breakable(Breakable.JAR, p))
+	if gen.secret != Vector2.INF:
+		var boulder: Breakable = _breakable(Breakable.BOULDER, gen.secret)
+		pickups.add_child(boulder)
+		boulder.revealed.connect(_on_secret_revealed.bind(gen.secret))
+
+
+func _breakable(kind: StringName, p: Vector2) -> Breakable:
+	var item := Breakable.new()
+	item.kind = kind
+	item.material = prop_material
+	item.rng.seed = hash([Game.run.room_seed(), p]) if Game.run else 0
+	item.position = Vector3(p.x, 0.0, p.y) * _unit
+	return item
+
+
+## Le rocher fêlé cède : un passage secret s'ouvrira là (tout de suite si les passages sont ouverts).
+func _on_secret_revealed(_at: Vector3, p: Vector2) -> void:
+	_secret_at = p
+	if _cleared and not pickups.get_children().filter(func(n: Node) -> bool: return n is ExitGate).is_empty():
+		_add_gate(RunState.SECRET, p)
+
+
+## Coffre au centre de la clairière (trésor après le combat, ou secret) : plumes d'or et un don.
+func _place_chest() -> void:
+	if chest_scene == null:
+		_after_reward()
+		return
+	_chest = chest_scene.instantiate() as Node3D
+	_chest.position = Vector3.ZERO
+	pickups.add_child(_chest)
+	_chest.connect(&"opened", _on_chest_opened)
+
+
+func _on_chest_opened() -> void:
+	var tuning: TuningData = Tuning.data
+	var run: RunState = Game.run
+	if run == null:
+		return
+	var gained: int = tuning.secret_feathers if run.reward == RunState.SECRET else tuning.treasure_feathers
+	run.feathers += gained
+	hud.show_toast(GameTexts.FEATHERS_FOUND % gained)
+	boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
+
+
+## Vitesse de marche : l'eau (rivière, mare) ralentit, sauf sur les ponts.
+func terrain_speed(position_m: Vector3) -> float:
+	if gen == null or not in_sortie:
+		return 1.0
+	return Tuning.data.water_speed if gen.water_at(Vector2(position_m.x, position_m.z) / _unit) else 1.0
 
 
 ## Le héros arrive par l'entrée (au sud), face à la clairière.
@@ -309,15 +451,16 @@ func _start_wave() -> void:
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	if run.is_boss_room() and _wave == 0:
-		var spawner: EnemySpawner = _spawn(boss_scene, Vector2(0.0, -_radius * tuning.room_boss_depth))
-		spawner.display_name = GameTexts.ROOM_BOSS_TITLE
+		var spawner: EnemySpawner = _spawn(_guardian_scene(run.region), Vector2(0.0, -_radius * tuning.room_boss_depth))
+		spawner.display_name = GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE)
 		spawner.muet_freed.connect(func(muet: Muet) -> void: _on_boss_freed(muet), CONNECT_ONE_SHOT)
+		var guards: Array = REGION_GUARDS.get(run.region, BOSS_GUARDS)
 		for i: int in tuning.boss_room_guards:
-			_spawn(_scene_of(BOSS_GUARDS[i % BOSS_GUARDS.size()]), _spawn_point())
+			_spawn(_scene_of(guards[i % guards.size()]), _spawn_point())
 		_wave += 1
 		return
 	var count: int = tuning.room_wave_base + roundi(tuning.room_wave_per_room * run.room)
-	var wave: Dictionary = WaveComposer.compose(run.room, count, _rng, _last_template)
+	var wave: Dictionary = WaveComposer.compose(run.room, count, _rng, _last_template, Regions.FAVORITE_WAVES.get(run.region, []))
 	_last_template = wave[&"id"]
 	var elite: StringName = &""
 	if not run.elite_done and run.room >= run.elite_room(tuning.elite_first_room):
@@ -366,6 +509,16 @@ func _spawn(scene: PackedScene, p: Vector2, elite: StringName = &"") -> EnemySpa
 	if fx:
 		fx.ring(spawner.position, tuning.fx_spawn_ring, fx.violet, tuning.fx_spawn_ring_time)
 	return spawner
+
+
+## Gardien de la région (le Grand Muet, le Gardien des Ruines, la Reine des Cimes).
+func _guardian_scene(region: StringName) -> PackedScene:
+	match Regions.GUARDIANS.get(region, &"ground"):
+		&"ruins":
+			return ruins_guardian_scene if ruins_guardian_scene else boss_scene
+		&"canopy":
+			return canopy_guardian_scene if canopy_guardian_scene else boss_scene
+	return boss_scene
 
 
 func _scene_of(species: StringName) -> PackedScene:
@@ -451,6 +604,9 @@ func _room_cleared() -> void:
 			hud.show_toast(GameTexts.HEALED % roundi(amount))
 			if fx:
 				fx.burst(hero.global_position + Vector3.UP * tuning.hero_height, tuning.fx_plume_cubes, tuning.fx_plume_speed, tuning.fx_heal_hue)
+		RunState.TREASURE:
+			_place_chest()
+			return
 		RunState.FEATHERS:
 			var gained: int = tuning.room_feathers_base + tuning.room_feathers_per_room * run.room
 			run.feathers += gained
@@ -483,14 +639,20 @@ func _open_exits() -> void:
 	var tuning: TuningData = Tuning.data
 	var rewards: Array[StringName] = Game.run.exit_rewards(_exit_angles.size())
 	for i: int in mini(rewards.size(), _exit_angles.size()):
-		var gate: ExitGate = gate_scene.instantiate() as ExitGate
-		gate.reward = rewards[i]
-		var p: Vector2 = WorldGen.gap_point(_exit_angles[i], _radius - tuning.room_exit_inset / _unit)
-		gate.position = Vector3(p.x, 0.0, p.y) * _unit
-		var inward: Vector2 = -p.normalized()
-		gate.rotation.y = atan2(inward.x, inward.y)
-		pickups.add_child(gate)
-		gate.chosen.connect(_on_gate_chosen)
+		_add_gate(rewards[i], WorldGen.gap_point(_exit_angles[i], _radius - tuning.room_exit_inset / _unit))
+	if _secret_at != Vector2.INF:
+		_add_gate(RunState.SECRET, _secret_at)
+
+
+## Un passage qui promet `reward`, en `p` (u), tourné vers le centre.
+func _add_gate(reward: StringName, p: Vector2) -> void:
+	var gate: ExitGate = gate_scene.instantiate() as ExitGate
+	gate.reward = reward
+	gate.position = Vector3(p.x, 0.0, p.y) * _unit
+	var inward: Vector2 = -p.normalized()
+	gate.rotation.y = atan2(inward.x, inward.y)
+	pickups.add_child(gate)
+	gate.chosen.connect(_on_gate_chosen)
 
 
 func _on_gate_chosen(reward: StringName) -> void:
@@ -517,6 +679,8 @@ func _place_npc() -> void:
 	match _encounter:
 		&"spring":
 			npc = _spring()
+		&"rest":
+			npc = _campfire()
 		&"merchant":
 			var body := MuetBody.new()
 			body.kind = &"hop"
@@ -556,6 +720,48 @@ func _spring() -> Node3D:
 	return mesh
 
 
+## Le feu de camp : un cercle de pierres, des bûches croisées, des flammes qui dansent.
+func _campfire() -> Node3D:
+	var cells := PackedFloat32Array()
+	for i: int in CAMPFIRE_STONES:
+		var a: float = TAU * i / CAMPFIRE_STONES
+		VoxelMesh.add(cells, cos(a) * CAMPFIRE_RADIUS, 0.4, sin(a) * CAMPFIRE_RADIUS, SPRING_STONE, 0.8)
+	for k: int in range(-1, 2):
+		VoxelMesh.add(cells, k * 0.8, 0.5, 0.0, CAMPFIRE_WOOD, 0.7)
+		VoxelMesh.add(cells, 0.0, 0.9, k * 0.8, CAMPFIRE_WOOD, 0.7)
+	var mesh: MultiMeshInstance3D = VoxelMesh.create(cells, prop_material)
+	mesh.scale = Vector3.ONE * Tuning.data.voxel_unit
+	var flames := CPUParticles3D.new()
+	flames.name = "Flames"
+	flames.amount = CAMPFIRE_FLAMES
+	flames.lifetime = CAMPFIRE_FLAME_TIME
+	flames.direction = Vector3.UP
+	flames.spread = CAMPFIRE_FLAME_SPREAD
+	flames.initial_velocity_min = CAMPFIRE_FLAME_SPEED * 0.5
+	flames.initial_velocity_max = CAMPFIRE_FLAME_SPEED
+	flames.gravity = Vector3.ZERO
+	flames.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	flames.emission_sphere_radius = CAMPFIRE_FLAME_BASE
+	flames.scale_amount_min = 0.5
+	flames.scale_amount_max = 1.0
+	var fade := Gradient.new()
+	fade.set_color(0, CAMPFIRE_FLAME_HOT)
+	fade.set_color(1, CAMPFIRE_FLAME_COOL)
+	flames.color_ramp = fade
+	var cube := BoxMesh.new()
+	cube.size = Vector3.ONE * CAMPFIRE_FLAME_CUBE
+	var flame_material := StandardMaterial3D.new()
+	flame_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flame_material.vertex_color_use_as_albedo = true
+	flame_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	cube.material = flame_material
+	flames.mesh = cube
+	flames.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	flames.position = Vector3.UP * 1.2
+	mesh.add_child(flames)
+	return mesh
+
+
 ## Valeur affichée du choix `choice` de la rencontre en cours.
 func _encounter_value(choice: int) -> int:
 	var tuning: TuningData = Tuning.data
@@ -568,6 +774,8 @@ func _encounter_value(choice: int) -> int:
 			return roundi(tuning.encounter_wounded_cost)
 		[&"wounded", 1]:
 			return tuning.encounter_wounded_feathers
+		[&"rest", 0]:
+			return roundi(tuning.rest_heal * 100.0)
 	return 0
 
 
@@ -603,6 +811,15 @@ func _on_choice_made(index: int) -> void:
 		[&"wounded", 1]:
 			run.feathers += tuning.encounter_wounded_feathers
 			hud.show_toast(GameTexts.FEATHERS_FOUND % tuning.encounter_wounded_feathers)
+		[&"rest", 0]:
+			var amount: float = hero.health.maximum * tuning.rest_heal
+			hero.health.heal(amount)
+			hud.show_toast(GameTexts.HEALED % roundi(amount))
+		[&"rest", 1]:
+			var sharpened: StringName = Boons.sharpen_pick(run.rng, run.boons, tuning)
+			if sharpened != &"":
+				Game.take_boon(sharpened)
+				hud.show_toast(GameTexts.BOON_SHARPENED % GameTexts.boon_name(sharpened))
 	if boon:
 		boon_screen.open(Boons.offer(run.rng, run.boons, tuning.boon_offer, tuning))
 	else:
@@ -623,7 +840,7 @@ func _on_boss_freed(_muet: Muet) -> void:
 	_ending = true
 	mood.set_progress(1.0, false)
 	get_tree().call_group(&"world_mood", &"burst")
-	hud.show_banner(GameTexts.ROOM_BOSS_TITLE, GameTexts.RUN_WON, "")
+	hud.show_banner(GameTexts.GUARDIAN_NAMES.get(Game.run.region, GameTexts.ROOM_BOSS_TITLE) if Game.run else GameTexts.ROOM_BOSS_TITLE, GameTexts.RUN_WON, "")
 	get_tree().create_timer(tuning.night_summary_delay, false).timeout.connect(end_sortie.bind(&"won"))
 
 

@@ -11,6 +11,8 @@ uniform vec3 edge_hsl = vec3(0.47, 0.35, 0.72);
 // Ondes : nombre de cercles par mètre, vitesse.
 uniform float ripple_density = 5.0;
 uniform float ripple_speed = 1.4;
+// Mare ronde (un disque) ; sinon rivière (tout le rectangle, ondes en travers).
+uniform bool round = true;
 
 varying vec3 v_world;
 
@@ -20,13 +22,14 @@ void vertex() {
 
 void fragment() {
 	vec2 uv = UV * 2.0 - 1.0;
-	float r = length(uv);
+	float r = round ? length(uv) : abs(uv.y) * 0.9 + sin(v_world.x * 1.7 + salto_time * 0.8) * 0.03;
 	if (r > 1.0) {
 		discard;
 	}
 	float halo = salto_halo(v_world);
 	float sat = mix(salto_sat, max(salto_sat, SALTO_HALO_SAT), halo);
-	float ripple = sin(r * ripple_density * 3.0 - salto_time * ripple_speed * 3.0) * 0.5 + 0.5;
+	float wave = round ? r * ripple_density * 3.0 : v_world.x * ripple_density * 1.5;
+	float ripple = sin(wave - salto_time * ripple_speed * 3.0) * 0.5 + 0.5;
 	vec3 hsl = water_hsl;
 	hsl.y *= sat;
 	hsl.z += ripple * 0.05 + salto_beat * 0.06 * max(salto_sat, halo);

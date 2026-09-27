@@ -178,10 +178,10 @@ func leave_village() -> void:
 
 
 ## Une expédition commence : `rooms` clairières tirées de la graine `seed_number`.
-func start_run(seed_number: int, rooms: int) -> void:
+func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 	start_night(profile.night)
 	profile.begin_sortie()
-	run = RunState.new(seed_number, rooms)
+	run = RunState.new(seed_number, rooms, region if region != &"" else profile.region)
 	playing = true
 	at_village = false
 	refresh_stats()
@@ -206,12 +206,16 @@ func end_run(kind: StringName) -> Dictionary:
 	var record: bool = reached > profile.best_room
 	profile.best_room = maxi(profile.best_room, reached)
 	profile.feathers += run.feathers
+	var unlocked: StringName = &""
 	if kind == &"won":
 		profile.runs_won += 1
+		if not profile.regions_won.has(run.region):
+			profile.regions_won.append(run.region)
+			unlocked = Regions.next(run.region)
 	var summary: Dictionary = {
 		&"kind": kind, &"room": reached, &"rooms": run.room_count, &"muets": run.muets_freed,
 		&"boons": run.boon_ranks(), &"feathers": run.feathers, &"level": profile.level, &"time": run.elapsed,
-		&"record": record,
+		&"record": record, &"region": run.region, &"unlocked": unlocked,
 	}
 	run = null
 	refresh_stats()

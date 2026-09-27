@@ -5,6 +5,8 @@ shader_type spatial;
 // claires ou plus sombres, des taches de terre, et chaque petit carré (1 u) un rien différent.
 render_mode unshaded;
 
+// Herbe (teinte, saturation, luminosité) : chaque région a la sienne (version 2.6).
+uniform vec3 grass_hsl = vec3(0.31, 0.7, 0.27);
 // Taches de terre (part du sol) et leur couleur (teinte, saturation, luminosité).
 uniform float dirt_amount = 0.2;
 uniform vec3 dirt_color = vec3(0.08, 0.42, 0.3);
@@ -48,9 +50,9 @@ void fragment() {
 	float big = value_noise(p * 0.045);
 	float mid = value_noise(p * 0.16 + vec2(17.0, 3.0));
 	float halo = salto_halo(v_world);
-	float h = fract(0.31 + big * 0.07 - mid * 0.03 + n * 0.02 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12 * salto_life);
-	float s = 0.7 - mid * 0.1;
-	float l = 0.27 + big * 0.1 + mid * 0.03 + n * 0.035;
+	float h = fract(grass_hsl.x + big * 0.07 - mid * 0.03 + n * 0.02 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12 * salto_life);
+	float s = grass_hsl.y - mid * 0.1;
+	float l = grass_hsl.z + big * 0.1 + mid * 0.03 + n * 0.035;
 	float dirt = smoothstep(1.0 - dirt_amount, 1.07 - dirt_amount, value_noise(p * 0.07 + vec2(40.0, 11.0)) * 0.7 + mid * 0.3) * (1.0 - salto_village);
 	h = mix(h, dirt_color.x, dirt);
 	s = mix(s, dirt_color.y, dirt);

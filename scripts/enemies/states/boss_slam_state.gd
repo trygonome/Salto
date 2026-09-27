@@ -32,27 +32,9 @@ func enter(_previous: StringName) -> void:
 		muet.get_parent().add_child(wave)
 		wave.global_position = muet.global_position
 	if Game.night >= tuning.boss_orb_night or muet.king or muet.phase() >= 3:
-		_orb_crown()
+		muet.orb_crown(orb_scene)
 	if Game.night >= tuning.boss_summon_night or muet.king or muet.phase() >= 3:
 		get_tree().call_group(&"night_level", &"summon_guards", muet)
-
-
-## Couronne de bulles de silence tout autour du Grand Muet.
-func _orb_crown() -> void:
-	var tuning: TuningData = Tuning.data
-	if orb_scene == null:
-		return
-	var turn: float = muet.rng.randf() * TAU
-	for i: int in tuning.boss_orb_count:
-		var angle: float = turn + TAU * i / tuning.boss_orb_count
-		var direction := Vector3(cos(angle), 0.0, sin(angle))
-		var orb: SilenceOrb = orb_scene.instantiate() as SilenceOrb
-		orb.direction = direction
-		orb.speed = tuning.boss_orb_speed
-		orb.damage = muet.damage_of(&"damage") * tuning.boss_orb_damage_factor
-		orb.source = muet
-		muet.get_parent().add_child(orb)
-		orb.global_position = muet.global_position + direction * tuning.boss_orb_spawn_distance + Vector3.UP * tuning.spitter_orb_height
 
 
 func physics_update(delta: float) -> void:

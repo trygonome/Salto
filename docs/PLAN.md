@@ -173,6 +173,11 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    - **3 régions** (Sous-bois, Ruines englouties, Canopée) : palette, musique, Muets et gardien propres ;
      salles spéciales (trésor, secret, repos).
    *Test : se souvient-on d'une clairière après la partie ?*
+   **Fait** (version 2.6) : trois régions (couleurs du sol, du feuillage et de la brume, couche de musique,
+   vagues préférées, gardien), rivières et ponts, estrades, plateformes, épines et lianes au tempo, tambours de
+   guerre, jarres, rocher fêlé et passage secret, salles de repos (feu de camp), de trésor et secrètes ; choix de
+   la région à l'écran titre. (Fosses et escaliers : écartés, le héros se bat au sol ; les plateformes suffisent
+   à donner de la hauteur.)
 5. **2.7 — Le village vivant.**
    - Au retour, le Chef et les villageois **réagissent à l'expédition** (où l'on est tombé, contre qui,
      le gardien presque vaincu, la première victoire…) : répliques courtes.
