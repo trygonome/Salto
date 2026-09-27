@@ -1278,3 +1278,95 @@ extends Resource
 @export var ui_card_pitch_step: float
 ## Carte impossible à choisir (le marchand sans plumes) : transparence.
 @export var ui_disabled_alpha: float
+
+@export_group("Combat : équilibre et projection")
+## Équilibre des Muets (combien de coups ils encaissent avant de chanceler) : par espèce
+## (<espèce>_poise), plus cette part par rang de sanctuaire.
+@export var hopper_poise: float
+@export var flyer_poise: float
+@export var shielder_poise: float
+@export var charger_poise: float
+@export var spitter_poise: float
+@export var boss_poise: float
+@export var muet_poise_per_tier: float
+## Un coup parfait ébranle d'autant plus.
+@export var poise_perfect_multiplier: float
+## Sans coup reçu depuis ce temps (s), l'équilibre revient (part du maximum par seconde).
+@export var poise_recover_delay: float
+@export var poise_recover_rate: float
+## Équilibre brisé : il chancelle, étourdi (s ; le Grand Muet moins longtemps) et plus fragile.
+@export var poise_break_time: float
+@export var boss_poise_break_time: float
+@export var stagger_damage_multiplier: float
+## Arrêt sur image quand l'équilibre se brise (s).
+@export var hit_stop_break: float
+## Coup contre le bouclier : cette part ébranle quand même le porte-bouclier (le bouclier finit
+## par céder).
+@export var guard_poise_share: float
+## Équilibre entamé par le plongeon, le Salto arc-en-ciel, les ondes (Final fracassant, Pas de
+## l'Ombre) et la roulade épineuse ; et leur projection.
+@export var dive_poise: float
+@export var dive_launch: float
+@export var rainbow_poise: float
+@export var rainbow_launch: float
+@export var quake_poise: float
+@export var quake_launch: float
+@export var thorns_poise: float
+## Projection : vitesse (m/s) et durée (s) ajoutées au recul par point de projection ; à partir de
+## `launch_impact_min`, le Muet projeté se blesse contre ce qu'il heurte : dégâts (fois l'attaque
+## du héros), étourdissement (s), équilibre ; un Muet heurté part à son tour (part de la projection).
+@export var launch_speed: float
+@export var launch_time: float
+@export var launch_impact_min: float
+@export var impact_damage: float
+@export var impact_stun_time: float
+@export var impact_poise: float
+@export var impact_chain_share: float
+## Arrêt sur image d'un impact (s).
+@export var hit_stop_impact: float
+## Barre d'équilibre au-dessus des Muets : hauteur au-dessus de la tête, taille (m).
+@export var poise_bar_lift: float
+@export var poise_bar_size: Vector2
+
+@export_group("Combat : coup de grâce, coup chargé, riposte")
+## Coup de grâce : un salto sur le Muet qui chancelle, à au plus `grace_range` m. Il libère tout
+## Muet ; le Grand Muet perd `grace_boss_damage` fois l'attaque. Ralenti (s, vitesse) et groove.
+@export var grace_attack: AttackData
+@export var grace_range: float
+@export var grace_boss_damage: float
+@export var grace_slow_time: float
+@export var grace_time_scale: float
+@export var groove_grace: float
+## Coup chargé : Frappe maintenue au moins `charge_hold_delay` s pendant un coup ; pleine charge
+## en `charge_full_time` s ; relâché (jugé sur le temps) ou lâché de lui-même après
+## `charge_hold_max` s. Déplacement ralenti pendant la charge ; dégâts de `charge_min_multiplier`
+## à `charge_max_multiplier` fois le coup ; il brise les gardes. Étincelles de la charge (s).
+@export var charged_attack: AttackData
+@export var charge_hold_delay: float
+@export var charge_full_time: float
+@export var charge_hold_max: float
+@export var charge_move_factor: float
+@export var charge_min_multiplier: float
+@export var charge_max_multiplier: float
+@export var charge_fx_period: float
+## Riposte : après une esquive parfaite, Frappe dans les `riposte_window` s bondit sur le Muet
+## esquivé (à au plus `riposte_range` m) : coup critique qui ébranle et projette.
+@export var riposte_attack: AttackData
+@export var riposte_window: float
+@export var riposte_range: float
+## La troupe du village chante quand le combo tient (expédition) : pleine voix à tant de coups,
+## au plus à cette force.
+@export var combo_band_full: int
+@export var combo_band_max: float
+## Effets : équilibre brisé (anneau en rayons du Muet, s, cubes, vitesse), choc (poussière),
+## charge (cubes par bouffée à pleine charge, vitesse, anneau quand elle est pleine).
+@export var fx_break_ring: float
+@export var fx_break_ring_time: float
+@export var fx_break_cubes: int
+@export var fx_break_speed: float
+@export var fx_impact_dust: int
+@export var fx_impact_dust_speed: float
+@export var fx_charge_cubes: int
+@export var fx_charge_speed: float
+@export var fx_charge_ring: float
+

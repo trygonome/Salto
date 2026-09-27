@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/player/states/air_dash_state.gd" id="7_dash"]
 [ext_resource type="Script" path="res://scripts/player/states/attack_state.gd" id="8_attack"]
 [ext_resource type="Script" path="res://scripts/player/states/dive_state.gd" id="9_dive"]
+[ext_resource type="Script" path="res://scripts/player/states/charge_state.gd" id="10_charge"]
 [ext_resource type="Script" path="res://scripts/player/hero_animator.gd" id="11_animator"]
 [ext_resource type="Material" path="res://scenes/world/voxel_rig.tres" id="12_rig"]
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="16_hitbox"]
@@ -162,6 +163,9 @@ script = ExtResource("8_attack")
 
 [node name="Dive" type="Node" parent="StateMachine"]
 script = ExtResource("9_dive")
+
+[node name="Charge" type="Node" parent="StateMachine"]
+script = ExtResource("10_charge")
 
 [node name="Hurt" type="Node" parent="StateMachine"]
 script = ExtResource("25_hurt")

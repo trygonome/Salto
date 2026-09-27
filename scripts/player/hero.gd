@@ -1,8 +1,10 @@
 class_name Hero
 extends CharacterBody3D
 ## Le héros : lit les commandes, garde la mémoire des appuis et délègue le mouvement
-## à sa machine à états (Ground, Air, Roll, AirDash, Attack, Dive). Les états utilisent les outils
-## ci-dessous ; les coups passent par la Hitbox et déclenchent les retours d'impact.
+## à sa machine à états (Ground, Air, Roll, AirDash, Attack, Charge, Dive). Les états utilisent les
+## outils ci-dessous ; les coups passent par la Hitbox et déclenchent les retours d'impact.
+## Version 2.3 : Frappe maintenue charge un coup chargé ; après une esquive parfaite, Frappe est
+## une riposte sur le Muet esquivé ; près d'un Muet qui chancelle, Frappe est le coup de grâce.
 
 ## Un coup du héros a touché.
 signal hit_landed(hit: HitData)
@@ -20,6 +22,10 @@ signal action_pressed(action: StringName)
 signal answered(species: StringName)
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
+## Sons du coup chargé (qui monte), du coup de grâce et de la riposte.
+const CHARGE_SOUND: AudioStream = preload("res://assets/audio/sfx/charge.wav")
+const GRACE_SOUND: AudioStream = preload("res://assets/audio/sfx/grace.wav")
+const RIPOSTE_SOUND: AudioStream = preload("res://assets/audio/sfx/riposte.wav")
 
 ## Groupe des Hurtbox que le héros peut frapper (orientation automatique).
 const TARGET_GROUP := &"enemy_hurtbox"
@@ -35,6 +41,12 @@ var reads_player_input: bool = true
 var input_move: Vector2 = Vector2.ZERO
 ## Vrai tant que le bouton de saut est tenu.
 var input_jump_held: bool = false
+## Vrai tant que Frappe est tenue (coup chargé).
+var input_attack_held: bool = false
+## Charge du coup chargé en cours ou qui part (0 à 1).
+var charge_level: float = 0.0
+## Muet visé par le coup en cours (coup de grâce, riposte) ; null pour un coup ordinaire.
+var attack_target: Muet
 
 ## Orientation du héros (radians, 0 = regarde vers -Z).
 var facing_yaw: float = 0.0
@@ -77,6 +89,10 @@ var _hurt_invuln_left: float = 0.0
 var _next_hit_critical: bool = false
 var _last_attack_end: float = -INF
 var _roll_end: float = -INF
+
+var _riposte_target: Muet
+var _riposte_until: float = -INF
+var _move_sound: AudioStreamPlayer
 
 var _buffer: InputBuffer
 var _clock: float = 0.0
@@ -143,6 +159,9 @@ func _ready() -> void:
 	Game.drum_picked.connect(func() -> void: _carried_drum.visible = true)
 	Game.drum_dropped.connect(func() -> void: _carried_drum.visible = false)
 	Game.drum_returned.connect(func(_count: int) -> void: _carried_drum.visible = false)
+	_move_sound = AudioStreamPlayer.new()
+	_move_sound.name = "MoveSound"
+	add_child(_move_sound)
 	state_machine.start()
 
 
@@ -299,7 +318,8 @@ func move(delta: float) -> void:
 		_air_peak = maxf(_air_peak, global_position.y)
 
 
-## Son d'un mouvement : « roll » (roulade) ou « swing » (coup dans le vide).
+## Son d'un mouvement : « roll » (roulade), « swing » (coup dans le vide), « charge » (le coup
+## chargé monte), « grace » (coup de grâce), « riposte » ; « stop » coupe la charge.
 func play_move_sound(sound: StringName) -> void:
 	match sound:
 		&"roll":
@@ -307,6 +327,12 @@ func play_move_sound(sound: StringName) -> void:
 		&"swing":
 			_swing_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
 			_swing_sound.play()
+		&"charge", &"grace", &"riposte":
+			_move_sound.stream = {&"charge": CHARGE_SOUND, &"grace": GRACE_SOUND, &"riposte": RIPOSTE_SOUND}[sound]
+			_move_sound.play()
+		&"stop":
+			if _move_sound.stream == CHARGE_SOUND:
+				_move_sound.stop()
 
 
 ## Atterrissage à `speed` m/s : un bruit sourd, et de la poussière d'autant plus que la chute
@@ -328,9 +354,25 @@ func clock() -> float:
 	return _clock
 
 
-## Coup à jouer quand Frappe est appuyée au sol : le coup roulé pendant ou juste après une roulade,
-## sinon le coup suivant de l'enchaînement s'il est encore ouvert, sinon le premier.
+## Coup à jouer quand Frappe est appuyée au sol : le coup de grâce près d'un Muet qui chancelle,
+## la riposte juste après une esquive parfaite, le coup chargé qu'on relâche, le coup roulé pendant
+## ou juste après une roulade, sinon le coup suivant de l'enchaînement s'il est encore ouvert, sinon
+## le premier. `attack_target` : le Muet visé (grâce, riposte), sinon null.
 func next_attack(previous_state: StringName) -> AttackData:
+	attack_target = null
+	var graced: Muet = grace_target()
+	if graced:
+		_combo_step = 0
+		attack_target = graced
+		return tuning.grace_attack
+	if riposte_ready():
+		_combo_step = 0
+		attack_target = _riposte_target
+		_riposte_until = -INF
+		return tuning.riposte_attack
+	if previous_state == &"Charge":
+		_combo_step = 0
+		return tuning.charged_attack
 	if previous_state == &"Roll" or _clock - _roll_end <= tuning.rolling_kick_grace:
 		_combo_step = 0
 		return tuning.rolling_kick
@@ -351,11 +393,58 @@ func end_roll() -> void:
 	_roll_end = _clock
 
 
+## Le Muet qui chancelle le plus proche, à portée du coup de grâce (ou null).
+func grace_target() -> Muet:
+	var best: Muet = null
+	var best_distance: float = tuning.grace_range
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if muet == null or not muet.can_receive_grace():
+			continue
+		var distance: float = Vector2(muet.global_position.x - global_position.x, muet.global_position.z - global_position.z).length()
+		if distance <= best_distance:
+			best = muet
+			best_distance = distance
+	return best
+
+
+## Vrai si une riposte est possible : esquive parfaite récente, Muet esquivé encore là et à portée.
+func riposte_ready() -> bool:
+	if _clock > _riposte_until or not is_instance_valid(_riposte_target) or _riposte_target.is_freed():
+		return false
+	var flat := Vector2(_riposte_target.global_position.x - global_position.x, _riposte_target.global_position.z - global_position.z)
+	return flat.length() <= tuning.riposte_range
+
+
+## Direction du coup `attack` : vers le Muet visé (grâce, riposte), sinon la visée automatique.
+func attack_direction() -> Vector3:
+	if is_instance_valid(attack_target):
+		var flat := Vector3(attack_target.global_position.x - global_position.x, 0.0, attack_target.global_position.z - global_position.z)
+		if not flat.is_zero_approx():
+			return flat.normalized()
+	return aim_direction()
+
+
+## Élan du coup `attack` (m) : vers le Muet visé, jusqu'à mi-portée ; sinon celui du coup.
+func attack_lunge(attack: AttackData) -> float:
+	if not is_instance_valid(attack_target):
+		return attack.lunge
+	var distance: float = Vector2(attack_target.global_position.x - global_position.x, attack_target.global_position.z - global_position.z).length()
+	return CombatMath.lunge_to(distance, attack_target.hurtbox.radius, attack.reach, tuning.riposte_range)
+
+
+## Frappe relâchée : le coup chargé part, jugé sur le temps au moment où l'on relâche.
+func release_charge() -> void:
+	var judgement: RhythmMath.Judgement = judge.call()
+	_judgements[&"attack"] = judgement
+	_on_judged(judgement)
+
+
 ## Roulade épineuse (don) : les Muets traversés pendant la roulade sont blessés.
 func roll_strike() -> void:
 	if stats.roll_damage <= 0.0:
 		return
-	var make_hit: Callable = _make_hit.bind(stats.roll_damage, &"thorns", RhythmMath.Judgement.MISS, 0.0)
+	var make_hit: Callable = _make_hit.bind(stats.roll_damage, &"thorns", RhythmMath.Judgement.MISS, 0.0, tuning.thorns_poise, 0.0)
 	hitbox.activate(tuning.thorns_radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.roll_duration, make_hit)
 
 
@@ -375,10 +464,11 @@ func aim_direction() -> Vector3:
 
 
 ## Porte le coup `attack` dans `direction` : la zone de coup est active à partir de maintenant,
-## pendant `active_time` secondes (par défaut attack_active_time).
-func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0) -> void:
+## pendant `active_time` secondes (par défaut attack_active_time). `power` multiplie ses dégâts,
+## son coup à l'équilibre et sa projection (coup chargé).
+func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0, power: float = 1.0) -> void:
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
-	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier, attack.id, judgement, 0.0)
+	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier * power, attack.id, judgement, 0.0, attack.poise * power, attack.launch * power)
 	var duration: float = active_time if active_time >= 0.0 else tuning.attack_active_time
 	hitbox.activate(attack.reach, attack.arc_deg, direction, duration, make_hit)
 
@@ -387,7 +477,10 @@ func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgem
 ## `colors` : une onde par couleur, de plus en plus grande (une seule pour le plongeon normal).
 func shockwave(radius: float, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, colors: Array[Color]) -> void:
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
-	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time)
+	var rainbow: bool = move == &"rainbow"
+	var poise: float = tuning.rainbow_poise if rainbow else tuning.dive_poise
+	var launch: float = tuning.rainbow_launch if rainbow else tuning.dive_launch
+	var make_hit: Callable = _make_hit.bind(multiplier, move, judgement, stun_time, poise, launch)
 	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
 	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
 	for orb: Node in get_tree().get_nodes_in_group(&"silence_orbs"):
@@ -487,20 +580,27 @@ func debug_text() -> String:
 	return text
 
 
-func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float) -> HitData:
+func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, poise: float, launch: float) -> HitData:
 	var hit := HitData.new()
 	hit.attacker = self
 	hit.target = hurtbox
 	hit.move = move
 	hit.judgement = judgement
 	hit.stun_time = stun_time
-	hit.critical = _next_hit_critical or rng.randf() < stats.crit_chance
+	hit.critical = _next_hit_critical or rng.randf() < stats.crit_chance or move == &"riposte"
 	_next_hit_critical = false
 	var attack: float = stats.attack
 	var move_multiplier: float = multiplier * RhythmMath.damage_multiplier(judgement, tuning)
 	if judgement == RhythmMath.Judgement.PERFECT:
 		move_multiplier *= stats.perfect_damage
 	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
+	hit.poise = poise * (tuning.poise_perfect_multiplier if judgement == RhythmMath.Judgement.PERFECT else 1.0)
+	hit.launch = launch
+	hit.power = attack
+	# Coup de grâce : il libère le Muet qui chancelle ; le Grand Muet, lui, encaisse un grand coup.
+	var muet: Muet = hurtbox.get_parent() as Muet
+	if move == &"grace" and muet and muet.can_receive_grace():
+		hit.damage = attack * tuning.grace_boss_damage if muet.is_boss() else muet.health.current / hurtbox.damage_taken_multiplier
 	var to_target: Vector3 = hurtbox.global_position - global_position
 	to_target.y = 0.0
 	hit.direction = facing_direction() if to_target.is_zero_approx() else to_target.normalized()
@@ -530,7 +630,24 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.spark(hit.point, tuning.fx_spark_size_crit if hit.critical else tuning.fx_spark_size, fx.gold if hit.critical else fx.white)
+	if hit.move == &"grace":
+		_on_grace(hit, fx)
+	elif hit.move == &"riposte" and fx:
+		fx.ring(hit.point, tuning.fx_dodge_ring, fx.cyan, tuning.fx_dodge_ring_time)
+		fx.word(GameTexts.WORD_RIPOSTE, hit.point + Vector3.UP * tuning.hero_height, fx.cyan)
 	hit_landed.emit(hit)
+
+
+## Coup de grâce porté : ralenti, gerbe de couleurs, le groove monte.
+func _on_grace(hit: HitData, fx: Effects) -> void:
+	Feedback.slow_motion(tuning.grace_slow_time, tuning.grace_time_scale)
+	Feedback.shake(tuning.shake_trauma_dive, hit.direction)
+	Feedback.vibrate(tuning.vibration_strong)
+	groove.add(tuning.groove_grace * stats.groove)
+	if fx:
+		fx.burst(hit.point + Vector3.UP * tuning.fx_double_height, tuning.fx_rainbow_cubes, tuning.fx_rainbow_speed)
+		fx.ring(hit.point, tuning.fx_level_ring, fx.gold, tuning.fx_level_ring_time, true)
+		fx.word(GameTexts.WORD_GRACE, hit.point + Vector3.UP * tuning.hero_height, fx.gold, true)
 
 
 ## Coup reçu : le combo est perdu, le héros est repoussé, clignote et devient intouchable un
@@ -552,9 +669,14 @@ func _on_hurt(hit: HitData) -> void:
 
 ## Coup arrivé pendant une invulnérabilité : pendant une esquive, c'est une esquive parfaite
 ## (ralenti, prochain coup critique, groove). Après un coup reçu, rien de spécial.
-func _on_dodged(_hit: HitData) -> void:
+func _on_dodged(hit: HitData) -> void:
 	if not invulnerable:
 		return
+	# Le Muet esquivé s'offre à la riposte un moment.
+	var attacker: Muet = hit.attacker as Muet
+	if attacker and not attacker.is_freed():
+		_riposte_target = attacker
+		_riposte_until = _clock + tuning.riposte_window
 	Feedback.slow_motion(tuning.perfect_dodge_slow_time, tuning.perfect_dodge_time_scale)
 	var fx: Effects = Effects.of(self)
 	if fx:
@@ -587,6 +709,7 @@ func _read_player_input() -> void:
 	else:
 		input_move = Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 	input_jump_held = Input.is_action_pressed(&"jump")
+	input_attack_held = Input.is_action_pressed(&"attack")
 	for action: StringName in BUTTON_ACTIONS:
 		if Input.is_action_just_pressed(action):
 			press(action)
@@ -617,7 +740,7 @@ func _step_up(delta: float) -> void:
 ## Onde qui touche tous les Muets autour du héros (Final fracassant, Pas de l'Ombre) : rayon (m),
 ## dégâts en multiples de l'attaque.
 func quake(radius: float, damage: float, move: StringName) -> void:
-	var make_hit: Callable = _make_hit.bind(damage, move, RhythmMath.Judgement.MISS, 0.0)
+	var make_hit: Callable = _make_hit.bind(damage, move, RhythmMath.Judgement.MISS, 0.0, tuning.quake_poise, tuning.quake_launch)
 	hitbox.activate(radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.attack_active_time, make_hit)
 	var fx: Effects = Effects.of(self)
 	if fx:

@@ -68,3 +68,20 @@ static func dive_radius(fall_height: float, tuning: TuningData) -> float:
 static func dive_multiplier(fall_height: float, tuning: TuningData) -> float:
 	var bonus: float = tuning.dive_multiplier_per_meter * maxf(fall_height, 0.0)
 	return tuning.dive_multiplier_base + minf(bonus, tuning.dive_multiplier_bonus_max)
+
+
+## Charge du coup chargé (0 à 1) après `held` s de charge.
+static func charge_level(held: float, tuning: TuningData) -> float:
+	return clampf(held / tuning.charge_full_time, 0.0, 1.0)
+
+
+## Multiplicateur de dégâts du coup chargé à la charge `level` (0 à 1).
+static func charge_multiplier(level: float, tuning: TuningData) -> float:
+	return lerpf(tuning.charge_min_multiplier, tuning.charge_max_multiplier, level)
+
+
+## Élan vers une cible à `distance` m (de rayon `target_radius`) pour qu'un coup de portée
+## `reach` la touche : on s'arrête à mi-portée, sans reculer, au plus `max_lunge` m.
+static func lunge_to(distance: float, target_radius: float, reach: float, max_lunge: float) -> float:
+	return clampf(distance - target_radius - reach / 2.0, 0.0, max_lunge)
+

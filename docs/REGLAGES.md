@@ -149,3 +149,18 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Bouton appuyé : ×0,94 en 80 ms. Carte impossible à choisir : 55 % d'opacité.
 - Feuilles du fond : balancement de 1,6° sur deux temps ; cubes de couleur : montée de 22 px/s.
 - Cartes des dons : un petit tambour par carte, un ton plus haut à chaque carte (×1,122).
+
+## Combat (version 2.3)
+- Équilibre : sautillant 18, volant 12, porte-bouclier 36, cornu 44, cracheur 14, Grand Muet 110 (+15 % par rang).
+  Coups : martelo 6, meia-lua 7, armada 14, coup roulé 10, coup en l'air 7, coup chargé 18 (× la charge),
+  riposte 30, plongeon 16, Salto arc-en-ciel 60 ; coup parfait ×1,5 ; contre un bouclier, la moitié.
+- Il revient après 1,4 s sans coup, de 35 % du maximum par seconde. Brisé : 1,8 s étourdi (Grand Muet 1,4 s),
+  dégâts reçus ×1,3 ; arrêt sur image 90 ms.
+- Coup de grâce : à 2,6 m ; libère le Muet ; le Grand Muet perd 5 fois l'attaque ; ralenti 0,4 s à ×0,3 ; groove +3.
+- Projection : recul + 7 m/s et + 0,2 s par point de projection (armada 1, coup chargé 1,3, riposte 1,2,
+  plongeon 0,7) ; choc à partir de 0,8 : 0,9 fois l'attaque, sonné 0,9 s ; le Muet heurté part à 60 %.
+- Coup chargé : charge dès 0,26 s de Frappe tenue, pleine en 0,8 s, part d'elle-même à 2,2 s ; déplacement à 30 % ;
+  dégâts ×1,6 × (1 à 2,2) selon la charge.
+- Riposte : 1,2 s après l'esquive parfaite, jusqu'à 6 m ; ×2, critique.
+- Troupe : pleine voix (80 %) à 12 coups de combo.
+

@@ -358,10 +358,11 @@ def sfx_bounce():
     return np.sin(2 * np.pi * np.cumsum(f * wobble) / RATE) * env(n, 0.003, 0.14)
 
 
-def band_noise(length, f_start, f_end, q=1.2):
-    """Bruit passé dans un filtre passe-bande dont la fréquence glisse de f_start à f_end."""
+def band_noise(length, f_start, f_end, q=1.2, rng=None):
+    """Bruit passé dans un filtre passe-bande dont la fréquence glisse de f_start à f_end
+    (`rng` : tirage propre, pour ne pas changer les autres sons)."""
     n = int(length * RATE)
-    noise = RNG.standard_normal(n)
+    noise = (rng if rng is not None else RNG).standard_normal(n)
     freqs = np.geomspace(f_start, f_end, n)
     out = np.zeros(n)
     low = band = 0.0
@@ -375,12 +376,12 @@ def band_noise(length, f_start, f_end, q=1.2):
     return out
 
 
-def whoosh(length, f_start, f_end, q=1.2):
+def whoosh(length, f_start, f_end, q=1.2, rng=None):
     """Souffle : bruit filtré qui glisse, qui enfle puis retombe."""
     n = int(length * RATE)
     t = np.arange(n) / RATE
     shape = np.sin(np.pi * t / t[-1]) ** 1.5
-    return band_noise(length, f_start, f_end, q) * shape
+    return band_noise(length, f_start, f_end, q, rng) * shape
 
 
 def sfx_jump():
@@ -530,6 +531,81 @@ def sfx_ui_card():
     return body + 0.25 * slap + 0.4 * marimba(degree(0, 2), 0.22)
 
 
+def normalized(signal):
+    return signal / max(np.max(np.abs(signal)), 1e-9)
+
+
+def sfx_break():
+    """Équilibre brisé : un craquement sec et un tambour qui s'effondre (tirage propre)."""
+    rng = np.random.default_rng(231)
+    n = int(0.55 * RATE)
+    t = np.arange(n) / RATE
+    crack = normalized(band_noise(0.55, 3200, 700, 1.6, rng)) * env(n, 0.0005, 0.04)
+    f = 70 + 140 * np.exp(-t / 0.08)
+    drop = np.sin(2 * np.pi * np.cumsum(f) / RATE) * env(n, 0.002, 0.2)
+    clicks = np.zeros(n)
+    for k, at in enumerate((0.0, 0.035, 0.07)):
+        i = int(at * RATE)
+        m = int(0.02 * RATE)
+        clicks[i:i + m] += rng.standard_normal(m) * env(m, 0.0002, 0.004) * (1.0 - 0.25 * k)
+    return np.tanh(1.3 * (0.8 * crack + drop + 0.6 * clicks))
+
+
+def sfx_impact():
+    """Muet projeté contre un obstacle : un choc sourd et du bois qui craque (tirage propre)."""
+    rng = np.random.default_rng(232)
+    n = int(0.4 * RATE)
+    t = np.arange(n) / RATE
+    f = 42 + 90 * np.exp(-t / 0.03)
+    thud = np.sin(2 * np.pi * np.cumsum(f) / RATE) * env(n, 0.001, 0.12)
+    wood = normalized(band_noise(0.4, 900, 300, 1.2, rng)) * env(n, 0.001, 0.05)
+    return np.tanh(1.6 * (thud + 0.5 * wood))
+
+
+def sfx_charge():
+    """Coup chargé : une note qui monte et vibre de plus en plus, puis tient en scintillant
+    (tirage propre)."""
+    rng = np.random.default_rng(233)
+    rise, hold = 0.8, 1.4
+    n = int((rise + hold) * RATE)
+    t = np.arange(n) / RATE
+    f = np.where(t < rise, degree(0, 0) * (2.0 ** (2.0 * t / rise)), degree(0, 2))
+    tremolo = 1.0 + 0.35 * np.sin(2 * np.pi * (6 + 10 * np.minimum(t / rise, 1.0)) * t)
+    tone = np.sin(2 * np.pi * np.cumsum(f) / RATE) * tremolo * np.minimum(t / 0.05, 1.0)
+    air = normalized(band_noise(rise + hold, 400, 3000, 1.0, rng)) * np.minimum(t / rise, 1.0) * 0.25
+    shimmer = np.sin(2 * np.pi * degree(0, 3) * t) * (t > rise) * 0.2
+    fade = np.minimum((t[-1] - t) / 0.1, 1.0)
+    return (tone * 0.6 + air + shimmer) * fade
+
+
+def sfx_grace():
+    """Coup de grâce : un grand tambour et un arpège de marimba qui monte jusqu'en haut."""
+    out = np.zeros(int(1.3 * RATE))
+    boom = tom(degree(0, -1) * 0.9, 0.6)
+    out[: len(boom)] += 1.2 * boom
+    for k, d in enumerate([0, 2, 4, 5, 7, 9, 10]):
+        seg = marimba(degree(d, 1), 0.7)
+        i = int((0.04 + 0.045 * k) * RATE)
+        out[i:i + len(seg)] += 0.7 * seg[: len(out) - i]
+    return np.tanh(1.2 * out)
+
+
+def sfx_riposte():
+    """Riposte : un souffle vif, un coup net et un reflet aigu (tirage propre)."""
+    rng = np.random.default_rng(234)
+    n = int(0.45 * RATE)
+    t = np.arange(n) / RATE
+    air = np.zeros(n)
+    w = whoosh(0.16, 2200, 600, 1.6, rng)
+    air[: len(w)] += normalized(w)
+    hit = np.zeros(n)
+    k = kick(0.25)
+    start = int(0.12 * RATE)
+    hit[start:start + len(k)] += k[: n - start]
+    shine = np.sin(2 * np.pi * degree(7, 2) * t) * env(n, 0.13, 0.08) * (t > 0.12) * 0.4
+    return np.tanh(1.3 * (0.6 * air + hit + shine))
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -583,6 +659,12 @@ def main():
     band = layer_band()
     write(ROOT / "assets/audio/music/night_band.wav", band * layer_gain, peak=np.max(np.abs(band)) * layer_gain)
     write(ROOT / "assets/audio/sfx/ui_card.wav", sfx_ui_card(), peak=0.5)
+    # Combat 2.3 (chacun son tirage).
+    write(ROOT / "assets/audio/sfx/break.wav", sfx_break(), peak=0.8)
+    write(ROOT / "assets/audio/sfx/impact.wav", sfx_impact(), peak=0.85)
+    write(ROOT / "assets/audio/sfx/charge.wav", sfx_charge(), peak=0.45)
+    write(ROOT / "assets/audio/sfx/grace.wav", sfx_grace(), peak=0.75)
+    write(ROOT / "assets/audio/sfx/riposte.wav", sfx_riposte(), peak=0.7)
 
 
 if __name__ == "__main__":

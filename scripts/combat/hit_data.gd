@@ -24,3 +24,9 @@ var stun_time: float = 0.0
 var big: bool = false
 ## Vrai si c'est la réponse attendue par le Muet touché (docs/GDD.md §7).
 var answer: bool = false
+## Coup porté à l'équilibre de la cible (voir Muet.poise).
+var poise: float = 0.0
+## Projection (voir AttackData.launch).
+var launch: float = 0.0
+## Force d'attaque du héros au moment du coup (dégâts d'impact d'un Muet projeté).
+var power: float = 0.0

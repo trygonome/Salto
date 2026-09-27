@@ -7,7 +7,7 @@ extends Node
 ## touché. Sa plume suit ses mouvements. La pose rejoint la pose visée plus ou moins vite
 ## selon le mouvement.
 
-enum Mode { GROUND, AIR, ROLL, DASH, ATTACK, PLUNGE, HURT }
+enum Mode { GROUND, AIR, ROLL, DASH, ATTACK, PLUNGE, HURT, CHARGE }
 
 ## Poses fixes (angles en radians, voir VoxelCharacter.POSE_KEYS).
 const ROLL_POSE := {
@@ -21,6 +21,12 @@ const FLIP_POSE := {
 const DASH_POSE := {
 	&"sx": 0.9, &"lLx": 0.7, &"lRx": 0.5, &"kL": 0.9, &"kR": 0.6, &"sLx": 1.3, &"sRx": 1.3, &"eL": -0.2, &"eR": -0.2,
 	&"nx": -0.4,
+}
+## Coup chargé qui monte : ramassé, jambe d'appui fléchie, jambe de frappe armée en arrière, bras
+## tirés vers l'arrière.
+const CHARGE_POSE := {
+	&"kL": 1.0, &"lLx": -0.5, &"lRx": 0.9, &"kR": 1.3, &"sLx": 1.2, &"sRx": 1.2, &"eL": -0.9, &"eR": -0.9,
+	&"sx": 0.45, &"hy": -1.2, &"hyaw": 0.6, &"syaw": 0.4, &"nx": -0.1,
 }
 const PLUNGE_POSE := {
 	&"kL": 0.2, &"kR": 0.2, &"sLx": -2.9, &"sRx": -2.9, &"eL": -0.1, &"eR": -0.1, &"sx": -0.1, &"nx": 0.45,
@@ -52,6 +58,16 @@ const ATTACK_POSES := {
 	],
 	&"air_kick": [
 		{&"sx": -0.3, &"lRx": -1.65, &"kR": 0.0, &"lLx": 0.35, &"kL": 1.3, &"sLx": 0.9, &"sRx": 0.9, &"eL": -0.3, &"eR": -0.3, &"nx": -0.1},
+	],
+	&"charged": [
+		{&"kL": 1.0, &"lLx": -0.5, &"lRx": 0.9, &"kR": 1.3, &"sLx": 1.2, &"sRx": 1.2, &"eL": -0.9, &"eR": -0.9, &"sx": 0.45, &"hyaw": 0.6},
+		{&"hyaw": -0.8, &"syaw": -0.4, &"lRx": -1.9, &"kR": 0.0, &"lLx": 0.3, &"kL": 0.5, &"sLx": -0.6, &"sRx": 1.0, &"sLz": -1.0, &"sRz": 1.0, &"eL": -0.2, &"eR": -0.2, &"sx": -0.25},
+	],
+	&"riposte": [
+		{&"sx": -0.4, &"lRx": -1.75, &"kR": 0.0, &"lLx": 0.6, &"kL": 1.6, &"sLx": 1.2, &"sRx": 1.2, &"eL": -0.2, &"eR": -0.2, &"nx": -0.2},
+	],
+	&"grace": [
+		{&"lLx": -1.9, &"lRx": -1.9, &"kL": 2.3, &"kR": 2.3, &"sLx": -1.0, &"sRx": -1.0, &"eL": -1.6, &"eR": -1.6, &"sx": 0.6},
 	],
 }
 ## Coups portés de la jambe gauche (les autres : jambe droite).
@@ -111,6 +127,11 @@ func show_roll() -> void:
 ## Élan aérien (sa durée ne change pas la pose).
 func show_dash(_duration: float) -> void:
 	mode = Mode.DASH
+
+
+## Coup chargé qui monte : il se ramasse, la jambe armée.
+func show_charge() -> void:
+	mode = Mode.CHARGE
 
 
 ## Coup reçu : le buste recule, puis revient.
@@ -216,6 +237,9 @@ func update(delta: float, flipping: bool) -> void:
 		Mode.PLUNGE:
 			target = PLUNGE_POSE.duplicate()
 			rate = tuning.hero_pose_rate_plunge
+		Mode.CHARGE:
+			target = CHARGE_POSE.duplicate()
+			rate = tuning.hero_pose_rate_attack
 		_:
 			if flipping:
 				target = FLIP_POSE.duplicate()
@@ -226,7 +250,7 @@ func update(delta: float, flipping: bool) -> void:
 				target = _running(delta, run_amount, hero)
 			else:
 				target = idle_pose(exp(-_beat_phase() * tuning.hero_idle_bounce_decay))
-	if _land > 0.0 and grounded and mode != Mode.ATTACK and mode != Mode.ROLL:
+	if _land > 0.0 and grounded and mode != Mode.ATTACK and mode != Mode.ROLL and mode != Mode.CHARGE:
 		_add(target, &"kL", LAND[&"knee"] * _land)
 		_add(target, &"kR", LAND[&"knee"] * _land)
 		_add(target, &"lLx", LAND[&"leg"] * _land)

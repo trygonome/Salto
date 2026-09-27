@@ -51,6 +51,40 @@ static func goes_over_shield(move: StringName) -> bool:
 	return move == &"dive" or move == &"rainbow"
 
 
+## Vrai si un coup (`move`) brise la garde : coup chargé, coup de grâce, riposte, et le choc d'un
+## Muet projeté ; le bouclier ne l'arrête pas.
+static func breaks_guard(move: StringName) -> bool:
+	return move == &"charged" or move == &"grace" or move == &"riposte" or move == &"impact"
+
+
+## Équilibre d'un Muet : `base` (réglage de l'espèce), plus la part `per_tier` par rang.
+static func max_poise(base: float, per_tier: float, tier: int) -> float:
+	return base * (1.0 + per_tier * tier)
+
+
+## Équilibre après `delta` s : il revient (part `rate` du maximum par seconde) une fois passé
+## `delay` s sans coup reçu (`idle` : temps depuis le dernier coup, `delta` compris).
+static func recovered_poise(poise: float, maximum: float, idle: float, delay: float, rate: float, delta: float) -> float:
+	if idle < delay:
+		return poise
+	return minf(maximum, poise + maximum * rate * delta)
+
+
+## Vitesse (m/s) et durée (s) du recul d'un coup de projection `launch` sur un Muet qui recule
+## d'un facteur `factor` (les lourds reculent moins).
+static func knockback_speed(launch: float, factor: float, tuning: TuningData) -> float:
+	return (tuning.muet_knockback_speed + launch * tuning.launch_speed) * factor
+
+
+static func knockback_time(launch: float, factor: float, tuning: TuningData) -> float:
+	return tuning.muet_knockback_time + launch * factor * tuning.launch_time
+
+
+## Vrai si la projection est assez forte pour que le Muet se blesse contre ce qu'il heurte.
+static func is_launched(launch: float, factor: float, tuning: TuningData) -> bool:
+	return launch * factor >= tuning.launch_impact_min
+
+
 ## Vrai si le bouclier tourné vers `facing` arrête un coup qui arrive dans la direction
 ## `hit_direction` (du héros vers le Muet) : le héros est devant, à moins de `angle` du regard.
 static func shield_blocks(facing: Vector3, hit_direction: Vector3, angle: float) -> bool:

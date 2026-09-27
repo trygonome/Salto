@@ -5,9 +5,20 @@ extends CharacterBody3D
 ## (chacun avec un léger décalage), blesse au contact, attaque quand son temps de repos est écoulé
 ## (état propre à l'espèce) ; touché, il recule, brille et renonce à l'attaque qu'il préparait ;
 ## à zéro point de vie, il est libéré (il retrouve sa voix) et disparaît.
+## Équilibre (version 2.3) : chaque coup l'entame ; brisé, le Muet chancelle (étourdi, plus
+## fragile) et attend le coup de grâce. Projeté assez fort, il se blesse contre ce qu'il heurte
+## (arbre, pilier) et un autre Muet heurté part à son tour.
 
 ## Un Muet vient d'être libéré.
 signal freed(muet: Muet)
+## Son équilibre vient de se briser : il chancelle.
+signal staggered_now(muet: Muet)
+
+## Sons du choc (projeté contre un obstacle) et de l'équilibre brisé.
+const IMPACT_SOUND: AudioStream = preload("res://assets/audio/sfx/impact.wav")
+const BREAK_SOUND: AudioStream = preload("res://assets/audio/sfx/break.wav")
+## Barre d'équilibre au-dessus de la tête.
+const POISE_BAR_SHADER: Shader = preload("res://scenes/enemies/poise_bar.gdshader")
 
 ## Espèce : préfixe de ses réglages dans Tuning (hopper, flyer, charger, shielder, spitter, boss).
 @export var species: StringName
@@ -60,6 +71,16 @@ var _hop_time: float = 0.0
 var _hop_duration: float = 0.0
 var _hop_height: float = 0.0
 var _hop_landing: Callable
+## Équilibre (voir EnemyMath.max_poise) ; vrai tant qu'il chancelle, équilibre brisé.
+var poise: float = 0.0
+var poise_max: float = 0.0
+var staggered: bool = false
+var _poise_idle: float = 0.0
+## Projection en cours assez forte pour un choc : sa force et l'attaque du héros qui l'a lancé.
+var _launch: float = 0.0
+var _launch_power: float = 0.0
+var _poise_bar: MeshInstance3D
+var _impact_sound: AudioStreamPlayer3D
 
 @onready var health: Health = $Health
 @onready var hurtbox: Hurtbox = $Hurtbox
@@ -101,6 +122,12 @@ func _ready() -> void:
 	if species == &"shielder":
 		hurtbox.blocker = _blocks
 		hurtbox.blocked.connect(_on_blocked)
+	poise_max = EnemyMath.max_poise(stat_or(&"poise", 0.0), tuning.muet_poise_per_tier, tier)
+	poise = poise_max
+	_make_poise_bar()
+	_impact_sound = AudioStreamPlayer3D.new()
+	_impact_sound.name = "ImpactSound"
+	add_child(_impact_sound)
 	Rhythm.beat.connect(_on_beat)
 	state_machine.start()
 
@@ -116,6 +143,7 @@ func _physics_process(delta: float) -> void:
 		_knockback_left -= delta
 	_contact_left -= delta
 	_update_burn(delta)
+	_update_poise(delta)
 	state_machine.physics_update(delta)
 	hitbox.update(delta)
 	_check_contact()
@@ -362,6 +390,11 @@ func move(horizontal: Vector3, delta: float) -> void:
 		global_position = before
 		velocity = Vector3.ZERO
 	_keep_out_of_safe_zone()
+	if _launch > 0.0:
+		if _knockback_left > 0.0:
+			_check_impact()
+		else:
+			_launch = 0.0
 
 
 ## Repousse le Muet au bord de la zone interdite (le village), avec une petite marge.
@@ -474,8 +507,12 @@ func _on_hurt(hit: HitData) -> void:
 	body.flash(tuning.muet_hit_flash_time)
 	if hit.answer:
 		_on_answered(hit)
-	_knockback = hit.direction * tuning.muet_knockback_speed * stat_or(&"knockback_factor", 1.0)
-	_knockback_left = tuning.muet_knockback_time
+	var factor: float = stat_or(&"knockback_factor", 1.0)
+	_knockback = hit.direction * EnemyMath.knockback_speed(hit.launch, factor, tuning)
+	_knockback_left = EnemyMath.knockback_time(hit.launch, factor, tuning)
+	if EnemyMath.is_launched(hit.launch, factor, tuning) and not is_boss():
+		_launch = hit.launch * factor
+		_launch_power = hit.power
 	if hit.attacker is Hero:
 		target = hit.attacker as Hero
 	if is_boss() and not enraged and EnemyMath.boss_enraged(health.current / health.maximum, tuning):
@@ -485,12 +522,180 @@ func _on_hurt(hit: HitData) -> void:
 	if health.is_depleted():
 		return
 	var state: MuetState = state_machine.current as MuetState
+	if take_poise(hit.poise):
+		return
 	if hit.stun_time > 0.0:
 		stun(hit.stun_time)
-	elif species == &"shielder" and EnemyMath.goes_over_shield(hit.move):
+	elif species == &"shielder" and (EnemyMath.goes_over_shield(hit.move) or hit.move == &"charged"):
 		stun(tuning.shielder_dive_stun)
 	elif state and state.interruptible() and not is_boss():
 		state_machine.transition_to(state_machine.initial_state.name)
+
+
+## Entame l'équilibre de `amount` ; renvoie vrai s'il vient de se briser (le Muet chancelle).
+func take_poise(amount: float) -> bool:
+	if poise_max <= 0.0 or staggered or amount <= 0.0 or is_freed():
+		return false
+	poise -= amount
+	_poise_idle = 0.0
+	if poise > 0.0:
+		return false
+	_break_poise()
+	return true
+
+
+## Vrai si le Muet chancelle et peut recevoir le coup de grâce.
+func can_receive_grace() -> bool:
+	return staggered and not is_freed()
+
+
+## Fin de l'étourdissement : s'il chancelait, il se redresse, l'équilibre retrouvé.
+func end_stagger() -> void:
+	if not staggered:
+		return
+	staggered = false
+	poise = poise_max
+	_poise_idle = 0.0
+
+
+## Équilibre brisé : il chancelle, étourdi et plus fragile ; tout le jeu marque le coup.
+func _break_poise() -> void:
+	var tuning: TuningData = Tuning.data
+	# Étourdi d'abord (la fin d'un étourdissement en cours redresserait le Muet), puis il chancelle.
+	stun(tuning.boss_poise_break_time if is_boss() else tuning.poise_break_time)
+	staggered = true
+	poise = 0.0
+	hurtbox.damage_taken_multiplier = maxf(hurtbox.damage_taken_multiplier, tuning.stagger_damage_multiplier)
+	Feedback.hit_stop(tuning.hit_stop_break)
+	Feedback.shake(tuning.shake_trauma_hit, Vector3.ZERO)
+	_play(BREAK_SOUND)
+	var fx: Effects = effects()
+	if fx:
+		var head: Vector3 = global_position + Vector3.UP * body.height
+		fx.ring(global_position, stat(&"radius") * tuning.fx_break_ring, fx.gold, tuning.fx_break_ring_time)
+		fx.burst(head, tuning.fx_break_cubes, tuning.fx_break_speed, tuning.fx_gold_hue)
+		fx.word(GameTexts.WORD_BREAK, head, fx.gold)
+	staggered_now.emit(self)
+
+
+## L'équilibre revient après un moment sans coup reçu ; la barre le montre.
+func _update_poise(delta: float) -> void:
+	var tuning: TuningData = Tuning.data
+	if not staggered:
+		_poise_idle += delta
+		poise = EnemyMath.recovered_poise(poise, poise_max, _poise_idle, tuning.poise_recover_delay, tuning.poise_recover_rate, delta)
+	if _poise_bar == null:
+		return
+	var shown: bool = poise_max > 0.0 and (poise < poise_max or staggered) and not is_freed()
+	_poise_bar.visible = shown
+	if shown:
+		_poise_bar.position.y = body.height + tuning.poise_bar_lift
+		var material: ShaderMaterial = _poise_bar.material_override as ShaderMaterial
+		material.set_shader_parameter(&"ratio", 1.0 if staggered else poise / poise_max)
+		material.set_shader_parameter(&"broken", 1.0 if staggered else 0.0)
+
+
+func _make_poise_bar() -> void:
+	var tuning: TuningData = Tuning.data
+	if poise_max <= 0.0:
+		return
+	var quad := QuadMesh.new()
+	quad.size = tuning.poise_bar_size
+	var material := ShaderMaterial.new()
+	material.shader = POISE_BAR_SHADER
+	_poise_bar = MeshInstance3D.new()
+	_poise_bar.name = "PoiseBar"
+	_poise_bar.mesh = quad
+	_poise_bar.material_override = material
+	_poise_bar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_poise_bar.visible = false
+	add_child(_poise_bar)
+
+
+## Projeté : s'il heurte un autre Muet, les deux se blessent et l'autre part à son tour ; s'il
+## heurte un obstacle de face (arbre, pilier, mur), il se blesse et reste étourdi un moment.
+func _check_impact() -> void:
+	var direction: Vector3 = _knockback.normalized()
+	var margin: float = Tuning.data.muet_contact_margin
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var other: Muet = node as Muet
+		if other == self or other.is_freed() or other.asleep:
+			continue
+		var reach: float = stat(&"radius") + other.stat(&"radius") + margin
+		if flat_distance_to(other.global_position) <= reach and direction.dot(flat_direction_to(other.global_position)) > 0.0:
+			_bump(other, direction)
+			return
+	for i: int in get_slide_collision_count():
+		var collision: KinematicCollision3D = get_slide_collision(i)
+		var hit_muet: Muet = collision.get_collider() as Muet
+		if hit_muet:
+			if not hit_muet.is_freed():
+				_bump(hit_muet, direction)
+				return
+			continue
+		var normal: Vector3 = collision.get_normal()
+		var flat_normal := Vector3(normal.x, 0.0, normal.z)
+		if flat_normal.length() < 0.5:
+			continue
+		if flat_normal.normalized().dot(direction) < -0.5:
+			_impact(direction)
+			return
+
+
+## Billard : le Muet projeté heurte `other`, les deux se blessent et l'autre part à son tour.
+func _bump(other: Muet, direction: Vector3) -> void:
+	var launch: float = _launch
+	var power: float = _launch_power
+	_impact(direction)
+	other.receive_impact(direction, launch * Tuning.data.impact_chain_share, power)
+
+
+## Heurté par un Muet projeté (`direction` du choc, force de projection, attaque du héros) : il se
+## blesse et part à son tour.
+func receive_impact(direction: Vector3, launch: float, power: float) -> void:
+	if is_freed():
+		return
+	hurtbox.receive(_impact_hit(direction, launch, power))
+
+
+## Le choc : dégâts (attaque du héros × Tuning.impact_damage), équilibre entamé, étourdi.
+func _impact(direction: Vector3) -> void:
+	var tuning: TuningData = Tuning.data
+	var power: float = _launch_power
+	_launch = 0.0
+	_knockback_left = 0.0
+	Feedback.hit_stop(tuning.hit_stop_impact)
+	Feedback.shake(tuning.shake_trauma_hit, direction)
+	_play(IMPACT_SOUND)
+	var fx: Effects = effects()
+	if fx:
+		fx.stunned_against_wall(global_position + Vector3.UP * body.height)
+		fx.dust(global_position, tuning.fx_impact_dust, tuning.fx_impact_dust_speed)
+	hurtbox.receive(_impact_hit(-direction, 0.0, power))
+	if not is_freed() and not staggered:
+		stun(tuning.impact_stun_time)
+
+
+func _impact_hit(direction: Vector3, launch: float, power: float) -> HitData:
+	var tuning: TuningData = Tuning.data
+	var hit := HitData.new()
+	hit.attacker = _hero()
+	hit.target = hurtbox
+	hit.move = &"impact"
+	hit.damage = power * tuning.impact_damage
+	hit.direction = direction
+	hit.point = hurtbox.center()
+	hit.poise = tuning.impact_poise
+	hit.launch = launch
+	hit.power = power
+	return hit
+
+
+func _play(stream: AudioStream) -> void:
+	if _impact_sound == null:
+		return
+	_impact_sound.stream = stream
+	_impact_sound.play()
 
 
 ## Bonne réponse : ses couleurs reviennent un instant dans une gerbe de cubes ; le héros l'entend.
@@ -508,13 +713,16 @@ func _on_answered(hit: HitData) -> void:
 ## Le porte-bouclier bloque les coups venus de face (sauf s'il est étourdi, et sauf les plongeons
 ## qui passent par-dessus).
 func _blocks(hit: HitData) -> bool:
-	if state_machine.current.name == &"Stunned" or EnemyMath.goes_over_shield(hit.move):
+	if state_machine.current.name == &"Stunned" or EnemyMath.goes_over_shield(hit.move) or EnemyMath.breaks_guard(hit.move):
 		return false
 	return EnemyMath.shield_blocks(facing(), hit.direction, Tuning.data.shielder_block_angle)
 
 
 func _on_blocked(hit: HitData) -> void:
 	var tuning: TuningData = Tuning.data
+	# Le bouclier encaisse, mais le porte-bouclier vacille : à force, sa garde cède.
+	if take_poise(hit.poise * tuning.guard_poise_share):
+		return
 	body.raise_shield()
 	var sound: AudioStreamPlayer3D = get_node_or_null(^"BlockSound") as AudioStreamPlayer3D
 	if sound:

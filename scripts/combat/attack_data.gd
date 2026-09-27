@@ -24,6 +24,11 @@ extends Resource
 @export var hop_speed: float
 ## Rotation visuelle du corps pendant le coup : clés (temps en s, lacet en degrés), interpolées.
 @export var spin_keys: PackedVector2Array
+## Coup porté à l'équilibre du Muet (voir Muet.poise).
+@export var poise: float
+## Projection : 0 = simple recul ; plus c'est haut, plus le Muet part loin, et à partir de
+## Tuning.launch_impact_min il se blesse contre ce qu'il heurte (arbre, pilier, autre Muet).
+@export var launch: float
 
 
 ## Lacet visuel (degrés) au temps `t` du coup ; 0 s'il n'y a pas de clés.

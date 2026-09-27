@@ -1,7 +1,8 @@
 class_name MuetStunnedState
 extends MuetState
 ## Étourdi : le Muet ne fait plus rien un moment (ses yeux tournent). Certaines espèces sont
-## alors plus fragiles (Tuning.<espèce>_stunned_damage_multiplier : le cornu assommé).
+## alors plus fragiles (Tuning.<espèce>_stunned_damage_multiplier : le cornu assommé), et tout
+## Muet qui chancelle (équilibre brisé, Tuning.stagger_damage_multiplier).
 
 ## Durée de l'étourdissement (s), fixée par Muet.stun().
 var duration: float = 0.0
@@ -19,6 +20,7 @@ func enter(_previous: StringName) -> void:
 func exit() -> void:
 	muet.body.set_stunned(false)
 	muet.hurtbox.damage_taken_multiplier = 1.0
+	muet.end_stagger()
 
 
 func allows_contact() -> bool:

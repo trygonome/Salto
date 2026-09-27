@@ -302,3 +302,16 @@ func test_une_rencontre_se_parle_puis_ouvre_les_passages() -> void:
 	await get_tree().process_frame
 	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
 	assert_eq(gates.size(), tuning.room_exits, "les passages s'ouvrent")
+
+
+func test_la_troupe_chante_quand_le_combo_tient() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_eq(Rhythm.band_amount(), 0.0, "sans combo, elle se tait")
+	hero.combo.hits = tuning.combo_band_full
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_almost_eq(Rhythm.band_amount(), tuning.combo_band_max, 0.001, "le combo tient : elle chante")

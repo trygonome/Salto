@@ -138,6 +138,8 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
      suivant est une riposte critique.
    - *Retours* : chaque type de coup a son son et son effet ; la musique enfle quand le combo tient.
    *Test : les combats ont-ils du poids, a-t-on envie d'enchaîner et de contrer ?*
+   **Fait** (version 2.3) : barre d'équilibre, coup de grâce, projection et billard, coup chargé jugé au
+   relâcher, riposte, garde qui cède, la troupe qui chante avec le combo.
 2. **2.4 — Les Muets : un vrai bestiaire.**
    - Ils attaquent **sur les temps de la musique** : on lit leurs attaques à l'oreille autant qu'à l'œil.
    - Vagues **composées** (des rôles qui se complètent : un bouclier devant, un cracheur derrière…)

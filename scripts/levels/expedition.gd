@@ -109,6 +109,10 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
+	# La troupe du village chante quand le combo tient.
+	if in_sortie:
+		var tuning: TuningData = Tuning.data
+		Rhythm.set_band(minf(float(hero.combo.hits) / tuning.combo_band_full, 1.0) * tuning.combo_band_max)
 	# Une rencontre s'ouvre quand le héros s'approche du personnage.
 	if _encounter == &"" or _encounter_open or not in_sortie or _cleared:
 		return

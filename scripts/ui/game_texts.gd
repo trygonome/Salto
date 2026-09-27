@@ -193,7 +193,10 @@ const WORD_BLOCKED := "Bloqué"
 const WORD_STUNNED := "Étourdi !"
 const WORD_PERFECT_DODGE := "Esquive parfaite !"
 const WORD_HEAL := "+%d"
-const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL]
+const WORD_BREAK := "Brisé !"
+const WORD_GRACE := "Grâce !"
+const WORD_RIPOSTE := "Riposte !"
+const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL, WORD_BREAK, WORD_GRACE, WORD_RIPOSTE]
 
 ## Conseils près des boutons (apprentissage par le jeu) : identifiant → texte.
 const HINTS: Dictionary[StringName, String] = {

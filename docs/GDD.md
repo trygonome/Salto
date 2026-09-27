@@ -73,6 +73,17 @@ Relief à exploiter : rochers, souches, perchoirs en escalier.
   **plume arc-en-ciel** posée au sommet de chaque perchoir (elle revient à chaque sortie).
   Autour du héros, la jungle retrouve ses couleurs d'autant plus loin que la jauge est pleine.
 - Retour d'impact : arrêt sur image, traînée du coup, étincelle, secousse, poussée de caméra, son qui monte avec le combo.
+- **Équilibre** (version 2.3) : chaque coup entame l'équilibre du Muet (une petite barre au-dessus de sa tête,
+  qui se remplit après un moment sans coup). Brisé, il **chancelle** (« Brisé ! », étourdi, plus fragile) ;
+  Frappe près de lui est alors le **coup de grâce** : un salto qui le libère d'un coup (le Grand Muet, lui,
+  encaisse un grand coup). Frapper un bouclier ébranle aussi : à force, la garde cède.
+- **Projection** : l'armada, le coup chargé, la riposte, le plongeon envoient valser. Un Muet projeté contre un
+  arbre, un pilier ou un mur se blesse et reste sonné ; contre un autre Muet, les deux se blessent et l'autre
+  part à son tour (billard).
+- **Coup chargé** : Frappe maintenue pendant un coup ; le héros se ramasse, la charge monte (étincelles d'or,
+  son qui monte), puis il frappe en relâchant (jugé sur le temps au relâcher) : jusqu'à ×2,2, brise les gardes.
+- **Riposte** : après une esquive parfaite, Frappe bondit sur le Muet esquivé : coup critique qui ébranle et projette.
+- **La troupe chante** : quand le combo tient, la couche de la troupe du village monte dans la musique.
 
 ## 7. Les Muets
 Anciens musiciens du village : bouche cousue, grands yeux, antennes aux couleurs volées.
