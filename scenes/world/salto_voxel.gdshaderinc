@@ -1,11 +1,30 @@
+// Lumière des cubes (version 2.5) : côté soleil chaud, côté ombre froid, arêtes des cubes un peu
+// assombries (relief des voxels), contre-jour léger.
+const vec3 SALTO_SUN_DIR = vec3(0.35, 1.0, 0.55);
+const vec3 SALTO_SUN = vec3(1.2, 1.12, 0.97);
+const vec3 SALTO_SHADE = vec3(0.6, 0.64, 0.82);
+const vec3 SALTO_AMBIENT = vec3(0.035, 0.02, 0.06);
+const float SALTO_EDGE_DARK = 0.16;
+
+// Arête d'un cube (0 au milieu d'une face, 1 sur son bord) : `local` est la position dans le cube
+// (centré), `normal_local` la normale de la face.
+float salto_cube_edge(vec3 local, vec3 normal_local) {
+	vec3 a = abs(local);
+	vec3 n = abs(normal_local);
+	float half_size = max(dot(a, n), 0.0001);
+	vec3 across = a * (vec3(1.0) - n) / half_size;
+	return smoothstep(0.7, 1.0, max(across.x, max(across.y, across.z)));
+}
+
 // Couleur d'un cube voxel du prototype, avant brouillard. `data` : couleur codée (mode + teinte,
 // saturation, luminosité). Modes : 0 monde (teinte qui ondule avec la vie de la jungle, bue par le
 // silence, pulse au temps) · 1 vif (fleurs : ondule, s'éteint avec le monde) · 2 fixe ·
 // 3 arc-en-ciel · 4 teinte fixe bue par le silence. Les teintes ondulent autour de leur valeur sans
 // jamais dériver. Dans le cercle du groove, autour du héros, le monde retrouve ses couleurs.
 // `vivid` (0 à 1) ravive la couleur en arc-en-ciel (Muet qu'on libère) ; `healed` (0 à 1) rend
-// ses couleurs à un Muet libéré qui danse au village (sa teinte, plus vive). Positions en mètres.
-vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid, float healed) {
+// ses couleurs à un Muet libéré qui danse au village (sa teinte, plus vive). `edge` : arête du cube
+// (salto_cube_edge). Positions en mètres.
+vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vivid, float healed, float edge) {
 	vec3 w = world / salto_unit;
 	float mode = floor(data.x + 0.001);
 	float h = data.x - mode;
@@ -35,10 +54,11 @@ vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vi
 	l = mix(l, clamp(l, 0.45, 0.7), vivid);
 	vec3 c = salto_hsl2rgb(vec3(h, clamp(s, 0.0, 1.0), clamp(l, 0.0, 1.0)));
 	vec3 n = normalize(normal);
-	float d = max(dot(n, normalize(vec3(0.35, 1.0, 0.55))), 0.0);
-	c = c * (0.66 + 0.52 * d) + vec3(0.035, 0.02, 0.06);
+	float d = max(dot(n, normalize(SALTO_SUN_DIR)), 0.0);
+	c = c * mix(SALTO_SHADE, SALTO_SUN, d) + SALTO_AMBIENT;
 	float rim = pow(1.0 - max(dot(n, normalize(camera - world)), 0.0), 3.0);
 	c += rim * vec3(0.16, 0.13, 0.2);
 	c *= mix(0.72, 1.0, smoothstep(0.0, 1.3, w.y));
+	c *= 1.0 - edge * SALTO_EDGE_DARK;
 	return c;
 }

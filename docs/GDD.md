@@ -155,6 +155,12 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 - **Lumière** : lune froide, lanternes chaudes au village, brouillard léger, bloom sur les éléments émissifs uniquement.
 - **Animation** : squelettique (packs ou Mixamo), anticipation et relâché sur les coups ; les Muets ne bougent jamais tous en même temps.
 - Avant de produire : choisir ensemble 3 ou 4 références (jeux ou images) et le pack d'assets principal.
+- **Monde** (version 2.5) : lumière chaude côté soleil, froide côté ombre, arêtes des cubes un peu assombries
+  (relief des voxels), contre-jour sur le héros et les Muets pour qu'ils se détachent. Sol sans quadrillage :
+  grandes plaques d'herbe, taches de terre, petits carrés un rien différents ; touffes d'herbe haute, cailloux,
+  fougères. Bord des clairières : palmiers, buissons et arbres devant, fromagers aux couronnes plates derrière,
+  lianes qui pendent. Mares d'eau sarcelle qui ondulent au bord de pierres. Lucioles qui palpitent et rayonnent,
+  feuilles qui tombent. Ce qui est entre la caméra et le héros s'efface (tout à fait sur la ligne de vue).
 - **Écrans et menus** (version 2.2) : « jungle tribale en cubes », tout dessiné par le code (net à toutes
   les tailles). Boutons en planches de bois sculpté (biseau clair en haut, sombre en bas, coins en escalier,
   veinures), l'action principale en planche dorée cloutée ; cartes des dons et des rencontres en **peaux de

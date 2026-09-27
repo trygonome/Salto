@@ -11,6 +11,8 @@ extends Node3D
 @export var ground_material: ShaderMaterial
 ## Matériau des ombres rondes (couleur multipliée par l'opacité de chaque ombre).
 @export var shadow_material: Material
+## Matériau de l'eau des mares (water.gdshader) ; sans lui, pas de mares.
+@export var water_material: Material
 ## Son d'un rebond sur un champignon-trampoline.
 @export var bounce_sound: AudioStream
 
@@ -32,8 +34,27 @@ func build(world: WorldGen) -> void:
 	_build_voxels()
 	_build_ground()
 	_build_shadows()
+	_build_ponds()
 	_build_solids()
 	_build_border()
+
+
+## Mares : un disque d'eau à ras du sol pour chacune (on y marche : elles sont peu profondes).
+func _build_ponds() -> void:
+	var tuning: TuningData = Tuning.data
+	if water_material == null:
+		return
+	for i: int in gen.ponds.size() / 3:
+		var plane := PlaneMesh.new()
+		var r: float = gen.ponds[i * 3 + 2] * _unit
+		plane.size = Vector2.ONE * r * 2.0
+		var pond := MeshInstance3D.new()
+		pond.name = "Pond%d" % i
+		pond.mesh = plane
+		pond.material_override = water_material
+		pond.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		pond.position = Vector3(gen.ponds[i * 3] * _unit, tuning.pond_height, gen.ponds[i * 3 + 1] * _unit)
+		add_child(pond)
 
 
 ## Point du monde en mètres, pour un point du prototype (x, z en u) au niveau du sol.

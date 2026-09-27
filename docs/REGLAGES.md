@@ -176,3 +176,12 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   sautillants à mi-vie ; doré : 15 plumes d'or. Il paraît à partir de la 2e clairière (tirée de la graine).
 - Grand Muet : phase 2 sous 50 % (rage, ondes), phase 3 sous 25 % (renforts, couronne de bulles, 3 temps de repos).
 
+## Graphismes (version 2.5)
+- Lumière des cubes : soleil (1,2 ; 1,12 ; 0,97), ombre (0,6 ; 0,64 ; 0,82) ; arêtes assombries de 16 %.
+- Premier plan : effacé en pointillé à 82 % entre la caméra et le héros, tout à fait sur la ligne de vue
+  (tube de 2,5 à 9 u, plus large près de la caméra).
+- Clairière : 160 touffes d'herbe, 26 cailloux, 12 lianes, 2 palmiers et 4 à 6 fougères selon la forme, une mare
+  de 3 à 4,5 u ; bord : 35 % de palmiers au premier rang, 30 % de fromagers au second. Au plus 20 000 cubes.
+- Lucioles : 36, vie 5 s, jusqu'à 2,2 m ; feuilles : 14, vie 7 s, chute 0,45 m/s. Halo lumineux (niveaux 2 et 3,
+  intensité 0,7) sur ce qui dépasse le blanc.
+

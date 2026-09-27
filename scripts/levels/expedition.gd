@@ -62,6 +62,7 @@ var _encounter_open: bool = false
 ## Modèle de la vague précédente (pour ne pas le répéter) ; un élite a été libéré dans la clairière.
 var _last_template: StringName = &""
 var _elite_boon: bool = false
+var _ambient: AmbientFx
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -89,6 +90,9 @@ func _ready() -> void:
 	mood.set_progress(0.0, false)
 	mood.clear_target()
 	_add_fade()
+	_ambient = AmbientFx.new()
+	_ambient.name = "Ambient"
+	add_child(_ambient)
 	hero.fainted.connect(_on_hero_fainted)
 	boon_screen.chosen.connect(_on_boon_chosen)
 	boon_screen.choice_made.connect(_on_choice_made)
@@ -247,6 +251,7 @@ func _build_camp() -> void:
 	_kind = &"clearing"
 	gen.generate_room(next_seed, _radius, PackedFloat32Array(), _kind)
 	world.build(gen)
+	_ambient.setup(_radius * _unit)
 	_place_hero()
 
 
@@ -270,6 +275,7 @@ func _enter_room() -> void:
 		_exit_angles.append((i - (exits - 1) / 2.0) * EXIT_SPREAD)
 	gen.generate_room(run.room_seed(), _radius, _exit_angles, _kind)
 	world.build(gen)
+	_ambient.setup(_radius * _unit)
 	for p: Vector3 in gen.pickups:
 		var plume: Node3D = plume_scene.instantiate() as Node3D
 		plume.position = p * _unit

@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -9,6 +9,7 @@
 [ext_resource type="Material" path="res://scenes/world/voxel_static.tres" id="9_voxel"]
 [ext_resource type="Material" path="res://scenes/world/ground.tres" id="10_ground"]
 [ext_resource type="Material" path="res://scenes/world/blob_shadow.tres" id="11_shadow"]
+[ext_resource type="Material" path="res://scenes/world/water.tres" id="12_water"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/bounce.wav" id="12_bounce"]
 [ext_resource type="Script" path="res://scripts/world/world_mood.gd" id="13_mood"]
 [ext_resource type="PackedScene" path="res://scenes/player/hero.tscn" id="17_hero"]
@@ -71,6 +72,7 @@ script = ExtResource("8_builder")
 voxel_material = ExtResource("9_voxel")
 ground_material = ExtResource("10_ground")
 shadow_material = ExtResource("11_shadow")
+water_material = ExtResource("12_water")
 bounce_sound = ExtResource("12_bounce")
 
 [node name="Mood" type="Node" parent="." node_paths=PackedStringArray("hero")]

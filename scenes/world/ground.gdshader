@@ -1,8 +1,13 @@
 shader_type spatial;
-// Sol du monde voxel (prototype) : dalles de 2 u dont la teinte ondule (sans dériver) avec la vie de la jungle,
-// place du village et chemins dorés vers les sanctuaires, autels violets, bande dorée qui défile
-// vers l'objectif. Dans le cercle du groove, autour du héros, le sol retrouve ses couleurs.
+// Sol du monde voxel (prototype) : place du village et chemins dorés vers les sanctuaires, autels
+// violets, bande dorée qui défile vers l'objectif. Dans le cercle du groove, autour du héros, le sol
+// retrouve ses couleurs. Version 2.5 : plus de quadrillage uni ; de grandes plaques d'herbe plus
+// claires ou plus sombres, des taches de terre, et chaque petit carré (1 u) un rien différent.
 render_mode unshaded;
+
+// Taches de terre (part du sol) et leur couleur (teinte, saturation, luminosité).
+uniform float dirt_amount = 0.2;
+uniform vec3 dirt_color = vec3(0.08, 0.42, 0.3);
 
 #include "res://scenes/world/salto_world.gdshaderinc"
 
@@ -19,17 +24,37 @@ void vertex() {
 	v_world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
+float hash21(vec2 p) {
+	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Bruit de valeur lissé (0 à 1).
+float value_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = hash21(i);
+	float b = hash21(i + vec2(1.0, 0.0));
+	float c = hash21(i + vec2(0.0, 1.0));
+	float d = hash21(i + vec2(1.0, 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
 void fragment() {
 	vec2 p = v_world.xz / salto_unit;
 	vec2 t = floor(p / 2.0);
-	vec2 f = fract(p / 2.0);
-	float e = min(min(f.x, f.y), min(1.0 - f.x, 1.0 - f.y));
 	float r = length(p);
-	float n = fract(sin(dot(t, vec2(12.9898, 78.233))) * 43758.5453);
+	float n = hash21(floor(p));
+	float big = value_noise(p * 0.045);
+	float mid = value_noise(p * 0.16 + vec2(17.0, 3.0));
 	float halo = salto_halo(v_world);
-	float h = fract(0.33 + n * 0.08 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12 * salto_life);
-	float s = 0.72;
-	float l = 0.32 + n * 0.08;
+	float h = fract(0.31 + big * 0.07 - mid * 0.03 + n * 0.02 + sin(length(t) * 0.22 - salto_time * 0.9) * 0.12 * salto_life);
+	float s = 0.7 - mid * 0.1;
+	float l = 0.27 + big * 0.1 + mid * 0.03 + n * 0.035;
+	float dirt = smoothstep(1.0 - dirt_amount, 1.07 - dirt_amount, value_noise(p * 0.07 + vec2(40.0, 11.0)) * 0.7 + mid * 0.3) * (1.0 - salto_village);
+	h = mix(h, dirt_color.x, dirt);
+	s = mix(s, dirt_color.y, dirt);
+	l = mix(l, dirt_color.z + n * 0.03, dirt);
 	vec2 s0 = salto_sanctuary_0.xy;
 	vec2 s1 = salto_sanctuary_1.xy;
 	vec2 s2 = salto_sanctuary_2.xy;
@@ -48,7 +73,6 @@ void fragment() {
 	float sat = salto_sat * salto_zone(p);
 	s *= mix(sat, max(sat, SALTO_HALO_SAT), halo);
 	l += salto_beat * 0.05 * max(salto_sat, halo * SALTO_HALO_SAT);
-	l *= mix(0.62, 1.0, smoothstep(0.02, 0.07, e));
 	l *= 1.0 - smoothstep(80.0, 96.0, r) * 0.45;
 	vec3 c = salto_hsl2rgb(vec3(h, s, l));
 	if (salto_target.z > 0.5) {

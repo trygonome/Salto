@@ -162,6 +162,9 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    - Ambiance : lucioles, pollen, feuilles qui tombent, eau animée ; héros et Muets détachés du décor
      (lumière de bord).
    *Test : sur une capture, le jeu paraît-il fini ?*
+   **Fait** (version 2.5) : lumière chaude et froide, arêtes, contre-jour, sol vivant, palmiers, fromagers,
+   fougères, lianes, herbe haute, mares, lucioles, feuilles, halo ; premier plan effacé ; titres qui ne se
+   coupent plus au milieu d'un mot. (Brume et ciel par région : en 2.6.)
 4. **2.6 — Les donjons : des clairières faites main, des régions.**
    - Clairières assemblées à partir de **modules faits à la main** (plateformes, escaliers, ponts,
      fosses, bassins) : du relief, de la hauteur, des formes qui ne sont plus des cercles.

@@ -352,3 +352,25 @@ func test_un_elite_appelant_fait_venir_des_renforts() -> void:
 	for i: int in 10:
 		await get_tree().physics_frame
 	assert_eq(_muets().size(), before + tuning.elite_call_count)
+
+
+func test_les_clairieres_sont_vivantes_sans_depasser_le_budget() -> void:
+	for kind: StringName in WorldGen.ROOM_KINDS + [&"arena"] as Array[StringName]:
+		var gen := WorldGen.new()
+		gen.generate_room(11, tuning.room_radius_max, PackedFloat32Array([-0.28, 0.28, PI]), kind)
+		assert_lt(gen.voxel_count(), 20000, "assez peu de cubes pour le téléphone (%s)" % kind)
+	var clearing := WorldGen.new()
+	clearing.generate_room(11, tuning.room_radius_max, PackedFloat32Array([0.0, PI]), &"clearing")
+	assert_eq(clearing.ponds.size(), 3, "une mare dans la clairière")
+	var pond := Vector2(clearing.ponds[0], clearing.ponds[1])
+	for gap: float in [0.0, PI]:
+		assert_gt(WorldGen.segment_distance(pond, Vector2.ZERO, WorldGen.gap_point(gap, tuning.room_radius_max)), clearing.ponds[2], "pas sur le chemin d'un passage")
+
+
+func test_un_long_titre_d_ecran_ne_se_coupe_pas_au_milieu_d_un_mot() -> void:
+	await _open_level()
+	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
+	screen.open_choices("Le vieux tambourinaire", "…", PackedStringArray(["A : b", "C : d"]), [true, true] as Array[bool])
+	assert_eq((screen.get_node("%Title") as Label).theme_type_variation, &"ScreenTitleSmall")
+	screen.hide_screen()
+	get_tree().paused = false

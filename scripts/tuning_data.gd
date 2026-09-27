@@ -1498,3 +1498,17 @@ extends Resource
 @export var boss_phase3_fraction: float
 @export var boss_act_cooldown_phase3: int
 
+@export_group("Graphismes du monde")
+## Hauteur de l'eau des mares au-dessus du sol (m).
+@export var pond_height: float
+## Lucioles et feuilles qui tombent (expédition) : nombre, durée de vie (s), hauteur de l'étendue (m),
+## taille (m) ; les feuilles tombent de cette vitesse (m/s).
+@export var fireflies: int
+@export var firefly_life: float
+@export var firefly_height: float
+@export var firefly_size: float
+@export var falling_leaves: int
+@export var leaf_life: float
+@export var leaf_size: float
+@export var leaf_fall_speed: float
+

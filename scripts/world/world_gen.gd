@@ -58,6 +58,21 @@ const ROOM_CENTER_CLEAR := 9.0
 const ROOM_LANE := 3.0
 ## Formes de clairière d'expédition (hors celle du Grand Muet).
 const ROOM_KINDS: Array[StringName] = [&"clearing", &"ruins", &"grove", &"logs", &"mushrooms"]
+## Végétation (version 2.5) : part de palmiers au premier rang du bord, de fromagers au second,
+## lianes qui pendent devant (et leur hauteur, u), palmiers et fougères dans la clairière, touffes
+## d'herbe, cailloux ; courbure des palmiers ; bas des lianes ; rayon des mares (u).
+const ROOM_PALM_SHARE := 0.35
+const ROOM_KAPOK_SHARE := 0.3
+const ROOM_LIANAS := 12
+const ROOM_LIANA_TOP := 9.0
+const ROOM_PALMS := 2
+const ROOM_FERNS := 6
+const ROOM_GRASS := 160
+const ROOM_PEBBLES := 26
+const PALM_BEND := 0.008
+const LIANA_BOTTOM := 2.4
+const POND_RADIUS_MIN := 3.0
+const POND_RADIUS_MAX := 4.5
 ## Hauteur de la plume (ou du coffre) au-dessus du dernier rocher d'un perchoir (u).
 const PERCH_ABOVE := 1.2
 ## Clairière du cercle des gongs (u) : rayon libre, entre ces distances du village, à cette distance
@@ -111,6 +126,8 @@ var totem_height: int = 0
 var gong_clearing := Vector2.INF
 ## Rayon des murs invisibles du bord (u).
 var border_radius: float = WORLD_R
+## Mares : x, z, rayon (u), à la suite (version 2.5).
+var ponds := PackedFloat32Array()
 
 var _rng: ProtoRandom
 
@@ -125,6 +142,7 @@ func generate(seed_value: int, nights_done: int) -> void:
 	sanctuaries.clear()
 	sanctuary_names.clear()
 	huts.clear()
+	ponds.clear()
 	gong_clearing = Vector2.INF
 	border_radius = WORLD_R
 	_add_village_solids()
@@ -187,6 +205,7 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 	sanctuaries.clear()
 	sanctuary_names.clear()
 	huts.clear()
+	ponds.clear()
 	gong_clearing = Vector2.INF
 	border_radius = radius + ROOM_WALL_BEHIND
 	_room_border(radius, gaps)
@@ -198,25 +217,34 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 		&"grove":
 			_room_place(_inner_tree, ROOM_GROVE_TREES + floori(_rnd() * 2.0), radius, gaps, 3.5)
 			_room_place(_bush, ROOM_GROVE_BUSHES, radius, gaps, 3.0)
+			_room_place(_fern, ROOM_FERNS, radius, gaps, 2.0)
 		&"logs":
 			_room_place(_room_log, ROOM_LOGS + floori(_rnd() * 2.0), radius, gaps, 4.5)
 			_room_place(_stump, ROOM_STUMPS + 1, radius, gaps, 2.0)
+			_room_place(_fern, ROOM_FERNS - 2, radius, gaps, 2.0)
 		&"mushrooms":
 			_room_place(_mushroom, ROOM_MUSHROOMS + floori(_rnd() * 2.0), radius, gaps, 3.5)
 			_room_place(_bouncer, ROOM_BOUNCERS, radius, gaps, 2.5)
 			_room_place(_perch, 1, radius, gaps, 5.5)
+			_room_place(_room_pond, 1, radius, gaps, 5.0)
 		_:
 			_room_place(_random_rock, ROOM_ROCKS + floori(_rnd() * 3.0), radius, gaps, 3.0)
 			_room_place(_stump, ROOM_STUMPS + floori(_rnd() * 2.0), radius, gaps, 2.0)
 			_room_place(_bouncer, 1, radius, gaps, 2.5)
+			_room_place(_palm, ROOM_PALMS, radius, gaps, 3.0)
+			_room_place(_room_pond, 1, radius, gaps, 5.0)
+			_room_place(_fern, ROOM_FERNS - 2, radius, gaps, 2.0)
 	for i: int in ROOM_FLOWERS:
 		var a: float = _rnd() * TAU
 		var r: float = _rnd() * radius
 		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+	_grass(radius, ROOM_GRASS)
+	_pebbles(radius, ROOM_PEBBLES)
 
 
 ## Le bord de la clairière : arbres et buissons serrés, en deux rangées (la première s'ouvre aux
-## passages).
+## passages). Version 2.5 : des palmiers dans la première, des fromagers dans la seconde (leurs
+## couronnes plates dessinent l'horizon), des lianes qui pendent devant.
 func _room_border(radius: float, gaps: PackedFloat32Array) -> void:
 	for row: int in 2:
 		var ring: float = radius + ROOM_RING_GAP + row * ROOM_RING_STEP
@@ -226,10 +254,21 @@ func _room_border(radius: float, gaps: PackedFloat32Array) -> void:
 			if _near_gap(a, gaps):
 				continue
 			var p := Vector2(sin(a), -cos(a)) * (ring + _rnd() * ROOM_RING_JITTER)
+			var pick: float = _rnd()
 			if row == 0 and i % 2 == 1:
 				_bush(p.x, p.y)
+			elif row == 0 and pick < ROOM_PALM_SHARE:
+				_palm(p.x, p.y)
+			elif row == 1 and pick < ROOM_KAPOK_SHARE:
+				_kapok(p.x, p.y)
 			else:
 				_tree(p.x, p.y, 1.0, true, 0)
+	for i: int in ROOM_LIANAS:
+		var a: float = (i + _rnd() * 0.6) / ROOM_LIANAS * TAU
+		if _near_gap(a, gaps):
+			continue
+		var p := Vector2(sin(a), -cos(a)) * (radius + ROOM_RING_GAP * 0.5)
+		_liana(p.x, p.y, ROOM_LIANA_TOP + _rnd() * 3.0)
 
 
 ## Ruines : un cercle de piliers (certains brisés, assez bas pour sauter dessus) et, au centre,
@@ -279,6 +318,117 @@ func _bush(x: float, z: float) -> void:
 
 func _inner_tree(x: float, z: float) -> void:
 	_tree(x, z, 1.0, true, 0)
+
+
+## Palmier : un tronc qui s'incline en courbe, des palmes qui retombent, trois noix de coco.
+func _palm(px: float, pz: float) -> void:
+	var h: int = 11 + floori(_rnd() * 5.0)
+	var bend_angle: float = _rnd() * TAU
+	var bend := Vector2(cos(bend_angle), sin(bend_angle)) * PALM_BEND
+	for y: int in h:
+		var off: Vector2 = bend * y * y
+		_sv(px + off.x, (y + 0.5) * 0.9, pz + off.y, 0.9, 4.07, 0.42, 0.3 + (y % 2) * 0.04)
+	var top := Vector2(px, pz) + bend * h * h
+	var ty: float = h * 0.9
+	var hue: float = 0.27 + _rnd() * 0.08
+	for f: int in 7:
+		var a: float = f / 7.0 * TAU + _rnd() * 0.3
+		var d := Vector2(cos(a), sin(a))
+		for k: int in 6:
+			var reach: float = 0.8 + k * 0.85
+			_sv(top.x + d.x * reach, ty + 0.4 - k * k * 0.12, top.y + d.y * reach, 0.85 - k * 0.06, hue + k * 0.01, 0.75, 0.36 + (k % 2) * 0.05)
+	for c: int in 3:
+		var a: float = c / 3.0 * TAU
+		_sv(top.x + cos(a) * 0.6, ty - 0.4, top.y + sin(a) * 0.6, 0.55, 4.08, 0.6, 0.28)
+	_add_solid(px, pz, 0.9)
+	_shadow(top.x, top.y, 3.2, 0.25)
+
+
+## Fromager : un tronc large aux contreforts, une couronne plate et immense (second rang du bord).
+func _kapok(kx: float, kz: float) -> void:
+	var h: int = 12 + floori(_rnd() * 4.0)
+	for y: int in h:
+		for a: int in 2:
+			for b: int in 2:
+				_sv(kx + (a - 0.5) * 1.2, (y + 0.5) * 1.1, kz + (b - 0.5) * 1.2, 1.2, 4.07, 0.32, 0.3 + _rnd() * 0.03)
+	for i: int in 4:
+		var angle: float = i / 4.0 * TAU + 0.4
+		var d := Vector2(cos(angle), sin(angle))
+		for k: int in 4:
+			for y: int in 4 - k:
+				_sv(kx + d.x * (1.2 + k * 0.9), (y + 0.5) * 1.0, kz + d.y * (1.2 + k * 0.9), 0.9, 4.07, 0.32, 0.27)
+	var cr: float = 6.0 + _rnd() * 2.0
+	var cy: float = h * 1.1 + 1.0
+	var hue: float = 0.24 + _rnd() * 0.1
+	var n: int = ceili(cr)
+	for x: int in range(-n, n + 1):
+		for z: int in range(-n, n + 1):
+			var d: float = Vector2(x, z).length()
+			if d > cr:
+				continue
+			_sv(kx + x * 1.1, cy, kz + z * 1.1, 1.1, fmod(hue + d * 0.01, 1.0), 0.7, 0.3 + _rnd() * 0.06)
+			if d < cr - 1.2:
+				_sv(kx + x * 1.1, cy + 1.1, kz + z * 1.1, 1.1, fmod(hue + d * 0.01, 1.0), 0.75, 0.38 + _rnd() * 0.1)
+	_add_solid(kx, kz, 2.0)
+	_shadow(kx, kz, cr * 1.1, 0.32)
+
+
+## Fougère : quelques frondes basses et arquées (on marche au travers).
+func _fern(fx: float, fz: float) -> void:
+	var hue: float = 0.3 + _rnd() * 0.08
+	for f: int in 6:
+		var a: float = f / 6.0 * TAU + _rnd() * 0.4
+		var d := Vector2(cos(a), sin(a))
+		for k: int in 4:
+			_sv(fx + d.x * (0.5 + k * 0.6), 0.4 + sin(k / 3.0 * PI) * 0.9, fz + d.y * (0.5 + k * 0.6), 0.55, hue + k * 0.01, 0.8, 0.34 + k * 0.03)
+	_shadow(fx, fz, 2.0, 0.2)
+
+
+## Liane : une tige qui pend de la canopée jusqu'à hauteur d'épaule, des feuilles de loin en loin.
+func _liana(lx: float, lz: float, top: float) -> void:
+	var hue: float = 0.28 + _rnd() * 0.1
+	var y: float = top
+	var i: int = 0
+	while y > LIANA_BOTTOM:
+		_sv(lx + sin(i * 0.7) * 0.25, y, lz + cos(i * 0.9) * 0.25, 0.4, 4.3, 0.5, 0.25)
+		if i % 3 == 0:
+			_sv(lx + 0.45, y - 0.2, lz, 0.6, hue, 0.75, 0.36)
+		y -= 0.55
+		i += 1
+
+
+## Mare : un bassin d'eau (dessiné par WorldBuilder), bordé de pierres.
+func _room_pond(x: float, z: float) -> void:
+	var r: float = POND_RADIUS_MIN + _rnd() * (POND_RADIUS_MAX - POND_RADIUS_MIN)
+	ponds.append_array(PackedFloat32Array([x, z, r]))
+	var stones: int = floori(TAU * r / 1.2)
+	for i: int in stones:
+		var a: float = i / float(stones) * TAU + _rnd() * 0.2
+		_sv(x + cos(a) * (r + 0.3), 0.2, z + sin(a) * (r + 0.3), 0.6 + _rnd() * 0.4, 4.6, 0.1, 0.4 + _rnd() * 0.12)
+
+
+## Touffes d'herbe haute un peu partout dans la clairière et jusqu'au pied des arbres (on marche au
+## travers).
+func _grass(radius: float, count: int) -> void:
+	for i: int in count:
+		var a: float = _rnd() * TAU
+		var r: float = sqrt(_rnd()) * (radius + ROOM_RING_GAP)
+		var x: float = sin(a) * r
+		var z: float = -cos(a) * r
+		var hue: float = 0.27 + _rnd() * 0.12
+		for b: int in 2 + floori(_rnd() * 3.0):
+			var bx: float = x + (_rnd() - 0.5) * 0.9
+			var bz: float = z + (_rnd() - 0.5) * 0.9
+			for y: int in 1 + floori(_rnd() * 2.0):
+				_sv(bx, 0.2 + y * 0.4, bz, 0.35, hue, 0.7, 0.3 + y * 0.06 + _rnd() * 0.05)
+
+
+## Cailloux épars.
+func _pebbles(radius: float, count: int) -> void:
+	for i: int in count:
+		var a: float = _rnd() * TAU
+		var r: float = sqrt(_rnd()) * radius
+		_sv(sin(a) * r, 0.15, -cos(a) * r, 0.3 + _rnd() * 0.3, 4.6, 0.08, 0.42 + _rnd() * 0.12)
 
 
 func _room_log(x: float, z: float) -> void:

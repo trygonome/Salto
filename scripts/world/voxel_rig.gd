@@ -91,12 +91,14 @@ func _build_mesh() -> Dictionary:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedFloat32Array()
+	var locals := PackedFloat32Array()
 	var bones := PackedInt32Array()
 	var weights := PackedFloat32Array()
 	var indices := PackedInt32Array()
 	vertices.resize(total * per_cube)
 	normals.resize(total * per_cube)
 	colors.resize(total * per_cube * 3)
+	locals.resize(total * per_cube * 3)
 	bones.resize(total * per_cube * 4)
 	weights.resize(total * per_cube * 4)
 	indices.resize(total * _cube_indices.size())
@@ -123,6 +125,10 @@ func _build_mesh() -> Dictionary:
 				colors[v * 3] = cells[o + 3]
 				colors[v * 3 + 1] = cells[o + 4]
 				colors[v * 3 + 2] = cells[o + 5]
+				# Position du sommet dans son cube (arêtes assombries par le matériau).
+				locals[v * 3] = _cube_vertices[k].x
+				locals[v * 3 + 1] = _cube_vertices[k].y
+				locals[v * 3 + 2] = _cube_vertices[k].z
 				bones[v * 4] = part
 				weights[v * 4] = 1.0
 				v += 1
@@ -131,11 +137,13 @@ func _build_mesh() -> Dictionary:
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_CUSTOM0] = colors
+	arrays[Mesh.ARRAY_CUSTOM1] = locals
 	arrays[Mesh.ARRAY_BONES] = bones
 	arrays[Mesh.ARRAY_WEIGHTS] = weights
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, Mesh.ARRAY_CUSTOM_RGB_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
+	var custom_format: int = (Mesh.ARRAY_CUSTOM_RGB_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGB_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, custom_format)
 	return {&"mesh": mesh, &"skin": skin}
 
 

@@ -180,4 +180,15 @@ func _layout() -> void:
 	var title: Label = get_node_or_null(^"%Title") as Label
 	if title:
 		var compact: bool = get_viewport().get_visible_rect().size.y < compact_height
-		title.theme_type_variation = &"ScreenTitleSmall" if compact else &"ScreenTitle"
+		title.theme_type_variation = &"ScreenTitleSmall" if compact or not _title_fits(title, width - 2.0 * side) else &"ScreenTitle"
+
+
+## Vrai si chaque mot du titre tient sur la largeur `available` en grand (sinon il se couperait
+## au milieu d'un mot : on le prend plus petit).
+func _title_fits(title: Label, available: float) -> bool:
+	var font: Font = title.get_theme_font(&"font", &"ScreenTitle")
+	var size: int = title.get_theme_font_size(&"font_size", &"ScreenTitle")
+	for word: String in title.text.split(" ", false):
+		if font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > available:
+			return false
+	return true
