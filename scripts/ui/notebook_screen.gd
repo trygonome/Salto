@@ -34,11 +34,12 @@ func _render() -> void:
 		child.queue_free()
 	for page: int in range(1, total + 1):
 		var panel := PanelContainer.new()
-		panel.theme_type_variation = &"ItemPanel" if profile.has_page(page) else &"ChipPanel"
+		var found: bool = profile.has_page(page)
+		panel.theme_type_variation = &"PagePanel" if found else &"SlotPanel"
 		var box := VBoxContainer.new()
 		panel.add_child(box)
-		box.add_child(_label(GameTexts.PAGE_TITLE % page, &"ItemTitle"))
-		box.add_child(_label(notebook.text(page) if profile.has_page(page) else _where(page), &"ItemLine" if profile.has_page(page) else &"SmallLabel"))
+		box.add_child(_label(GameTexts.PAGE_TITLE % page, &"PageTitle" if found else &"ItemTitle"))
+		box.add_child(_label(notebook.text(page) if found else _where(page), &"PageLine" if found else &"SmallLabel"))
 		_pages.add_child(panel)
 
 

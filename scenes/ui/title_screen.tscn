@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
 [ext_resource type="Resource" path="res://data/notebook.tres" id="9_notebook"]
+[ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 
 [sub_resource type="Gradient" id="Gradient_fade"]
 offsets = PackedFloat32Array(0, 0.22, 0.55, 1)
@@ -37,6 +38,17 @@ grow_vertical = 2
 mouse_filter = 2
 texture = SubResource("Texture_fade")
 expand_mode = 1
+
+[node name="Leaves" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_type_variation = &"TitleBackdrop"
+script = ExtResource("90_backdrop")
 
 [node name="SafeArea" type="Control" parent="."]
 layout_mode = 3

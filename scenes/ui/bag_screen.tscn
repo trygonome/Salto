@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/bag_screen.gd" id="1_screen"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_anklets.svg" id="5_anklets"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_mask.svg" id="6_mask"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/item_talisman.svg" id="7_talisman"]
+[ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 
 [node name="BagScreen" type="CanvasLayer"]
 layer = 30
@@ -22,13 +23,14 @@ top_margin = 16.0
 bottom_margin = 28.0
 compact_height = 540.0
 
-[node name="Background" type="Panel" parent="."]
+[node name="Background" type="Control" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_type_variation = &"DimPanel"
+mouse_filter = 0
+script = ExtResource("90_backdrop")
 
 [node name="SafeArea" type="Control" parent="."]
 layout_mode = 3

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/talents_screen.gd" id="1_screen"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
 [ext_resource type="Script" path="res://scripts/ui/pips.gd" id="5_pips"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/pickup.wav" id="6_buy"]
+[ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 
 [node name="TalentsScreen" type="CanvasLayer"]
 layer = 30
@@ -19,13 +20,14 @@ top_margin = 16.0
 bottom_margin = 28.0
 compact_height = 540.0
 
-[node name="Background" type="Panel" parent="."]
+[node name="Background" type="Control" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_type_variation = &"DimPanel"
+mouse_filter = 0
+script = ExtResource("90_backdrop")
 
 [node name="SafeArea" type="Control" parent="."]
 layout_mode = 3

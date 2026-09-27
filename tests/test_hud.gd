@@ -142,6 +142,32 @@ func test_la_pause_arrete_le_jeu_et_ouvre_le_sac() -> void:
 	assert_false(get_tree().paused)
 
 
+func test_un_ecran_s_ouvre_en_animant_puis_tout_est_la() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	Game.start_sortie()
+	menu.open()
+	var resume: Button = menu.get_node("%Resume") as Button
+	var band: WovenBand = menu.find_child("Band", true, false) as WovenBand
+	assert_not_null(band, "un bandeau tissé sous le titre")
+	assert_lt(resume.modulate.a, 1.0, "les boutons surgissent")
+	var longest: float = tuning.ui_stagger * (2 + tuning.ui_stagger_max) + maxf(tuning.ui_pop_time, tuning.ui_band_time)
+	await get_tree().create_timer(longest + 0.1).timeout
+	for button: Node in menu.find_children("*", "BaseButton", true, false):
+		if (button as Control).is_visible_in_tree():
+			assert_eq((button as Control).modulate.a, 1.0, "%s tout à fait visible" % button.name)
+			assert_almost_eq((button as Control).scale, Vector2.ONE, Vector2.ONE * 0.001)
+	assert_eq(band.reveal, 1.0, "le bandeau tout tissé")
+	resume.button_down.emit()
+	await get_tree().create_timer(tuning.ui_press_time * 2.0).timeout
+	assert_almost_eq(resume.scale.x, tuning.ui_press_scale, 0.001, "appuyé, il s'enfonce")
+	resume.button_up.emit()
+	await get_tree().create_timer(tuning.ui_press_time * 2.0).timeout
+	assert_almost_eq(resume.scale.x, 1.0, 0.001)
+	menu.close()
+	Game.playing = false
+
+
 func test_loin_du_village_le_sac_et_les_talents_attendent() -> void:
 	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
 	world.add_child(menu)
@@ -166,12 +192,13 @@ func test_l_experience_a_rapporter_bat_dans_la_barre() -> void:
 	Game.start_sortie()
 	Game.leave_village()
 	Game.progress.xp_carried = ProgressionMath.xp_needed(1, tuning) * 0.5
-	await _step(2)
+	# Le HUD se met à jour à chaque image (pas à chaque pas de physique).
+	await _frames(2)
 	var carry: ColorRect = hud.get_node("%XpCarry") as ColorRect
 	assert_true(carry.visible, "l'expérience des Muets libérés attend le village")
 	assert_eq(Game.profile.level, 1)
 	Game.enter_village()
-	await _step(2)
+	await _frames(2)
 	assert_false(carry.visible, "au village, elle s'ajoute")
 	assert_gt(Game.profile.xp, 0.0)
 	Game.playing = false
@@ -278,3 +305,8 @@ func test_le_resume_montre_la_sortie() -> void:
 	assert_has(texts, "2:05")
 	assert_has(texts, "7")
 	assert_eq((screen.get_node("%Again") as Button).text, GameTexts.AGAIN)
+
+
+func _frames(count: int) -> void:
+	for i: int in count:
+		await get_tree().process_frame

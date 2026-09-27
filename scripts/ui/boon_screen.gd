@@ -10,12 +10,13 @@ signal chosen(id: StringName)
 signal choice_made(index: int)
 
 ## Styles des lignes d'une carte : don (nom, rang, effet), choix de rencontre (action, effet).
-const BOON_STYLES: Array[StringName] = [&"ItemTitle", &"NewTag", &"ItemLine"]
-const CHOICE_STYLES: Array[StringName] = [&"ItemTitle", &"ItemLine"]
+const BOON_STYLES: Array[StringName] = [&"CardTitle", &"CardTag", &"CardLine"]
+const CHOICE_STYLES: Array[StringName] = [&"CardTitle", &"CardLine"]
 const CHOICE_SPLIT := " : "
 
 @onready var _cards: VBoxContainer = %Cards
 @onready var _pick_sound: AudioStreamPlayer = $PickSound
+@onready var _card_sound: AudioStreamPlayer = $CardSound
 
 
 func _ready() -> void:
@@ -57,6 +58,8 @@ func open_choices(title: String, text: String, choices: PackedStringArray, enabl
 		var parts: PackedStringArray = choices[i].split(CHOICE_SPLIT, true, 1)
 		var card: TileButton = _card(Array(parts), CHOICE_STYLES)
 		card.disabled = not enabled[i]
+		if card.disabled:
+			card.modulate.a = Tuning.data.ui_disabled_alpha
 		card.pressed.connect(_make_choice.bind(i))
 	get_tree().paused = true
 	show_screen()
@@ -64,13 +67,21 @@ func open_choices(title: String, text: String, choices: PackedStringArray, enabl
 
 func _card(lines: Array, styles: Array[StringName] = BOON_STYLES) -> TileButton:
 	var card := TileButton.new()
-	card.theme_type_variation = &"TileButton"
+	card.theme_type_variation = &"DrumCard"
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for i: int in lines.size():
-		card.add(_label(lines[i], styles[i] if lines.size() > 1 else &"ItemLine"))
+		card.add(_label(lines[i], styles[i] if lines.size() > 1 else styles[styles.size() - 1]))
 	_clicks(card)
 	_cards.add_child(card)
 	return card
+
+
+## Chaque carte qui surgit sonne un petit tambour, un ton plus haut que la précédente.
+func _entry_shown(item: Control) -> void:
+	if item.get_parent() != _cards or item.is_queued_for_deletion():
+		return
+	_card_sound.pitch_scale = pow(Tuning.data.ui_card_pitch_step, item.get_index())
+	_card_sound.play()
 
 
 func _make_choice(index: int) -> void:

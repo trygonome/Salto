@@ -518,6 +518,18 @@ def sfx_spit():
     return sweep(0.18, 420, 160, "triangle") * env(n, 0.003, 0.06)
 
 
+def sfx_ui_card():
+    """Carte de don qui surgit : un petit tambour de bois accordé (son propre tirage : il ne change
+    pas les autres sons)."""
+    rng = np.random.default_rng(22)
+    n = int(0.22 * RATE)
+    t = np.arange(n) / RATE
+    freq = degree(0, 1) * (1 + 0.35 * np.exp(-t / 0.02))
+    body = np.sin(2 * np.pi * np.cumsum(freq) / RATE) * env(n, 0.001, 0.06)
+    slap = rng.standard_normal(n) * env(n, 0.0005, 0.006)
+    return body + 0.25 * slap + 0.4 * marimba(degree(0, 2), 0.22)
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -570,6 +582,7 @@ def main():
     # sons ne changent pas).
     band = layer_band()
     write(ROOT / "assets/audio/music/night_band.wav", band * layer_gain, peak=np.max(np.abs(band)) * layer_gain)
+    write(ROOT / "assets/audio/sfx/ui_card.wav", sfx_ui_card(), peak=0.5)
 
 
 if __name__ == "__main__":

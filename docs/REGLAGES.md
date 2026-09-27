@@ -142,3 +142,10 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Rencontres : s'ouvrent à 1,6 m du personnage. Source : boire (tous les PV) ou un don contre 25 % des PV ;
   marchand : un don contre 40 plumes d'or, ou 15 % des PV ; tambourinaire : Métronome (un rang), ou une
   page du carnet et 15 % des PV ; villageois perdu : un objet contre 20 PV, ou 15 plumes d'or.
+
+## Écrans (version 2.2)
+- Ouverture : fond 0,18 s ; titre qui tombe de ×1,35 ; bandeau tissé 0,35 s ; chaque élément surgit de ×0,82
+  en 0,32 s, 55 ms après le précédent (8 écarts au plus).
+- Bouton appuyé : ×0,94 en 80 ms. Carte impossible à choisir : 55 % d'opacité.
+- Feuilles du fond : balancement de 1,6° sur deux temps ; cubes de couleur : montée de 22 px/s.
+- Cartes des dons : un petit tambour par carte, un ton plus haut à chaque carte (×1,122).

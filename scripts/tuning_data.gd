@@ -1253,3 +1253,28 @@ extends Resource
 @export var level_pulse_scale: float
 ## Ce que le HUD recalcule moins souvent (bouton de pause qui brille) (s).
 @export var hud_slow_refresh: float
+
+@export_group("Écrans")
+## Ouverture d'un écran : le fond apparaît (s), le titre tombe de cette taille, le bandeau se
+## tisse (s), puis chaque élément surgit de cette taille (s), l'un après l'autre (écart en s ;
+## au plus tant d'écarts).
+@export var ui_fade_time: float
+@export var ui_title_scale: float
+@export var ui_band_time: float
+@export var ui_item_scale: float
+@export var ui_pop_time: float
+@export var ui_stagger: float
+@export var ui_stagger_max: int
+## Bouton appuyé : il s'écrase à cette taille (s).
+@export var ui_press_scale: float
+@export var ui_press_time: float
+## Feuilles du fond : balancement (degrés) sur deux temps ; un temps sans musique (s).
+@export var ui_leaf_sway_deg: float
+@export var ui_idle_beat: float
+## Cubes de couleur du fond : montée (px/s) et va-et-vient (px).
+@export var ui_mote_speed: float
+@export var ui_mote_drift: float
+## Cartes des dons : chaque carte sonne un ton plus haut (rapport de hauteur).
+@export var ui_card_pitch_step: float
+## Carte impossible à choisir (le marchand sans plumes) : transparence.
+@export var ui_disabled_alpha: float

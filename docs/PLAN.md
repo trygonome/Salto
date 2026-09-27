@@ -116,6 +116,9 @@ Jalons :
    bouge pendant un arrêt sur image) ; bord des clairières en mur d'arbres visible ; volant qui s'écrase
    après son piqué, à frapper au sol ; 5 formes de clairière nommées (+ l'arène), taille variable ;
    4 rencontres à choix (passage « ? »).
+   **Version 2.2** (retour : « les menus manquent cruellement de style ») — écrans dans la direction
+   artistique : bois sculpté en cubes, peaux de tambour, bandeau tissé, fond de jungle animé,
+   ouvertures animées (voir GDD §11).
 2. **La carte** — élites, trésors, reprise d'une expédition interrompue.
 3. **Le camp** — dépenser les plumes d'or en améliorations permanentes, déblocages.
 4. **Contenu** — dons rares et combinaisons, régions, boss.

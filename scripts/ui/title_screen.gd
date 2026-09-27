@@ -33,6 +33,14 @@ func _ready() -> void:
 	_new_game.pressed.connect(_on_new_game)
 
 
+func _band_anchor() -> Control:
+	return %Subtitle as Control
+
+
+func _heading() -> Control:
+	return %GameTitle as Control
+
+
 func _layout() -> void:
 	super()
 	var compact: bool = get_viewport().get_visible_rect().size.y < compact_height

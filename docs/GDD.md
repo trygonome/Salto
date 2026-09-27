@@ -131,6 +131,15 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 - **Lumière** : lune froide, lanternes chaudes au village, brouillard léger, bloom sur les éléments émissifs uniquement.
 - **Animation** : squelettique (packs ou Mixamo), anticipation et relâché sur les coups ; les Muets ne bougent jamais tous en même temps.
 - Avant de produire : choisir ensemble 3 ou 4 références (jeux ou images) et le pack d'assets principal.
+- **Écrans et menus** (version 2.2) : « jungle tribale en cubes », tout dessiné par le code (net à toutes
+  les tailles). Boutons en planches de bois sculpté (biseau clair en haut, sombre en bas, coins en escalier,
+  veinures), l'action principale en planche dorée cloutée ; cartes des dons et des rencontres en **peaux de
+  tambour** lacées, encre sombre ; pages du carnet en parchemin sous un **bandeau tissé** aux couleurs volées
+  (rose, or, cyan, vert), qui souligne aussi chaque titre. Fond : le jeu flou derrière un voile de jungle,
+  des feuilles en cubes aux coins qui se balancent sur la musique, des cubes de couleur qui montent.
+  À l'ouverture : le titre tombe, le bandeau se tisse, chaque élément surgit l'un après l'autre ; chaque carte
+  de don sonne un petit tambour, un ton plus haut que la précédente ; un bouton appuyé s'enfonce.
+  Dans le jeu, l'objectif, les messages et le bouton pause sont de petites plaques de bois.
 
 ## 12. Charte des retours à l'écran (leçon du prototype)
 - **Le monde parle d'abord** : effets, sons, réactions des personnages avant tout texte.
