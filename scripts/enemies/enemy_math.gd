@@ -23,11 +23,17 @@ static func ease_out(t: float) -> float:
 ## (dans `direction`, à `distance`) est trop près, avance s'il est trop loin, sinon il tourne
 ## autour de lui en changeant de sens tous les quelques temps.
 static func keep_distance(direction: Vector3, distance: float, beat_index: int, parity: int, tuning: TuningData) -> Vector3:
-	if distance < tuning.spitter_keep_min:
+	return keep_between(direction, distance, beat_index, parity, tuning.spitter_keep_min, tuning.spitter_keep_max, tuning.spitter_strafe_beats)
+
+
+## Comme keep_distance, entre `keep_min` et `keep_max` mètres (tisserand, totem, danseur…),
+## en changeant de sens tous les `strafe_beats` temps.
+static func keep_between(direction: Vector3, distance: float, beat_index: int, parity: int, keep_min: float, keep_max: float, strafe_beats: int) -> Vector3:
+	if distance < keep_min:
 		return -direction
-	if distance > tuning.spitter_keep_max:
+	if distance > keep_max:
 		return direction
-	var side: float = 1.0 if posmod(floori(float(beat_index) / tuning.spitter_strafe_beats) + parity, 2) == 1 else -1.0
+	var side: float = 1.0 if posmod(floori(float(beat_index) / strafe_beats) + parity, 2) == 1 else -1.0
 	return Vector3(-direction.z, 0.0, direction.x) * side
 
 

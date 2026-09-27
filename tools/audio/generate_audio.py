@@ -606,6 +606,18 @@ def sfx_riposte():
     return np.tanh(1.3 * (0.6 * air + hit + shine))
 
 
+def sfx_sing():
+    """Totem chanteur : un accord de voix « aah » qui monte d'un coup, et un reflet aigu."""
+    out = np.zeros(int(1.1 * RATE))
+    for k, d in enumerate([0, 4, 7]):
+        v = voice(degree(d, 1), 0.9)
+        i = int(0.03 * k * RATE)
+        out[i:i + len(v)] += v[: len(out) - i]
+    t = np.arange(len(out)) / RATE
+    out += np.sin(2 * np.pi * degree(0, 3) * t) * env(len(out), 0.05, 0.3) * 0.4
+    return out
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -665,6 +677,8 @@ def main():
     write(ROOT / "assets/audio/sfx/charge.wav", sfx_charge(), peak=0.45)
     write(ROOT / "assets/audio/sfx/grace.wav", sfx_grace(), peak=0.75)
     write(ROOT / "assets/audio/sfx/riposte.wav", sfx_riposte(), peak=0.7)
+    # Bestiaire 2.4.
+    write(ROOT / "assets/audio/sfx/sing.wav", sfx_sing(), peak=0.55)
 
 
 if __name__ == "__main__":

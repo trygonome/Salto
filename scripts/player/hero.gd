@@ -662,7 +662,7 @@ func _on_hurt(hit: HitData) -> void:
 	if health.is_depleted():
 		_faint()
 		return
-	var recoil: float = tuning.hero_recoil_big_speed if hit.big else tuning.hero_recoil_speed
+	var recoil: float = (tuning.hero_recoil_big_speed if hit.big else tuning.hero_recoil_speed) + hit.launch * tuning.hero_throw_speed
 	set_horizontal_velocity(hit.direction * recoil)
 	state_machine.transition_to(&"Hurt")
 

@@ -95,8 +95,21 @@ Anciens musiciens du village : bouche cousue, grands yeux, antennes aux couleurs
 | Porte-bouclier | bloque de face, se tourne lentement | passer derrière ou plonger dessus | tout coup de dos, plongeon |
 | Cornu | charge en ligne droite après 2 temps d'annonce, s'assomme contre les arbres | esquive au dernier moment ou saut | tout coup quand il est assommé |
 | Cracheur | garde ses distances, crache des bulles | sauter par-dessus, s'approcher | coup roulé |
+| Tisserand | garde ses distances, fait pousser des ronces sous le héros (cercle annoncé 2 temps) | sortir du cercle, lui sauter dessus | plongeon |
+| Totem chanteur | reste en retrait, chante : les Muets proches sont protégés (dégâts ÷2), soignés, pressés | l'abattre d'abord | coup chargé |
+| Danseur | vif, tourne autour du héros, esquive un coup sur deux puis contre d'une vrille | esquiver la vrille, riposter | riposte |
+| Brute | lente ; lève les poings, bondit sur la ligne annoncée, saisit et jette ; puis essoufflée | esquiver, frapper quand elle souffle | tout coup quand elle est sonnée |
 
 **Grand Muet** : frappe au sol annoncée par un cercle rouge (2 temps). À mi-vie, il enrage et envoie des ondes de choc à sauter.
+Sous le quart de ses PV (version 2.4), dernière phase : il rugit, appelle ses gardiens, lance une couronne de bulles
+à chaque frappe et attaque plus souvent.
+
+**Vagues composées** (version 2.4) : chaque vague suit un modèle de rôles qui se complètent (meute, essaim, mur de
+boucliers et de cracheurs, cavalerie de cornus, ronces, bal de danseurs, chœur d'un totem, brutes, fanfare) ;
+les espèces de retrait apparaissent plus loin.
+**Élites** : un par expédition (clairière tirée de la graine), plus gros, couronné d'or, avec sa barre et son nom et
+une particularité : vif, cuirassé, éclatant (explose une fois libéré), appelant (renforts à mi-vie), doré (plumes
+d'or). Libéré, il offre un **don de l'élite** après la récompense de la clairière.
 Sa réponse : le **Salto arc-en-ciel**. Libéré, il retrouve sa voix et remercie (réplique sonore courte).
 
 **La bonne réponse** fait plus de dégâts (×1,6), remplit la jauge de groove, rend un instant ses couleurs au Muet

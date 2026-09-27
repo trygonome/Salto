@@ -13,6 +13,10 @@ extends Level
 @export var shielder_scene: PackedScene
 @export var charger_scene: PackedScene
 @export var spitter_scene: PackedScene
+@export var weaver_scene: PackedScene
+@export var totem_scene: PackedScene
+@export var dancer_scene: PackedScene
+@export var brute_scene: PackedScene
 @export var boss_scene: PackedScene
 @export var gate_scene: PackedScene
 ## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
@@ -23,15 +27,6 @@ extends Level
 @export var prop_material: Material
 @export var notebook: NotebookData
 
-## Espèces de chaque clairière, de la première à l'avant-dernière (au-delà : la dernière liste).
-const ROOM_FOES: Array = [
-	[&"hopper"],
-	[&"hopper", &"flyer"],
-	[&"hopper", &"flyer", &"charger"],
-	[&"hopper", &"shielder", &"flyer"],
-	[&"hopper", &"charger", &"spitter", &"flyer"],
-	[&"hopper", &"flyer", &"shielder", &"charger", &"spitter"],
-]
 ## Gardiens du Grand Muet.
 const BOSS_GUARDS: Array[StringName] = [&"hopper", &"flyer"]
 ## Angle de l'entrée (sud) et écart entre deux passages de sortie (rad, autour du nord).
@@ -64,6 +59,9 @@ var _radius: float = 0.0
 var _kind: StringName = &"clearing"
 var _encounter: StringName = &""
 var _encounter_open: bool = false
+## Modèle de la vague précédente (pour ne pas le répéter) ; un élite a été libéré dans la clairière.
+var _last_template: StringName = &""
+var _elite_boon: bool = false
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -261,6 +259,7 @@ func _enter_room() -> void:
 	_boss = null
 	_encounter = &""
 	_encounter_open = false
+	_elite_boon = false
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	for node: Node in foes.get_children() + pickups.get_children():
@@ -311,32 +310,45 @@ func _start_wave() -> void:
 			_spawn(_scene_of(BOSS_GUARDS[i % BOSS_GUARDS.size()]), _spawn_point())
 		_wave += 1
 		return
-	var list: Array = ROOM_FOES[mini(run.room, ROOM_FOES.size() - 1)]
 	var count: int = tuning.room_wave_base + roundi(tuning.room_wave_per_room * run.room)
-	for i: int in count:
-		_spawn(_scene_of(list[_rng.randi_range(0, list.size() - 1)]), _spawn_point())
+	var wave: Dictionary = WaveComposer.compose(run.room, count, _rng, _last_template)
+	_last_template = wave[&"id"]
+	var elite: StringName = &""
+	if not run.elite_done and run.room >= run.elite_room(tuning.elite_first_room):
+		elite = run.elite_affix(Muet.ELITES)
+		run.elite_done = true
+	for species: StringName in wave[&"foes"]:
+		_spawn(_scene_of(species), _spawn_point(WaveComposer.back_row(species)), elite)
+		elite = &""
 	_wave += 1
 
 
-## Point d'apparition d'un Muet (u) : dans la clairière, loin du héros et du décor.
-func _spawn_point() -> Vector2:
+## Point d'apparition d'un Muet (u) : dans la clairière, loin du héros et du décor ; `back` : une
+## espèce qui se tient en retrait apparaît deux fois plus loin du héros.
+func _spawn_point(back: bool = false) -> Vector2:
 	var tuning: TuningData = Tuning.data
 	var from := Vector2(hero.global_position.x, hero.global_position.z) / _unit
+	var clearance: float = tuning.room_spawn_hero_clearance / _unit * (2.0 if back else 1.0)
 	var best := Vector2.ZERO
 	for t: int in tuning.spawn_tries:
 		var a: float = _rng.randf() * TAU
 		var r: float = _rng.randf_range(tuning.room_spawn_min, tuning.room_spawn_max) * _radius
 		var p := Vector2(sin(a), -cos(a)) * r
-		if p.distance_to(from) < tuning.room_spawn_hero_clearance / _unit or _blocked(p, tuning.spawn_clearance / _unit):
+		if _blocked(p, tuning.spawn_clearance / _unit):
+			continue
+		if p.distance_to(from) < clearance:
+			if p.distance_to(from) > best.distance_to(from):
+				best = p
 			continue
 		return p
 	return best
 
 
-func _spawn(scene: PackedScene, p: Vector2) -> EnemySpawner:
+func _spawn(scene: PackedScene, p: Vector2, elite: StringName = &"") -> EnemySpawner:
 	var tuning: TuningData = Tuning.data
 	var spawner := EnemySpawner.new()
 	spawner.scene = scene
+	spawner.elite = elite
 	spawner.position = Vector3(p.x, 0.0, p.y) * _unit
 	spawner.wanderer = true
 	spawner.hunter = true
@@ -360,7 +372,40 @@ func _scene_of(species: StringName) -> PackedScene:
 			return charger_scene
 		&"spitter":
 			return spitter_scene
+		&"weaver":
+			return weaver_scene
+		&"totem":
+			return totem_scene
+		&"dancer":
+			return dancer_scene
+		&"brute":
+			return brute_scene
 	return hopper_scene
+
+
+## Un élite appelant demande `count` renforts : des sautillants surgissent autour de lui.
+func call_help(muet: Muet, count: int) -> void:
+	var tuning: TuningData = Tuning.data
+	if not in_sortie or _ending:
+		return
+	var center := Vector2(muet.global_position.x, muet.global_position.z) / _unit
+	for k: int in count:
+		var angle: float = TAU * k / count + _rng.randf()
+		_spawn(hopper_scene, center + Vector2(cos(angle), sin(angle)) * tuning.boss_summon_distance / _unit)
+
+
+## Un élite libéré : plumes d'or s'il était doré ; un don de l'élite attend la fin de la clairière.
+func on_elite_freed(muet: Muet) -> void:
+	var tuning: TuningData = Tuning.data
+	if not in_sortie or Game.run == null:
+		return
+	_elite_boon = true
+	if muet.elite == Muet.ELITE_GOLDEN:
+		Game.run.feathers += tuning.elite_golden_feathers
+		hud.show_toast(GameTexts.FEATHERS_FOUND % tuning.elite_golden_feathers)
+		var fx: Effects = Effects.of(self)
+		if fx:
+			fx.burst(muet.global_position + Vector3.UP * tuning.hero_height, tuning.fx_plume_cubes, tuning.fx_plume_speed, tuning.fx_gold_hue)
 
 
 func _blocked(p: Vector2, margin: float) -> bool:
@@ -406,7 +451,7 @@ func _room_cleared() -> void:
 			hud.show_toast(GameTexts.FEATHERS_FOUND % gained)
 			if fx:
 				fx.burst(hero.global_position + Vector3.UP * tuning.hero_height, tuning.fx_plume_cubes, tuning.fx_plume_speed, tuning.fx_gold_hue)
-	_open_exits()
+	_after_reward()
 
 
 func _on_boon_chosen(id: StringName) -> void:
@@ -414,6 +459,16 @@ func _on_boon_chosen(id: StringName) -> void:
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.burst(hero.global_position + Vector3.UP * Tuning.data.hero_height, Tuning.data.fx_plume_cubes, Tuning.data.fx_plume_speed)
+	_after_reward()
+
+
+## Après la récompense de la clairière : le don de l'élite s'il a été libéré ici, puis les passages.
+func _after_reward() -> void:
+	var tuning: TuningData = Tuning.data
+	if _elite_boon and Game.run:
+		_elite_boon = false
+		boon_screen.open(Boons.offer(Game.run.rng, Game.run.boons, tuning.boon_offer, tuning), GameTexts.ELITE_BOON_TITLE)
+		return
 	_open_exits()
 
 

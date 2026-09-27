@@ -26,8 +26,9 @@ func _ready() -> void:
 	%Sub.text = GameTexts.BOON_SUB
 
 
-## Propose les dons `offer` (le jeu est mis en pause jusqu'au choix).
-func open(offer: Array[StringName]) -> void:
+## Propose les dons `offer` (le jeu est mis en pause jusqu'au choix) ; `title` : le titre de
+## l'écran s'il n'est pas « Don des esprits » (don de l'élite).
+func open(offer: Array[StringName], title: String = "") -> void:
 	var tuning: TuningData = Tuning.data
 	var owned: Dictionary[StringName, int] = {}
 	if Game.run:
@@ -35,7 +36,7 @@ func open(offer: Array[StringName]) -> void:
 	for child: Node in _cards.get_children():
 		_cards.remove_child(child)
 		child.queue_free()
-	%Title.text = GameTexts.BOON_TITLE
+	%Title.text = title if title != "" else GameTexts.BOON_TITLE
 	%Sub.text = GameTexts.BOON_SUB
 	for id: StringName in offer:
 		var level: int = Boons.rank(owned, id) + 1

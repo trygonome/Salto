@@ -8,11 +8,23 @@ extends CharacterBody3D
 ## Équilibre (version 2.3) : chaque coup l'entame ; brisé, le Muet chancelle (étourdi, plus
 ## fragile) et attend le coup de grâce. Projeté assez fort, il se blesse contre ce qu'il heurte
 ## (arbre, pilier) et un autre Muet heurté part à son tour.
+## Version 2.4 : élites (couronne d'or, plus forts, une particularité), protection du totem
+## chanteur, esquive du danseur, phases du Grand Muet.
 
 ## Un Muet vient d'être libéré.
 signal freed(muet: Muet)
 ## Son équilibre vient de se briser : il chancelle.
 signal staggered_now(muet: Muet)
+
+## Particularités d'élite (voir Tuning, groupe « Élites »).
+const ELITE_SWIFT := &"swift"
+const ELITE_ARMORED := &"armored"
+const ELITE_VOLATILE := &"volatile"
+const ELITE_CALLER := &"caller"
+const ELITE_GOLDEN := &"golden"
+const ELITES: Array[StringName] = [ELITE_SWIFT, ELITE_ARMORED, ELITE_VOLATILE, ELITE_CALLER, ELITE_GOLDEN]
+## Coups qu'un danseur n'esquive pas (brisent la garde, passent par-dessus, ou ne visent personne).
+const UNDODGEABLE: Array[StringName] = [&"thorns", &"finale", &"shadow", &"impact"]
 
 ## Sons du choc (projeté contre un obstacle) et de l'équilibre brisé.
 const IMPACT_SOUND: AudioStream = preload("res://assets/audio/sfx/impact.wav")
@@ -26,6 +38,8 @@ const POISE_BAR_SHADER: Shader = preload("res://scenes/enemies/poise_bar.gdshade
 @export var guardian: bool
 ## Chasseur (expédition) : il voit le héros de partout et le poursuit sans revenir à son poste.
 var hunter: bool = false
+## Particularité d'élite (vide : Muet ordinaire ; voir ELITES).
+var elite: StringName = &""
 ## Brûlure en cours (don « Pied de braise ») : temps restant (s), dégâts par seconde, étincelles.
 var _burn_left: float = 0.0
 var _burn_dps: float = 0.0
@@ -81,6 +95,14 @@ var _launch: float = 0.0
 var _launch_power: float = 0.0
 var _poise_bar: MeshInstance3D
 var _impact_sound: AudioStreamPlayer3D
+## Protection du totem chanteur : temps restant (s) et facteur des dégâts reçus.
+var _ward_left: float = 0.0
+var _ward_multiplier: float = 1.0
+## Danseur : temps avant de pouvoir esquiver de nouveau (s).
+var _evade_left: float = 0.0
+## Élite appelant : les renforts sont déjà venus. Grand Muet : sa phase (1 à 3).
+var _called: bool = false
+var _phase: int = 1
 
 @onready var health: Health = $Health
 @onready var hurtbox: Hurtbox = $Hurtbox
@@ -101,10 +123,13 @@ func _ready() -> void:
 	var radius: float = stat(&"radius")
 	var shadow: float = radius * (tuning.flyer_shadow_fraction if flies else 1.0)
 	body.king = king
+	body.elite = elite != &""
 	add_to_group(&"muets")
-	if is_boss():
+	if is_boss() or elite != &"":
 		add_to_group(&"bosses")
-	body.setup(stat(&"scale") * tuning.voxel_unit, shadow)
+	if elite != &"" and display_name == "":
+		display_name = GameTexts.elite_name(species, elite)
+	body.setup(stat(&"scale") * tuning.voxel_unit * (tuning.elite_scale if elite != &"" else 1.0), shadow * (tuning.elite_scale if elite != &"" else 1.0))
 	body.turn_rate = stat_or(&"turn_rate", tuning.muet_turn_rate)
 	var height: float = body.height
 	for shape_node: CollisionShape3D in [_collision, $Hurtbox/CollisionShape3D as CollisionShape3D]:
@@ -122,7 +147,10 @@ func _ready() -> void:
 	if species == &"shielder":
 		hurtbox.blocker = _blocks
 		hurtbox.blocked.connect(_on_blocked)
-	poise_max = EnemyMath.max_poise(stat_or(&"poise", 0.0), tuning.muet_poise_per_tier, tier)
+	elif species == &"dancer":
+		hurtbox.blocker = _evades
+		hurtbox.blocked.connect(_on_evaded)
+	poise_max = EnemyMath.max_poise(stat_or(&"poise", 0.0), tuning.muet_poise_per_tier, tier) * (tuning.elite_poise if elite != &"" else 1.0)
 	poise = poise_max
 	_make_poise_bar()
 	_impact_sound = AudioStreamPlayer3D.new()
@@ -142,6 +170,8 @@ func _physics_process(delta: float) -> void:
 	if _knockback_left > 0.0:
 		_knockback_left -= delta
 	_contact_left -= delta
+	_ward_left = maxf(_ward_left - delta, 0.0)
+	_evade_left = maxf(_evade_left - delta, 0.0)
 	_update_burn(delta)
 	_update_poise(delta)
 	state_machine.physics_update(delta)
@@ -204,8 +234,15 @@ func _hero() -> Hero:
 
 
 ## Réglage de l'espèce : Tuning.<espèce>_<nom> (par exemple hopper_health) ; null s'il n'existe pas.
+## Un élite rapide bondit plus vite et attaque plus souvent.
 func stat(stat_name: StringName) -> Variant:
-	return Tuning.data.get("%s_%s" % [species, stat_name])
+	var value: Variant = Tuning.data.get("%s_%s" % [species, stat_name])
+	if elite == ELITE_SWIFT and value != null:
+		if stat_name == &"hop_time":
+			return float(value) * Tuning.data.elite_swift_time
+		if stat_name == &"act_cooldown":
+			return maxi(1, int(value) - Tuning.data.elite_swift_cooldown)
+	return value
 
 
 ## Réglage de l'espèce, ou `fallback` si l'espèce n'en a pas.
@@ -233,7 +270,7 @@ func max_health() -> float:
 	var tuning: TuningData = Tuning.data
 	var per_tier: float = tuning.boss_health_per_tier if is_boss() else tuning.muet_health_per_tier
 	var base: float = EnemyMath.scaled(stat(&"health"), per_tier, tier, tuning.muet_health_per_night, Game.night)
-	return roundf(base * (tuning.king_health_factor if king else 1.0))
+	return roundf(base * (tuning.king_health_factor if king else 1.0) * (tuning.elite_health if elite != &"" else 1.0))
 
 
 ## Rayon de la frappe au sol (plus large pour le Roi Muet).
@@ -247,7 +284,8 @@ func damage_of(stat_name: StringName) -> float:
 	var per_tier: float = stat_or(StringName(String(stat_name) + "_per_tier"), -1.0) if is_boss() else -1.0
 	if per_tier < 0.0:
 		per_tier = tuning.muet_damage_per_tier
-	return EnemyMath.scaled(stat(stat_name), per_tier, tier, tuning.muet_damage_per_night, Game.night)
+	var damage: float = EnemyMath.scaled(stat(stat_name), per_tier, tier, tuning.muet_damage_per_night, Game.night)
+	return damage * (tuning.elite_damage if elite != &"" else 1.0)
 
 
 ## Reçoit un temps de la musique (appelé directement dans les tests).
@@ -313,11 +351,32 @@ func act_in_range() -> bool:
 	return distance >= stat_or(&"act_min_range", 0.0) and distance < stat_or(&"act_max_range", 0.0)
 
 
-## Temps de repos après une attaque (le Grand Muet en rage attaque plus souvent).
+## Temps de repos après une attaque (le Grand Muet en rage attaque plus souvent, et encore plus
+## dans sa dernière phase).
 func act_rest_beats() -> int:
+	if is_boss() and _phase >= 3:
+		return Tuning.data.boss_act_cooldown_phase3
 	if is_boss() and enraged:
 		return Tuning.data.boss_act_cooldown_enraged
 	return int(stat_or(&"act_cooldown", 0.0))
+
+
+## Phase du Grand Muet (1 ; 2 en rage, sous la moitié de ses PV ; 3 sous le quart) ; 1 pour les autres.
+func phase() -> int:
+	return _phase
+
+
+## Protégé par le chant du totem : dégâts reçus ×`multiplier` pendant `duration` s.
+func ward(duration: float, multiplier: float) -> void:
+	if is_freed():
+		return
+	_ward_left = duration
+	_ward_multiplier = multiplier
+	body.glimmer(Tuning.data.answer_glimmer, duration)
+
+
+func is_warded() -> bool:
+	return _ward_left > 0.0
 
 
 ## Bond de `offset` (déplacement horizontal) en `duration` s, à `height` m de haut ; `on_land`
@@ -350,8 +409,10 @@ func next_hop(beat_index: int) -> Vector3:
 	if target:
 		var distance: float = flat_distance_to(target.global_position)
 		var direction: Vector3 = flat_direction_to(target.global_position)
-		if species == &"spitter":
-			return EnemyMath.keep_distance(direction, distance, beat_index, parity, tuning) * step
+		var keep_min: float = stat_or(&"keep_min", 0.0)
+		if keep_min > 0.0:
+			var way: Vector3 = EnemyMath.keep_between(direction, distance, beat_index, parity, keep_min, stat_or(&"keep_max", keep_min), tuning.spitter_strafe_beats)
+			return way * step
 		var reach: float = stat(&"radius") + target.hurtbox.radius + tuning.muet_approach_margin
 		return direction * minf(step, maxf(0.0, distance - reach))
 	var leash: float = tuning.muet_leash_guard if guardian else tuning.muet_leash_wander
@@ -500,6 +561,10 @@ func _answer(hit: HitData) -> void:
 	if EnemyMath.is_answer(answers, hit.move, stunned, behind):
 		hit.answer = true
 		hit.damage *= tuning.answer_damage
+	if elite == ELITE_ARMORED:
+		hit.damage *= tuning.elite_armor
+	if is_warded():
+		hit.damage *= _ward_multiplier
 
 
 func _on_hurt(hit: HitData) -> void:
@@ -519,6 +584,12 @@ func _on_hurt(hit: HitData) -> void:
 		enraged = true
 		act_cooldown = 1
 		body.set_enraged(true)
+		_phase = 2
+	if is_boss() and _phase < 3 and health.current / health.maximum <= tuning.boss_phase3_fraction and not health.is_depleted():
+		_enter_last_phase()
+	if elite == ELITE_CALLER and not _called and health.current / health.maximum <= tuning.elite_call_fraction and not health.is_depleted():
+		_called = true
+		get_tree().call_group(&"night_level", &"call_help", self, tuning.elite_call_count)
 	if health.is_depleted():
 		return
 	var state: MuetState = state_machine.current as MuetState
@@ -530,6 +601,21 @@ func _on_hurt(hit: HitData) -> void:
 		stun(tuning.shielder_dive_stun)
 	elif state and state.interruptible() and not is_boss():
 		state_machine.transition_to(state_machine.initial_state.name)
+
+
+## Dernière phase du Grand Muet : il rugit (anneau, secousse), appelle ses gardiens et attaquera
+## plus souvent.
+func _enter_last_phase() -> void:
+	var tuning: TuningData = Tuning.data
+	_phase = 3
+	enraged = true
+	act_cooldown = 1
+	Feedback.shake(tuning.shake_trauma_dive, Vector3.ZERO)
+	var fx: Effects = effects()
+	if fx:
+		fx.ring(global_position, slam_radius(), fx.red, tuning.fx_break_ring_time, true)
+		fx.burst(global_position + Vector3.UP * body.height, tuning.fx_break_cubes, tuning.fx_break_speed)
+	get_tree().call_group(&"night_level", &"summon_guards", self)
 
 
 ## Entame l'équilibre de `amount` ; renvoie vrai s'il vient de se briser (le Muet chancelle).
@@ -735,6 +821,29 @@ func _on_blocked(hit: HitData) -> void:
 		hero.set_horizontal_velocity(-hit.direction * tuning.shielder_block_push)
 
 
+## Le danseur esquive un coup ordinaire, une fois de temps en temps (au hasard), s'il n'est pas
+## occupé à attaquer ni sonné.
+func _evades(hit: HitData) -> bool:
+	var tuning: TuningData = Tuning.data
+	if _evade_left > 0.0 or staggered or state_machine.current != state_machine.initial_state:
+		return false
+	if EnemyMath.breaks_guard(hit.move) or EnemyMath.goes_over_shield(hit.move) or UNDODGEABLE.has(hit.move):
+		return false
+	return rng.randf() < tuning.dancer_evade_chance
+
+
+## Esquive du danseur : un pas de côté, puis il contre dès le temps suivant.
+func _on_evaded(hit: HitData) -> void:
+	var tuning: TuningData = Tuning.data
+	_evade_left = tuning.dancer_evade_cooldown
+	var side := Vector3(-hit.direction.z, 0.0, hit.direction.x) * (1.0 if rng.randf() < 0.5 else -1.0)
+	hop(side * tuning.dancer_evade_distance, tuning.dancer_evade_time, stat(&"hop_height"))
+	act_cooldown = 1
+	var fx: Effects = effects()
+	if fx:
+		fx.word(GameTexts.WORD_EVADED, global_position + Vector3.UP * body.height, fx.pink)
+
+
 func _on_depleted() -> void:
 	state_machine.transition_to(&"Freed")
 
@@ -752,4 +861,34 @@ func release() -> void:
 		fx.muet_freed(global_position, body.height, is_boss())
 	get_tree().call_group(&"hero", &"on_enemy_freed", self)
 	Game.on_muet_freed(self)
+	if elite == ELITE_VOLATILE:
+		_burst()
+	if elite != &"":
+		get_tree().call_group(&"night_level", &"on_elite_freed", self)
 	freed.emit(self)
+
+
+## Élite éclatant : libéré, il éclate un temps plus tard (cercle annoncé) ; le héros dedans est blessé.
+func _burst() -> void:
+	var tuning: TuningData = Tuning.data
+	var center: Vector3 = global_position
+	var duration: float = beats_to_seconds(tuning.elite_burst_beats)
+	telegraph().show_circle(center, tuning.elite_burst_radius, duration)
+	var fx: Effects = effects()
+	var tree: SceneTree = get_tree()
+	var damage: float = tuning.elite_burst_damage * (1.0 + tuning.muet_damage_per_night * maxi(Game.night - 1, 0))
+	tree.create_timer(duration, false).timeout.connect(func() -> void:
+		if fx and is_instance_valid(fx):
+			fx.ring(center, tuning.elite_burst_radius, fx.red, tuning.fx_break_ring_time)
+			fx.burst(center + Vector3.UP, tuning.fx_break_cubes, tuning.fx_break_speed)
+		var hero: Hero = tree.get_first_node_in_group(&"hero") as Hero
+		if hero == null or Vector2(hero.global_position.x - center.x, hero.global_position.z - center.z).length() > tuning.elite_burst_radius:
+			return
+		var hit := HitData.new()
+		hit.damage = damage
+		hit.big = true
+		hit.move = &"burst"
+		var flat := Vector3(hero.global_position.x - center.x, 0.0, hero.global_position.z - center.z)
+		hit.direction = flat.normalized() if not flat.is_zero_approx() else Vector3.BACK
+		hit.point = hero.hurtbox.center()
+		hero.hurtbox.receive(hit))

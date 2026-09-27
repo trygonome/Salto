@@ -19,6 +19,8 @@ var wanderer: bool = false
 var hunter: bool = false
 ## Rang du sanctuaire gardé : plus loin, plus fort.
 var tier: int = 0
+## Particularité d'élite (vide : Muet ordinaire).
+var elite: StringName = &""
 ## Roi Muet, et nom affiché des Grands Muets.
 var king: bool = false
 var display_name: String = ""
@@ -40,6 +42,7 @@ func _spawn() -> void:
 		muet.guardian = false
 	muet.hunter = hunter
 	muet.tier = tier
+	muet.elite = elite
 	muet.king = king
 	muet.display_name = display_name
 	muet.safe_zone_center = safe_zone_center

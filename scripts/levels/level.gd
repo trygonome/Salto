@@ -21,3 +21,14 @@ func is_expedition() -> bool:
 ## Vrai si le haut de l'écran montre les tambours de la nuit.
 func shows_drums() -> bool:
 	return true
+
+
+## Un élite appelant demande `count` renforts autour de lui (l'expédition les fait venir).
+func call_help(_muet: Muet, _count: int) -> void:
+	pass
+
+
+## Un élite vient d'être libéré (l'expédition en tient compte : plumes, don de l'élite).
+func on_elite_freed(_muet: Muet) -> void:
+	pass
+

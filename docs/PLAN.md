@@ -151,6 +151,8 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
      plumes), une par expédition au moins, qui garantit un don rare.
    - **Grand Muet** en vraies phases, avec des attaques qui changent ; un gardien différent par région.
    *Test : chaque combat pose-t-il un petit problème à résoudre ?*
+   **Fait** (version 2.4) : vagues composées (9 modèles), tisserand, totem chanteur, danseur, brute, élites à
+   particularités et don de l'élite, troisième phase du Grand Muet (les gardiens par région viennent en 2.6).
 3. **2.5 — Graphismes du monde.**
    - Lumière : soleil chaud et ombres froides, ombres portées des personnages, coins des cubes
      assombris (occlusion), brume et ciel accordés à chaque région.

@@ -27,6 +27,8 @@ var muets_freed: int = 0
 var elapsed: float = 0.0
 ## Rencontres déjà faites (une seule fois chacune par expédition).
 var encounters_seen: Array[StringName] = []
+## L'élite de l'expédition est déjà paru.
+var elite_done: bool = false
 var rng := RandomNumberGenerator.new()
 
 
@@ -64,6 +66,18 @@ func room_radius(smallest: float, largest: float) -> float:
 ## Nom de la clairière en cours parmi `count` noms possibles pour sa forme.
 func name_index(count: int) -> int:
 	return posmod(room_seed() >> 16, maxi(count, 1))
+
+
+## Clairière à partir de laquelle paraît l'élite de l'expédition (tirée de la graine, entre
+## `first` et l'avant-dernière ; il paraît dans la première clairière de combat à partir de là).
+func elite_room(first: int) -> int:
+	var span: int = maxi(room_count - 1 - first, 1)
+	return first + posmod(seed_value >> 4, span)
+
+
+## Particularité de l'élite (tirée de la graine) parmi `affixes`.
+func elite_affix(affixes: Array[StringName]) -> StringName:
+	return affixes[posmod(seed_value >> 8, affixes.size())]
 
 
 ## Tire la rencontre de la clairière en cours parmi `ids`, sans répéter celles déjà faites.

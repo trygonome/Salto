@@ -164,3 +164,15 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Riposte : 1,2 s après l'esquive parfaite, jusqu'à 6 m ; ×2, critique.
 - Troupe : pleine voix (80 %) à 12 coups de combo.
 
+## Bestiaire (version 2.4)
+| Muet | PV | Dégâts | Équilibre | Particularités |
+|---|---|---|---|---|
+| Tisserand | 26 | 8 par piqûre | 14 | reste entre 2,3 et 3,8 m ; ronces de 1,1 m annoncées 2 temps, piquent toutes les 0,6 s pendant 6 s |
+| Totem chanteur | 40 | 6 | 30 | reste entre 3,5 et 7 m ; chante tous les 6 temps : 5 m, protection 4 s (dégâts ×0,5), soin 10 % |
+| Danseur | 28 | 10 | 16 | reste entre 1,2 et 2,2 m ; esquive 1 coup sur 2 (au plus toutes les 1,2 s) ; vrille de 1,2 m annoncée 1 temps |
+| Brute | 90 | 26 | 60 | ligne annoncée 2 temps, bond de 2,6 m en 0,32 s, héros jeté (+6 m/s) ; sonnée 1,8 s (dégâts ×1,4) |
+- Élite : ×1,25 en taille, ×2,2 PV, ×1,5 équilibre, ×1,3 dégâts ; vif : bonds ×0,7, 2 temps de repos en moins ;
+  cuirassé : dégâts reçus ×0,6 ; éclatant : 14 dégâts dans 2,2 m un temps après sa libération ; appelant : 2
+  sautillants à mi-vie ; doré : 15 plumes d'or. Il paraît à partir de la 2e clairière (tirée de la graine).
+- Grand Muet : phase 2 sous 50 % (rage, ondes), phase 3 sous 25 % (renforts, couronne de bulles, 3 temps de repos).
+

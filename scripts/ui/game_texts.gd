@@ -196,7 +196,20 @@ const WORD_HEAL := "+%d"
 const WORD_BREAK := "Brisé !"
 const WORD_GRACE := "Grâce !"
 const WORD_RIPOSTE := "Riposte !"
-const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL, WORD_BREAK, WORD_GRACE, WORD_RIPOSTE]
+const WORD_EVADED := "Esquivé !"
+const WORDS: PackedStringArray = [WORD_BLOCKED, WORD_STUNNED, WORD_PERFECT_DODGE, WORD_HEAL, WORD_BREAK, WORD_GRACE, WORD_RIPOSTE, WORD_EVADED]
+
+## Muets : nom de chaque espèce, et nom d'un élite (espèce + particularité).
+const SPECIES_NAMES: Dictionary[StringName, String] = {
+	&"hopper": "Sautillant", &"flyer": "Volant", &"shielder": "Porte-bouclier", &"charger": "Cornu",
+	&"spitter": "Cracheur", &"weaver": "Tisserand", &"totem": "Totem chanteur", &"dancer": "Danseur",
+	&"brute": "Brute", &"boss": "Grand Muet",
+}
+const ELITE_NAMES: Dictionary[StringName, String] = {
+	&"swift": "%s vif", &"armored": "%s cuirassé", &"volatile": "%s éclatant", &"caller": "%s appelant",
+	&"golden": "%s doré",
+}
+const ELITE_BOON_TITLE := "Don de l'élite"
 
 ## Conseils près des boutons (apprentissage par le jeu) : identifiant → texte.
 const HINTS: Dictionary[StringName, String] = {
@@ -478,6 +491,15 @@ static func room_names(kind: StringName) -> PackedStringArray:
 static func encounter_choice(id: StringName, index: int, value: int) -> String:
 	var choices: PackedStringArray = ENCOUNTER_CHOICES.get(id, PackedStringArray())
 	return choices[index].replace("%d", str(value)) if index < choices.size() else ""
+
+
+## Nom d'un élite : « Cornu cuirassé », « Brute vive »…
+static func elite_name(species: StringName, affix: StringName) -> String:
+	var name: String = SPECIES_NAMES.get(species, SPECIES_NAMES[&"hopper"])
+	var pattern: String = ELITE_NAMES.get(affix, "%s")
+	if species == &"brute" and affix == &"swift":
+		return "Brute vive"
+	return pattern % name
 
 
 ## « 1 plume d'or », « 3 plumes d'or ».

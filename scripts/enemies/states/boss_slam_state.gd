@@ -1,8 +1,9 @@
 extends MuetState
 ## Grand Muet, frappe au sol : tout le cercle annoncé est touché (gros coup) ; anneau rouge,
 ## cubes qui jaillissent, la caméra tremble. En rage (et toujours pour le Roi Muet), la frappe
-## lance aussi une onde de choc qui s'élargit : il faut sauter par-dessus. Les nuits suivantes,
-## elle appelle des renforts s'il reste peu de gardiens, puis lance une couronne de bulles.
+## lance aussi une onde de choc qui s'élargit : il faut sauter par-dessus. Les nuits suivantes, et
+## dans sa dernière phase, elle appelle des renforts s'il reste peu de gardiens, puis lance une
+## couronne de bulles.
 
 ## Onde de choc de la phase 2.
 @export var wave_scene: PackedScene
@@ -30,9 +31,9 @@ func enter(_previous: StringName) -> void:
 		wave.damage = muet.damage_of(&"damage") * tuning.boss_wave_damage_factor
 		muet.get_parent().add_child(wave)
 		wave.global_position = muet.global_position
-	if Game.night >= tuning.boss_orb_night or muet.king:
+	if Game.night >= tuning.boss_orb_night or muet.king or muet.phase() >= 3:
 		_orb_crown()
-	if Game.night >= tuning.boss_summon_night or muet.king:
+	if Game.night >= tuning.boss_summon_night or muet.king or muet.phase() >= 3:
 		get_tree().call_group(&"night_level", &"summon_guards", muet)
 
 

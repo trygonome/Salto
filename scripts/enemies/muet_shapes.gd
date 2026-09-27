@@ -4,10 +4,15 @@ class_name MuetShapes
 ## couleurs volées ; les cornes du cornu, les ailes du volant, le bouclier du porte-bouclier, la
 ## couronne des Grands Muets (et la flèche du Roi Muet). Tout est en cases ; le corps est mis à
 ## l'échelle par l'espèce (Tuning.<espèce>_scale).
+## Version 2.4 : le tisserand (pattes fines, bobine de fil), le totem chanteur (colonne haute cerclée
+## de couleurs, crête), le danseur (rubans qui flottent, grelots), la brute (grosse, poings énormes,
+## front bas) ; une petite couronne d'or pour les élites.
 
 ## Rayon de la boule (cases) et teinte de chaque forme.
-const RADIUS := {&"hop": 2.2, &"fly": 1.7, &"shield": 2.1, &"charge": 2.6, &"spit": 2.3}
-const HUE := {&"hop": 0.74, &"fly": 0.56, &"shield": 0.8, &"charge": 0.95, &"spit": 0.86}
+const RADIUS := {&"hop": 2.2, &"fly": 1.7, &"shield": 2.1, &"charge": 2.6, &"spit": 2.3, &"weave": 2.1, &"totem": 1.8, &"dance": 1.9, &"brute": 3.0}
+const HUE := {&"hop": 0.74, &"fly": 0.56, &"shield": 0.8, &"charge": 0.95, &"spit": 0.86, &"weave": 0.33, &"totem": 0.08, &"dance": 0.9, &"brute": 0.02}
+## Étirement en hauteur (le totem est une colonne) ; 1 pour les autres.
+const STRETCH := {&"totem": 1.9}
 const BOSS_RADIUS := 3.3
 const KING_RADIUS := 3.8
 const BOSS_HUE := 0.7
@@ -22,24 +27,34 @@ const RAINBOW := 3.0
 ## Forme `kind` (hop, fly, shield, charge, spit), Grand Muet ou Roi Muet. `tip_hue` (0 à 1) :
 ## couleur des bouts d'antennes. Renvoie les cellules de chaque partie (body, eyes, wing_left,
 ## wing_right, shield) et leurs points d'attache (wing_left_at…), le rayon de la boule (radius).
-static func build(kind: StringName, boss: bool, king: bool, tip_hue: float) -> Dictionary:
+static func build(kind: StringName, boss: bool, king: bool, tip_hue: float, elite: bool = false) -> Dictionary:
 	var r: float = KING_RADIUS if king else (BOSS_RADIUS if boss else float(RADIUS[kind]))
 	var hue: float = (KING_HUE if king else BOSS_HUE) if boss else float(HUE[kind])
+	var stretch: float = 1.0 if boss else float(STRETCH.get(kind, 1.0))
 	var body := PackedFloat32Array()
 	var eyes := PackedFloat32Array()
 	var n: int = ceili(r) + 1
+	var ny: int = ceili(r * stretch) + 1
 	for x: int in range(-n, n + 1):
-		for y: int in range(-n, n + 1):
+		for y: int in range(-ny, ny + 1):
 			for z: int in range(-n, n + 1):
-				var d: float = Vector3(x, y * 1.1, z).length()
+				var d: float = Vector3(x, y * 1.1 / stretch, z).length()
 				if d > r or d < r - SHELL:
 					continue
 				var belly: bool = z > r * 0.3 and y < r * 0.15 and absf(x) < r * 0.75
 				var shade: float = posmod(x * 3 + y * 5 + z * 7, 4) * 0.035
-				VoxelMesh.add(body, x, y, z, Vector3(FIXED + hue, 0.35 if belly else 0.55, 0.62 if belly else 0.33 + shade))
+				var color := Vector3(FIXED + hue, 0.35 if belly else 0.55, 0.62 if belly else 0.33 + shade)
+				if kind == &"totem" and not boss and posmod(y + 64, 3) == 0:
+					# Le totem est cerclé des couleurs qu'il chante.
+					color = Vector3(RAINBOW + posmod(y + 64, 9) / 9.0, 0.9, 0.55)
+				elif kind == &"brute" and not boss:
+					color.y = 0.7
+				VoxelMesh.add(body, x, y, z, color)
+	# Sommet de la boule (cases) : plus haut pour le totem.
+	var top: float = r * stretch
 	if kind != &"fly" or boss:
 		for sx: float in [-1.0, 1.0]:
-			VoxelMesh.add(body, sx, -r - 0.1, 0.3, Vector3(FIXED + hue, 0.35, 0.18), 0.8)
+			VoxelMesh.add(body, sx, -top - 0.1, 0.3, Vector3(FIXED + hue, 0.35, 0.18), 0.8)
 	var front: float = floorf(r)
 	var ex: float = 1.25 if boss else 0.95
 	var ey: float = 0.5
@@ -61,29 +76,33 @@ static func build(kind: StringName, boss: bool, king: bool, tip_hue: float) -> D
 	if not boss and kind != &"charge":
 		for sx: float in [-1.0, 1.0]:
 			for i: int in 3:
-				VoxelMesh.add(body, sx * (0.8 + i * 0.14), r + 0.15 + i * 0.42, -0.2, Vector3(FIXED + hue, 0.3, 0.22), 0.32)
-			VoxelMesh.add(body, sx * 1.22, r + 1.45, -0.2, Vector3(RAINBOW + tip_hue * 0.99, 1.0, 0.6), 0.62)
+				VoxelMesh.add(body, sx * (0.8 + i * 0.14), top + 0.15 + i * 0.42, -0.2, Vector3(FIXED + hue, 0.3, 0.22), 0.32)
+			VoxelMesh.add(body, sx * 1.22, top + 1.45, -0.2, Vector3(RAINBOW + tip_hue * 0.99, 1.0, 0.6), 0.62)
 	if kind == &"charge" and not boss:
 		for sx: float in [-1.0, 1.0]:
 			VoxelMesh.add(body, sx * 1.8, r - 0.5, 0.6, Vector3(FIXED + 0.12, 0.25, 0.86), 0.9)
 			VoxelMesh.add(body, sx * 2.4, r, 0.9, Vector3(FIXED + 0.12, 0.25, 0.88), 0.8)
 			VoxelMesh.add(body, sx * 2.7, r + 0.7, 1.1, Vector3(FIXED + 0.12, 0.2, 0.92), 0.7)
+	if not boss:
+		_extras(body, kind, r, top, hue)
+	if elite and not boss:
+		_crown(body, r, top)
 	if boss:
 		var cr: float = r * 0.55
-		var top: float = r - 0.35
+		var crown: float = r - 0.35
 		for i: int in 10:
 			var a: float = i / 10.0 * TAU
 			var cx: float = cos(a) * cr
 			var cz: float = sin(a) * cr
-			VoxelMesh.add(body, cx, top, cz, Vector3(FIXED + 0.13, 0.9, 0.55), 0.9)
+			VoxelMesh.add(body, cx, crown, cz, Vector3(FIXED + 0.13, 0.9, 0.55), 0.9)
 			if i % 2 == 0:
-				VoxelMesh.add(body, cx, top + 0.8, cz, Vector3(FIXED + 0.13, 0.9, 0.6), 0.7)
+				VoxelMesh.add(body, cx, crown + 0.8, cz, Vector3(FIXED + 0.13, 0.9, 0.6), 0.7)
 			else:
-				VoxelMesh.add(body, cx, top + 0.6, cz, Vector3(RAINBOW + i / 10.0, 1.0, 0.6), 0.5)
+				VoxelMesh.add(body, cx, crown + 0.6, cz, Vector3(RAINBOW + i / 10.0, 1.0, 0.6), 0.5)
 		if king:
 			for i: int in 5:
-				VoxelMesh.add(body, 0.0, top + 1.2 + i * 0.6, 0.0, Vector3(RAINBOW + 0.5 if i == 4 else FIXED + 0.13, 0.9, 0.6), 0.8 - i * 0.08)
-	var shape: Dictionary = {&"body": body, &"eyes": eyes, &"radius": r}
+				VoxelMesh.add(body, 0.0, crown + 1.2 + i * 0.6, 0.0, Vector3(RAINBOW + 0.5 if i == 4 else FIXED + 0.13, 0.9, 0.6), 0.8 - i * 0.08)
+	var shape: Dictionary = {&"body": body, &"eyes": eyes, &"radius": r, &"stretch": stretch}
 	if kind == &"fly" and not boss:
 		for sx: float in [-1.0, 1.0]:
 			var wing := PackedFloat32Array()
@@ -93,6 +112,15 @@ static func build(kind: StringName, boss: bool, king: bool, tip_hue: float) -> D
 			var side: String = "left" if sx < 0.0 else "right"
 			shape[StringName("wing_" + side)] = wing
 			shape[StringName("wing_%s_at" % side)] = Vector3(sx * (r - 0.4), 0.6, 0.0)
+	if kind == &"dance" and not boss:
+		# Des rubans qui flottent (ils battent comme des ailes).
+		for sx: float in [-1.0, 1.0]:
+			var ribbon := PackedFloat32Array()
+			for i: int in 6:
+				VoxelMesh.add(ribbon, sx * (i * 0.55 + 0.3), -i * 0.3, -0.4 - i * 0.2, Vector3(RAINBOW + i / 6.0, 0.95, 0.62), 0.5)
+			var side: String = "left" if sx < 0.0 else "right"
+			shape[StringName("wing_" + side)] = ribbon
+			shape[StringName("wing_%s_at" % side)] = Vector3(sx * (r - 0.3), 0.4, 0.0)
 	if kind == &"shield" and not boss:
 		var plate := PackedFloat32Array()
 		for x: int in range(-2, 3):
@@ -107,6 +135,47 @@ static func build(kind: StringName, boss: bool, king: bool, tip_hue: float) -> D
 		shape[&"shield"] = plate
 		shape[&"shield_at"] = Vector3(0.0, -0.2, front + 1.3)
 	return shape
+
+
+## Détails propres aux formes de la version 2.4.
+static func _extras(body: PackedFloat32Array, kind: StringName, r: float, top: float, hue: float) -> void:
+	match kind:
+		&"weave":
+			# Six pattes fines, et une bobine de fil sur le dos.
+			for i: int in 6:
+				var a: float = (i + 0.5) / 6.0 * TAU
+				var foot := Vector2(cos(a), sin(a)) * r * 0.95
+				for k: int in 3:
+					VoxelMesh.add(body, foot.x * (1.0 + k * 0.18), -r * 0.35 - k * 0.55, foot.y * (1.0 + k * 0.18), Vector3(FIXED + 0.1, 0.45, 0.22), 0.4)
+			for k: int in 3:
+				VoxelMesh.add(body, 0.0, top + 0.3 + k * 0.5, -0.8, Vector3(FIXED + 0.1 if k != 1 else FIXED + 0.3, 0.5, 0.3 if k != 1 else 0.6), 0.9 if k != 1 else 0.7)
+		&"totem":
+			# Une crête de plumes au sommet.
+			for i: int in 5:
+				VoxelMesh.add(body, (i - 2) * 0.5, top + 0.4 + (2 - absi(i - 2)) * 0.35, -0.2, Vector3(RAINBOW + i / 5.0, 1.0, 0.6), 0.55)
+		&"dance":
+			# Grelots d'or autour de la taille.
+			for i: int in 8:
+				var a: float = i / 8.0 * TAU
+				VoxelMesh.add(body, cos(a) * (r + 0.2), -r * 0.35, sin(a) * (r + 0.2), Vector3(FIXED + 0.13, 0.85, 0.62), 0.42)
+		&"brute":
+			# Des poings énormes, un front bas.
+			for sx: float in [-1.0, 1.0]:
+				for dx: int in 2:
+					for dy: int in 2:
+						for dz: int in 2:
+							VoxelMesh.add(body, sx * (r + 0.6 + dx * 0.9), -r * 0.35 + dy * 0.9, 0.4 + dz * 0.9, Vector3(FIXED + hue, 0.6, 0.24 + dx * 0.04))
+			for x: int in range(-2, 3):
+				VoxelMesh.add(body, x * 0.8, r * 0.45, floorf(r) + 0.4, Vector3(FIXED + hue, 0.6, 0.18), 0.8)
+
+
+## Petite couronne d'or des élites.
+static func _crown(body: PackedFloat32Array, r: float, top: float) -> void:
+	for i: int in 6:
+		var a: float = i / 6.0 * TAU
+		VoxelMesh.add(body, cos(a) * r * 0.45, top + 0.35, sin(a) * r * 0.45, Vector3(FIXED + 0.13, 0.9, 0.6), 0.6)
+		if i % 2 == 0:
+			VoxelMesh.add(body, cos(a) * r * 0.45, top + 0.9, sin(a) * r * 0.45, Vector3(RAINBOW + i / 6.0, 1.0, 0.65), 0.4)
 
 
 ## Hauteur du corps (cases, avant mise à l'échelle) : le diamètre de la boule.

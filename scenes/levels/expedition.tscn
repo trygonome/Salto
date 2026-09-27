@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -29,6 +29,10 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/spitter.tscn" id="93_spitter"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/weaver.tscn" id="94_weaver"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/totem.tscn" id="95_totem"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/dancer.tscn" id="96_dancer"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/brute.tscn" id="97_brute"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/plume_pickup.tscn" id="30_plume"]
 [ext_resource type="Material" path="res://scenes/world/voxel_rig.tres" id="16_actor"]
 [ext_resource type="Material" path="res://scenes/world/actor_shadow.tres" id="26_actor_shadow"]
@@ -42,6 +46,10 @@ flyer_scene = ExtResource("3_flyer")
 shielder_scene = ExtResource("91_shielder")
 charger_scene = ExtResource("92_charger")
 spitter_scene = ExtResource("93_spitter")
+weaver_scene = ExtResource("94_weaver")
+totem_scene = ExtResource("95_totem")
+dancer_scene = ExtResource("96_dancer")
+brute_scene = ExtResource("97_brute")
 boss_scene = ExtResource("4_boss")
 gate_scene = ExtResource("50_gate")
 plume_scene = ExtResource("30_plume")

@@ -1370,3 +1370,131 @@ extends Resource
 @export var fx_charge_speed: float
 @export var fx_charge_ring: float
 
+@export_group("Tisserand")
+## Tisserand : il garde ses distances et tisse des ronces là où se tient le héros (cercle annoncé
+## pendant `weaver_weave_beats` temps) ; elles piquent qui s'y tient (dégâts toutes les
+## `weaver_bramble_tick` s) pendant `weaver_bramble_time` s, après avoir poussé en `weaver_bramble_grow` s.
+@export var weaver_scale: float
+@export var weaver_health: float
+@export var weaver_damage: float
+@export var weaver_radius: float
+@export var weaver_hop_every: int
+@export var weaver_hop_distance: float
+@export var weaver_hop_time: float
+@export var weaver_hop_height: float
+@export var weaver_act_max_range: float
+@export var weaver_act_cooldown: int
+@export var weaver_keep_min: float
+@export var weaver_keep_max: float
+@export var weaver_poise: float
+@export var weaver_weave_beats: int
+@export var weaver_bramble_radius: float
+@export var weaver_bramble_time: float
+@export var weaver_bramble_tick: float
+@export var weaver_bramble_grow: float
+
+@export_group("Totem chanteur")
+## Totem chanteur : il reste en retrait et chante (gonflé pendant `totem_sing_beats` temps) : les
+## Muets à moins de `totem_aura_radius` m sont protégés `totem_ward_time` s (dégâts reçus
+## ×`totem_ward_multiplier`), soignés d'une part de leurs PV et leur attaque approche d'un temps.
+@export var totem_scale: float
+@export var totem_health: float
+@export var totem_damage: float
+@export var totem_radius: float
+@export var totem_hop_every: int
+@export var totem_hop_distance: float
+@export var totem_hop_time: float
+@export var totem_hop_height: float
+@export var totem_act_max_range: float
+@export var totem_act_cooldown: int
+@export var totem_keep_min: float
+@export var totem_keep_max: float
+@export var totem_poise: float
+@export var totem_knockback_factor: float
+@export var totem_sing_beats: int
+@export var totem_inflate: float
+@export var totem_aura_radius: float
+@export var totem_ward_time: float
+@export var totem_ward_multiplier: float
+@export var totem_heal: float
+
+@export_group("Danseur")
+## Danseur : vif, il tourne autour du héros ; un coup ordinaire a une chance d'être esquivé (pas
+## plus d'une esquive toutes les `dancer_evade_cooldown` s), et il contre aussitôt d'une vrille
+## (cercle annoncé `dancer_twirl_beats` temps, rayon `dancer_twirl_radius` m).
+@export var dancer_scale: float
+@export var dancer_health: float
+@export var dancer_damage: float
+@export var dancer_radius: float
+@export var dancer_hop_every: int
+@export var dancer_hop_distance: float
+@export var dancer_hop_time: float
+@export var dancer_hop_height: float
+@export var dancer_act_max_range: float
+@export var dancer_act_cooldown: int
+@export var dancer_keep_min: float
+@export var dancer_keep_max: float
+@export var dancer_poise: float
+@export var dancer_evade_chance: float
+@export var dancer_evade_cooldown: float
+@export var dancer_evade_distance: float
+@export var dancer_evade_time: float
+@export var dancer_twirl_beats: int
+@export var dancer_twirl_radius: float
+
+@export_group("Brute")
+## Brute : lente et lourde ; elle lève les poings (ligne annoncée `brute_telegraph_beats` temps)
+## puis bondit sur `brute_lunge_distance` m en `brute_lunge_time` s ; qui est pris est jeté au loin.
+## Après, essoufflée, elle reste sonnée `brute_winded_time` s (et plus fragile).
+@export var brute_scale: float
+@export var brute_health: float
+@export var brute_damage: float
+@export var brute_contact_fraction: float
+@export var brute_radius: float
+@export var brute_hop_every: int
+@export var brute_hop_distance: float
+@export var brute_hop_time: float
+@export var brute_hop_height: float
+@export var brute_act_min_range: float
+@export var brute_act_max_range: float
+@export var brute_act_cooldown: int
+@export var brute_poise: float
+@export var brute_knockback_factor: float
+@export var brute_telegraph_beats: int
+@export var brute_inflate: float
+@export var brute_lunge_distance: float
+@export var brute_lunge_time: float
+@export var brute_lunge_height: float
+@export var brute_grab_reach: float
+@export var brute_winded_time: float
+@export var brute_stunned_damage_multiplier: float
+@export var brute_line_width: float
+## Héros jeté : vitesse de recul ajoutée par point de projection (m/s).
+@export var hero_throw_speed: float
+
+@export_group("Élites")
+## Élite : plus gros, plus de PV, d'équilibre et de dégâts ; une particularité : rapide (bonds
+## plus courts, attaque plus souvent), cuirassé (dégâts reçus réduits), éclatant (explose en
+## étant libéré, cercle annoncé), appelant (appelle des renforts à mi-PV), doré (plumes d'or).
+@export var elite_scale: float
+@export var elite_health: float
+@export var elite_poise: float
+@export var elite_damage: float
+@export var elite_swift_time: float
+@export var elite_swift_cooldown: int
+@export var elite_armor: float
+@export var elite_burst_radius: float
+@export var elite_burst_beats: int
+@export var elite_burst_damage: float
+@export var elite_call_count: int
+@export var elite_call_fraction: float
+@export var elite_golden_feathers: int
+## Clairières où peut paraître l'élite de l'expédition (la première et l'arène exclues).
+@export var elite_first_room: int
+
+@export_group("Grand Muet : phases")
+## Troisième phase (sous cette part de ses PV) : il appelle des renforts, lance une couronne de
+## bulles à chaque frappe et attaque plus souvent (temps de repos).
+@export var boss_phase3_fraction: float
+@export var boss_act_cooldown_phase3: int
+

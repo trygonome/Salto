@@ -10,6 +10,8 @@ extends Node3D
 @export var kind: StringName = &"hop"
 @export var boss: bool
 @export var king: bool
+## Élite : une petite couronne d'or (version 2.4).
+var elite: bool = false
 ## Matériau des assemblages articulés (voxel_rig.tres) ; chaque Muet en a sa copie (éclat, rage).
 @export var material: ShaderMaterial
 @export var shadow_material: Material
@@ -59,10 +61,11 @@ func setup(cell_size: float, shadow_radius: float) -> void:
 	_blink = _rng.randf_range(tuning.muet_blink_min, tuning.muet_blink_max)
 	_flap_phase = _rng.randf() * TAU
 	var tip: int = _rng.randi_range(0, tuning.muet_tip_variants - 1)
-	var shape: Dictionary = MuetShapes.build(kind, boss, king, float(tip) / tuning.muet_tip_variants)
+	var shape: Dictionary = MuetShapes.build(kind, boss, king, float(tip) / tuning.muet_tip_variants, elite)
 	var r: float = shape[&"radius"]
-	height = MuetShapes.height(r) * cell_size
-	_center = MuetShapes.center_height(r) * cell_size
+	var stretch: float = shape[&"stretch"]
+	height = MuetShapes.height(r * stretch) * cell_size
+	_center = MuetShapes.center_height(r * stretch) * cell_size
 	_material = material.duplicate() as ShaderMaterial
 	rig = VoxelRig.new()
 	rig.name = "Rig"
@@ -73,7 +76,7 @@ func setup(cell_size: float, shadow_radius: float) -> void:
 			rig.add_part(StringName("wing_" + side), &"body", shape[StringName("wing_%s_at" % side)], shape[StringName("wing_" + side)])
 	if shape.has(&"shield"):
 		rig.add_part(&"shield", &"body", shape[&"shield_at"], shape[&"shield"])
-	rig.build(_material, "muet_%s_%s_%s_%d" % [kind, boss, king, tip])
+	rig.build(_material, "muet_%s_%s_%s_%d_%s" % [kind, boss, king, tip, elite])
 	add_child(rig)
 	_eyes = rig.bone(&"eyes")
 	for side: String in ["left", "right"]:

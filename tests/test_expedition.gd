@@ -315,3 +315,40 @@ func test_la_troupe_chante_quand_le_combo_tient() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_almost_eq(Rhythm.band_amount(), tuning.combo_band_max, 0.001, "le combo tient : elle chante")
+
+
+func test_un_elite_libere_offre_son_don_apres_la_recompense() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	await _wait_muets()
+	var first: Muet = _muets()[0]
+	first.elite = Muet.ELITE_GOLDEN
+	var feathers: int = Game.run.feathers
+	level.on_elite_freed(first)
+	assert_eq(Game.run.feathers, feathers + tuning.elite_golden_feathers, "l'élite doré laisse des plumes d'or")
+	for wave: int in tuning.room_waves:
+		await _wait_muets()
+		await _free_all()
+	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
+	assert_true(screen.is_open(), "le don de la clairière")
+	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
+	assert_true(screen.is_open(), "puis celui de l'élite")
+	assert_eq((screen.get_node("%Title") as Label).text, GameTexts.ELITE_BOON_TITLE)
+	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
+	assert_eq(Game.run.boon_ranks(), 2)
+	await get_tree().process_frame
+	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
+	assert_eq(gates.size(), tuning.room_exits, "puis les passages")
+
+
+func test_un_elite_appelant_fait_venir_des_renforts() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	await _wait_muets()
+	var before: int = _muets().size()
+	level.call_help(_muets()[0], tuning.elite_call_count)
+	for i: int in 10:
+		await get_tree().physics_frame
+	assert_eq(_muets().size(), before + tuning.elite_call_count)
