@@ -27,6 +27,8 @@ global uniform vec3 salto_player;
 global uniform float salto_cut;
 // Mètres par unité du prototype.
 global uniform float salto_unit;
+// Vague de couleur d'un passage (version 3.5) : centre x, z (m), rayon (m), force (0 à 1).
+global uniform vec4 salto_wave;
 
 // Rayons des zones de silence autour des sanctuaires non libérés (u).
 const float SALTO_SILENCE_INNER = 13.0;
@@ -59,6 +61,21 @@ float salto_halo(vec3 world) {
 	}
 	float d = length(world.xz - salto_player.xz);
 	return 1.0 - smoothstep(salto_groove * 0.55, salto_groove, d);
+}
+
+// Front de la vague de couleur en `world` (m) : 1 sur l'anneau qui s'élargit, 0 ailleurs.
+float salto_wave_front(vec3 world) {
+	if (salto_wave.w <= 0.0) {
+		return 0.0;
+	}
+	float d = length(world.xz - salto_wave.xy);
+	return salto_wave.w * (1.0 - smoothstep(0.0, 2.6, abs(d - salto_wave.z))) * step(0.01, salto_wave.z);
+}
+
+// Teinte arc-en-ciel de la vague en `world` (m) : elle tourne autour de son centre.
+float salto_wave_hue(vec3 world) {
+	vec2 d = world.xz - salto_wave.xy;
+	return fract(atan(d.y, d.x) / 6.28318 + salto_time * 0.15);
 }
 
 vec3 salto_fog(vec3 c, float depth_m) {

@@ -91,6 +91,10 @@ void fragment() {
 	}
 	float sat = salto_sat * salto_zone(p);
 	s *= mix(sat, max(sat, SALTO_HALO_SAT), halo);
+	float wave = salto_wave_front(v_world);
+	h = mix(h, salto_wave_hue(v_world), wave * 0.85);
+	s = mix(s, 0.95, wave * 0.9);
+	l = mix(l, 0.58, wave * 0.5);
 	l += salto_beat * 0.05 * max(salto_sat, halo * SALTO_HALO_SAT);
 	l *= 1.0 - smoothstep(80.0, 96.0, r) * 0.45;
 	vec3 c = salto_hsl2rgb(vec3(h, s, l));

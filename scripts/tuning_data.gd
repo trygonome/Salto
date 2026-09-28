@@ -1663,3 +1663,13 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var niche_jars: int
 ## Les vagues commencent quand le héros entre dans l'arène (part de son rayon), puis ce délai (s).
 @export var arena_trigger: float
+
+@export_group("Refonte 3.5 : passages rituels")
+## Vague de couleur d'un passage : vitesse (m/s), portée (m) ; brume au départ (fois la normale).
+@export var passage_wave_speed: float
+@export var passage_wave_reach: float
+@export var passage_fog_boost: float
+## Musique d'un passage : la base seule, puis les couches reviennent après ce délai (s).
+@export var passage_music_delay: float
+## Voile d'un passage : aux couleurs de la récompense, cette opacité au plus.
+@export var passage_veil_alpha: float

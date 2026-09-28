@@ -34,6 +34,8 @@ extends Level
 @export var chest_scene: PackedScene
 ## Son discret des pièges (version 3.0).
 @export var trap_sound: AudioStream
+## Passage rituel (version 3.5) : un roulement de toms et un carillon.
+@export var passage_sound: AudioStream
 ## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
 ## Muets, de leurs ombres, des petits assemblages) ; pages du carnet (le vieux tambourinaire).
 @export var plume_scene: PackedScene
@@ -125,6 +127,10 @@ var _stele_pending: bool = false
 var _hidden_spawner: EnemySpawner
 ## Recoin où dort le Muet doré (u) : il s'éveille quand le héros y entre (Vector2.INF : aucun).
 var _hidden_at := Vector2.INF
+## Passage rituel en cours (version 3.5) : la clairière suivante arrive dans la brume, la musique
+## reprend ses couches un peu après.
+var _passage: bool = false
+var _passage_player: AudioStreamPlayer
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -152,6 +158,10 @@ func _ready() -> void:
 	mood.set_progress(0.0, false)
 	mood.clear_target()
 	_add_fade()
+	_passage_player = AudioStreamPlayer.new()
+	_passage_player.name = "PassageSound"
+	_passage_player.stream = passage_sound
+	add_child(_passage_player)
 	_ambient = AmbientFx.new()
 	_ambient.name = "Ambient"
 	add_child(_ambient)
@@ -454,7 +464,16 @@ func _enter_room() -> void:
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
 	_music_layers = mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size())
 	_fighting = false
-	Rhythm.set_layers(_music_layers)
+	if _passage:
+		# Passage rituel : une vague de couleur dissout la brume ; la musique, réduite à sa base
+		# pendant le passage, reprend ses couches un peu après.
+		_passage = false
+		(func() -> void: mood.wave(hero.global_position)).call_deferred()
+		get_tree().create_timer(tuning.passage_music_delay, false).timeout.connect(func() -> void:
+			if in_sortie and not _fighting:
+				Rhythm.set_layers(_music_layers))
+	else:
+		Rhythm.set_layers(_music_layers)
 	_place_hero()
 	if run.is_boss_room():
 		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), "")
@@ -873,13 +892,30 @@ func _on_gate_chosen(reward: StringName) -> void:
 	var tuning: TuningData = Tuning.data
 	hero.reads_player_input = false
 	hero.input_move = Vector2.ZERO
+	# Passage rituel (version 3.5) : un voile aux couleurs de la récompense, la musique revient à sa
+	# base, un roulement de toms ; de l'autre côté, la brume et la vague de couleur.
+	_passage = true
+	var veil: Color = _gate_color(reward)
+	_fade.color = Color(veil.r, veil.g, veil.b, 0.0)
+	Rhythm.set_layers(1)
+	if _passage_player.stream:
+		_passage_player.play()
 	var tween: Tween = create_tween()
-	tween.tween_property(_fade, "color:a", 1.0, tuning.room_fade_time)
+	tween.tween_property(_fade, "color:a", tuning.passage_veil_alpha, tuning.room_fade_time)
 	tween.tween_callback(func() -> void:
 		Game.run.enter_next(reward)
 		_enter_room()
 		hero.reads_player_input = true)
-	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time)
+	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time * 2.0)
+	tween.tween_callback(func() -> void: _fade.color = Color(0.0, 0.0, 0.0, 0.0))
+
+
+## Couleur du passage qui promet `reward` (celle de ses mâts), noir s'il n'y en a pas.
+func _gate_color(reward: StringName) -> Color:
+	for node: Node in pickups.get_children():
+		if node is ExitGate and (node as ExitGate).reward == reward:
+			return (node as ExitGate).veil_color()
+	return Color.BLACK
 
 
 ## Personnage de la rencontre, au centre de la clairière, tourné vers l'entrée.
@@ -1312,15 +1348,22 @@ func _reopen_gate() -> void:
 	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - Tuning.data.room_exit_inset / _unit))
 
 
-## Le passage du nord : on part en expédition (fondu au noir).
+## Le passage du nord : on part en expédition (version 3.5 : un voile doré, la première clairière
+## arrive dans la brume, que la vague de couleur dissout).
 func _depart() -> void:
 	var tuning: TuningData = Tuning.data
 	hero.reads_player_input = false
 	hero.input_move = Vector2.ZERO
+	_passage = true
+	var veil: Color = _gate_color(&"depart")
+	_fade.color = Color(veil.r, veil.g, veil.b, 0.0)
+	if _passage_player.stream:
+		_passage_player.play()
 	var tween: Tween = create_tween()
-	tween.tween_property(_fade, "color:a", 1.0, tuning.room_fade_time)
+	tween.tween_property(_fade, "color:a", tuning.passage_veil_alpha, tuning.room_fade_time)
 	tween.tween_callback(start_sortie)
-	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time)
+	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time * 2.0)
+	tween.tween_callback(func() -> void: _fade.color = Color(0.0, 0.0, 0.0, 0.0))
 
 
 ## Voile noir des passages d'une clairière à l'autre.

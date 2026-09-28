@@ -47,6 +47,11 @@ vec3 salto_voxel_color(vec3 data, vec3 world, vec3 normal, vec3 camera, float vi
 	} else {
 		s *= sat;
 	}
+	// Passage (version 3.5) : l'anneau de la vague ravive les couleurs qu'il traverse.
+	float wave = salto_wave_front(world);
+	h = mix(h, salto_wave_hue(world), wave * 0.8);
+	s = mix(s, 1.0, wave * 0.8);
+	l = mix(l, 0.6, wave * 0.5);
 	s = min(1.0, s * (1.0 + 0.8 * healed));
 	l = mix(l, l + (1.0 - l) * 0.2, healed);
 	h = fract(h + vivid * (salto_time * 0.5 + w.y * 0.1));

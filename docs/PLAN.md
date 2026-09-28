@@ -303,6 +303,12 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
 6. **3.5 — Passages rituels.** Les arches deviennent des portes-totems : l'icône voxel de la récompense sur
    le totem ; la franchir déclenche une vague de couleur qui dissout la brume de la zone suivante et une
    transition musicale. *Test : changer de zone est un petit moment.*
+   **Fait** (version 3.5) : portes-totems — deux mâts sculptés de visages (yeux, ailes et seuil de
+   pierres aux couleurs de la récompense) et, entre leurs sommets, l'icône voxel de la récompense qui
+   tourne ; ils surgissent du sol au bout des sentiers de sortie. Franchir : un voile aux couleurs de la
+   récompense, un roulement de toms et un carillon, la musique revient à sa base ; de l'autre côté, la
+   clairière arrive dans une brume épaisse qu'une vague arc-en-ciel dissout en partant du héros, et la
+   musique reprend ses couches deux temps plus tard. Le passage du nord du village fait de même.
 7. **3.6 — Finition « maquette miniature ».** Occlusion calculée à la génération (coins et pieds de mur
    assombris), lumière chaude plus douce, brume de profondeur, vague de couleur qui se propage au sol quand
    une zone est libérée (Gris) ; première minute mise en scène : une clairière sombre et muette, frapper la

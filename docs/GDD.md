@@ -111,6 +111,10 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   clairière continue) ou un Muet doré endormi qui s'éveille quand on entre (de l'or, pas de don d'élite ;
   jamais pendant la première expédition). Un fourré cache plus souvent une stèle ou un Muet doré ; des
   rochers à l'entrée, plus souvent des plumes. Rien n'oblige à y aller.
+- **Passages rituels** (version 3.5) : chaque sortie est une porte-totem au bout de son sentier, deux mâts
+  sculptés aux couleurs de la récompense et son icône voxel qui tourne entre eux. La franchir : un voile de
+  sa couleur, un roulement de toms, la musique réduite à sa base ; la clairière suivante apparaît dans la
+  brume, une vague arc-en-ciel part du héros et la dissout, puis la musique reprend ses couches.
 - **Préparer l'expédition** (version 3.3) : une page, sans défilement, en trois rangées de cartes à icône voxel :
   la région (une région fermée dit comment l'ouvrir), l'instrument, les pactes ; « Partir » (avec le bonus de
   plumes) lance l'expédition. Elle s'ouvre depuis « Partir en expédition » de l'écran titre, le passage du nord

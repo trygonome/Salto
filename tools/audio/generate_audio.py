@@ -699,6 +699,28 @@ def sfx_trap():
     return 0.8 * tok + 0.25 * scrape
 
 
+def sfx_passage():
+    """Passage rituel (version 3.5) : un roulement de toms qui monte, un bruissement, un carillon."""
+    rng = np.random.default_rng(350)
+    length = 1.3
+    buf = np.zeros(int(length * RATE))
+    hits = [0.0, 0.12, 0.22, 0.31, 0.39, 0.46, 0.52]
+    for i, at in enumerate(hits):
+        sig = tom(95 + i * 18, 0.35) * (0.5 + 0.08 * i)
+        start = int(at * RATE)
+        buf[start:start + len(sig)] += sig[: len(buf) - start]
+    n = int(0.7 * RATE)
+    rustle = rng.standard_normal(n)
+    rustle = np.convolve(rustle, np.ones(4) / 4, mode="same") * np.linspace(0.0, 1.0, n) ** 2 * env(n, 0.5, 0.15)
+    start = int(0.05 * RATE)
+    buf[start:start + n] += 0.25 * rustle
+    ring = sfx_chime()
+    start = int(0.58 * RATE)
+    end = min(len(buf), start + len(ring))
+    buf[start:end] += 0.7 * ring[: end - start]
+    return buf
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -765,6 +787,8 @@ def main():
         write(ROOT / "assets/audio/music" / f"{name}.wav", buf * layer_gain, peak=np.max(np.abs(buf)) * layer_gain)
     # Refonte 3.0.
     write(ROOT / "assets/audio/sfx/trap.wav", sfx_trap(), peak=0.4)
+    # Passage rituel (version 3.5), tiré en dernier : les autres sons ne changent pas.
+    write(ROOT / "assets/audio/sfx/passage.wav", sfx_passage(), peak=0.6)
 
 
 if __name__ == "__main__":

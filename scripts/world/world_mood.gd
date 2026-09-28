@@ -26,6 +26,10 @@ var _burst: float = 0.0
 var _progress: float = -1.0
 ## Teinte fixe de la brume (0 à 1 ; négative : elle tourne lentement), celle d'une région.
 var _fog_hue: float = -1.0
+## Vague de couleur d'un passage (version 3.5) : centre (m), rayon (m) ; négatif : aucune.
+var _wave_center := Vector3.ZERO
+var _wave_radius: float = -1.0
+var _fog_boost: float = 1.0
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
@@ -83,6 +87,31 @@ func burst() -> void:
 	var tuning: TuningData = Tuning.data
 	_burst = tuning.groove_halo_burst
 	pulse(tuning.rainbow_world_pulse)
+
+
+## Passage (version 3.5) : la brume de la nouvelle clairière est épaisse, puis une vague de couleur
+## part de `center` (m) et la dissout en s'élargissant.
+func wave(center: Vector3) -> void:
+	_wave_center = center
+	_wave_radius = 0.0
+
+
+func is_waving() -> bool:
+	return _wave_radius >= 0.0
+
+
+## Brume du moment (fois la normale : plus de 1 pendant un passage).
+func fog_boost() -> float:
+	return _fog_boost
+
+
+## Vague au rayon `radius` (m) : sa force (0 à 1) et combien la brume est plus épaisse (1 : normale).
+## Pure, testée.
+static func wave_state(radius: float, tuning: TuningData) -> Vector2:
+	var reach: float = tuning.passage_wave_reach
+	var strength: float = 1.0 - smoothstep(reach * 0.6, reach, radius)
+	var fog: float = lerpf(tuning.passage_fog_boost, 1.0, smoothstep(0.0, reach * 0.8, radius))
+	return Vector2(strength, fog)
 
 
 ## Bande dorée sur le sol, du village vers `point` (u) ; `outward` faux : elle défile vers le village.
@@ -160,6 +189,17 @@ func _process(delta: float) -> void:
 	_halo += (halo - _halo) * Smoothing.weight(tuning.groove_halo_rate, delta)
 	_burst = maxf(0.0, _burst - tuning.groove_halo_burst_decay * delta)
 	RenderingServer.global_shader_parameter_set(&"salto_groove", groove_radius())
+	if _wave_radius >= 0.0:
+		_wave_radius += tuning.passage_wave_speed * delta
+		var state: Vector2 = wave_state(_wave_radius, tuning)
+		_fog_boost = state.y
+		RenderingServer.global_shader_parameter_set(&"salto_wave", Vector4(_wave_center.x, _wave_center.z, _wave_radius, state.x))
+		RenderingServer.global_shader_parameter_set(&"salto_fog_density", tuning.fog_density * state.y)
+		if _wave_radius >= tuning.passage_wave_reach:
+			_wave_radius = -1.0
+			_fog_boost = 1.0
+			RenderingServer.global_shader_parameter_set(&"salto_wave", Vector4.ZERO)
+			RenderingServer.global_shader_parameter_set(&"salto_fog_density", tuning.fog_density)
 
 
 func _push_sanctuaries() -> void:
