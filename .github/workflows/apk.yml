@@ -1,0 +1,61 @@
+# APK de test construite par GitHub : à chaque nouvelle version (project.godot change), l'APK optimisée
+# est exportée et publiée dans les Releases du dépôt, sans limite de taille. Lien fixe vers la dernière :
+# https://github.com/trygonome/Salto/releases/latest/download/salto.apk
+# (On peut aussi la lancer à la main : onglet Actions > APK > Run workflow.)
+name: APK
+
+on:
+  push:
+    branches: [claude/voicis-phoi5f]
+    paths: [project.godot]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Les outils (Godot, SDK Android) sont téléchargés par tools/env.sh dans ce dossier, gardé en cache.
+      SALTO_TOOLS_DIR: /home/runner/salto-tools
+      ANDROID_HOME: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Outils en cache (Godot, modèles d'export, SDK Android)
+        uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/salto-tools
+            ~/.local/share/godot/export_templates
+          key: salto-tools-${{ hashFiles('tools/env.sh') }}
+
+      - name: Exporter l'APK optimisée
+        run: tools/export_android.sh --release
+
+      - name: Publier dans les Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(grep -oP 'config/version="\K[^"]+' project.godot)
+          cp build/android/salto-release.apk "build/android/salto-$VERSION.apk"
+          cp build/android/salto-release.apk build/android/salto.apk
+          NOTES="APK de test $VERSION (signature de test : elle s'installe par-dessus la précédente). Commit ${GITHUB_SHA::7}."
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" "build/android/salto-$VERSION.apk" build/android/salto.apk --clobber
+            gh release edit "v$VERSION" --notes "$NOTES" --latest
+          else
+            gh release create "v$VERSION" "build/android/salto-$VERSION.apk" build/android/salto.apk \
+              --target "$GITHUB_SHA" --title "Salto $VERSION" --notes "$NOTES" --latest
+          fi

@@ -46,6 +46,9 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
   toutes les APK de test ont la même signature et s'installent par-dessus la précédente.
   Depuis l'éditeur sur PC, régler *Paramètres de l'éditeur > Export > Android > Debug Keystore* sur ce fichier
   pour garder la même signature.
+- **APK sur GitHub** : à chaque changement de version (`project.godot`), GitHub Actions (`.github/workflows/apk.yml`)
+  construit l'APK optimisée et la publie dans les Releases du dépôt, sans limite de taille. Lien fixe vers la
+  dernière : https://github.com/trygonome/Salto/releases/latest/download/salto.apk
 - **Exporter la version web** : `tools/export_web.sh` → `build/web/` (moteur Compatibility, sans threads :
   s'héberge partout, par exemple sur itch.io). L'essayer en local : `tools/serve_web.sh` puis
   http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.
