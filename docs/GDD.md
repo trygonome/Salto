@@ -236,10 +236,16 @@ Le héros **grandit au village** : c'est là que l'on revient, que l'on fête et
 - Ni monnaie, ni forge, ni défis, ni score : le résumé d'une sortie dit les tambours, les Muets libérés,
   le niveau et le temps.
 
-## 10. Histoire (résumé)
-Avant le Grand Silence, chaque Muet était un musicien. Le Silence a bu leurs voix puis les couleurs.
-Les tambours sont les derniers cœurs du village. Le **Roi Muet** fut le premier tambour : il a ouvert la porte au Silence
-pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sait et n'en parle jamais.
+## 10. Histoire (résumé ; version 4.0 : les Sourdines)
+Tout ce qui vit vibre : la voix, le tambour, la sève, et même la lumière (les couleurs sont des chansons
+que l'œil entend). Les ennemis sont les **Sourdines**, des vampires de son : elles boivent les vibrations.
+Là où elles se nourrissent, le son meurt d'abord, puis les couleurs pâlissent et la sève s'arrête — c'est
+pourquoi la jungle est grise et muette. Frappée assez fort, une Sourdine **éclate** et rend ce qu'elle avait
+bu : un chant d'oiseau, un rire, une couleur (la couleur et la musique qui reviennent). Les tambours sont
+les derniers cœurs du village : leur battement est trop fort pour elles. Le **Roi des Sourdines** a bu le
+premier tambour. Le héros est un danseur : une danse est une vibration qu'on fait naître, le corps devient
+tambour. Le **Chef Taroum** sait tout cela et n'en parle jamais. (Dans ce document, « Muet » désigne une
+Sourdine : c'était leur ancien nom, et le nom du code.)
 
 ## 11. Direction artistique
 - **Style** : low-poly stylisé, formes rondes, silhouettes fortes. Un seul pack d'assets par famille (personnages, nature) pour la cohérence.

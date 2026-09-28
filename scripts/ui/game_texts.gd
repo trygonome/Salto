@@ -3,11 +3,11 @@ class_name GameTexts
 ## bannières, conseils, bulles des villageois, objets, talents, écrans. Les petits mots qui
 ## montent près de leur source restent courts (charte des retours à l'écran, docs/GDD.md §12).
 
-## Nuits de la saga : titre, Muets rencontrés, réplique du Chef au départ, phrase de fin.
+## Nuits de la saga : titre, Sourdines rencontrées, réplique du Chef au départ, phrase de fin.
 const NIGHTS: Array[Dictionary] = [
 	{
 		&"title": "Le vol des tambours", &"foes": "Sautillants et volants",
-		&"line": "Les Muets ont volé nos trois tambours ! Rapporte-les avant l'aube.",
+		&"line": "Les Sourdines ont volé nos trois tambours ! Rapporte-les avant l'aube.",
 		&"done": "Les trois tambours sont rentrés ! Mais j'entends déjà des boucliers qui s'entrechoquent…",
 	},
 	{
@@ -23,37 +23,37 @@ const NIGHTS: Array[Dictionary] = [
 	{
 		&"title": "Le chœur des cracheurs", &"foes": "Nouveaux : les cracheurs de bulles",
 		&"line": "Des bulles de silence ! Saute par-dessus ou esquive-les.",
-		&"done": "Plus qu'une nuit. Le Roi Muet garde le dernier tambour.",
+		&"done": "Plus qu'une nuit. Le Roi des Sourdines garde le dernier tambour.",
 	},
 	{
-		&"title": "Le Roi Muet", &"foes": "Le Roi Muet garde le 3e sanctuaire",
+		&"title": "Le Roi des Sourdines", &"foes": "Le Roi des Sourdines garde le 3e sanctuaire",
 		&"line": "C'est la dernière nuit. Rends son tambour à la jungle !",
-		&"done": "Le Roi Muet est tombé ! La jungle chante à nouveau.",
+		&"done": "Le Roi des Sourdines a éclaté ! La jungle chante à nouveau.",
 	},
 ]
 ## Les nuits sans fin, après la saga.
 const ENDLESS: Dictionary = {
-	&"title": "Les nuits sans fin", &"foes": "Les Muets sont de plus en plus forts",
-	&"line": "Les Muets ne renoncent jamais. Jusqu'où iras-tu ?",
+	&"title": "Les nuits sans fin", &"foes": "Les Sourdines sont de plus en plus fortes",
+	&"line": "Les Sourdines ont toujours faim. Jusqu'où iras-tu ?",
 	&"done": "Encore une nuit gagnée !",
 }
 const NIGHT_LABEL := "Nuit %d"
 const NIGHT_CHAPTER := "Nuit %d : %s"
 
 const CHIEF_NAME := "Chef Taroum"
-const KING_NAME := "Le Roi Muet"
-const BOSS_NAME := "Grand Muet %s"
+const KING_NAME := "Le Roi des Sourdines"
+const BOSS_NAME := "Grande Sourdine %s"
 ## Conseils du Chef, et ce que disent les danseurs selon les tambours rapportés (puis la fête).
 const CHIEF_TIPS: PackedStringArray = [
 	"Suis le chemin doré, petit acrobate.",
-	"Au village, les Muets n'osent pas entrer.",
+	"Au village, les Sourdines n'osent pas entrer : nos tambours battent trop fort.",
 	"Frappe sur le battement : c'est là que tu es le plus fort.",
-	"Les Muets étaient nos musiciens. Libère-les !",
+	"Les Sourdines boivent nos chansons. Fais-les éclater !",
 	"Reviens souvent : c'est au village que tu grandis.",
-	"Ramène un tambour, et le cadeau de son Grand Muet vient avec.",
+	"Ramène un tambour, et le cadeau de sa Grande Sourdine vient avec.",
 ]
 const BARKS: Array = [
-	["Sans tambour, mes pieds sont tout mous…", "Mon frère est devenu un Muet… Libère-le !", "Tu entends ce battement ? C'est ton cœur, petit."],
+	["Sans tambour, mes pieds sont tout mous…", "Une Sourdine a bu la voix de mon frère… Rends-la-lui !", "Tu entends ce battement ? C'est ton cœur, petit."],
 	["J'entends un battement ! Encore !", "Ça revient, je le sens dans mes orteils !"],
 	["Deux tambours ! Mes hanches se réveillent !", "Encore un et on danse jusqu'à l'aube !"],
 	["Quelle fête ! Regarde-moi ce salto !", "La jungle brille comme jamais !"],
@@ -78,8 +78,8 @@ const QUEST_RETURN_SUB := "Le Chef Taroum t'attend près du totem."
 const QUEST_PICK := "Ramasse le tambour %s"
 const QUEST_PICK_SUB := "Il t'attend sur son autel."
 const QUEST_FREE := "Libère le sanctuaire %s"
-const QUEST_FREE_SUB := "Un Grand Muet garde le tambour."
-const QUEST_FREE_KING_SUB := "Le Roi Muet garde le dernier tambour."
+const QUEST_FREE_SUB := "Une Grande Sourdine garde le tambour."
+const QUEST_FREE_KING_SUB := "Le Roi des Sourdines garde le dernier tambour."
 const QUEST_WON := "La jungle danse !"
 const QUEST_WON_SUB := "Les trois tambours sont rentrés."
 ## Distance jusqu'à l'objectif, sous le repère.
@@ -95,12 +95,12 @@ const BANNER_NIGHT_DONE_TITLE := "La jungle danse !"
 
 ## Expédition : écran titre, clairières, récompenses, résumé.
 const EXPEDITION_TITLE := "Expédition"
-const EXPEDITION_PITCH := "Traverse les clairières, choisis tes dons, libère le Grand Muet."
+const EXPEDITION_PITCH := "Traverse les clairières, choisis tes dons, fais éclater la Grande Sourdine."
 const EXPEDITION_START := "Partir en expédition"
 const EXPEDITION_INFO := "%d plumes d'or · meilleure : clairière %d"
 const ROOM_TITLE := "Clairière %d / %d"
-const ROOM_FIGHT := "Libère les Muets · %s"
-const ROOM_BOSS_TITLE := "Le Grand Muet"
+const ROOM_FIGHT := "Fais éclater les Sourdines · %s"
+const ROOM_BOSS_TITLE := "La Grande Sourdine"
 const ROOM_BOSS_SUB := "Libère-le pour sortir de la jungle"
 const ROOM_CHOOSE := "Choisis ton passage"
 const REWARD_NAMES: Dictionary[StringName, String] = {
@@ -129,13 +129,13 @@ const ENCOUNTER_NAMES: Dictionary[StringName, String] = {
 }
 const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
 	&"spring": "Une eau claire chante entre les pierres. On dit qu'elle se souvient de la musique.",
-	&"merchant": "Un Muet libéré a gardé quelques trésors. Il ne parle pas encore, mais il te montre ses plumes d'or.",
+	&"merchant": "Une Sourdine lui a bu la voix. Il ne parle plus, mais il te montre ses plumes d'or du doigt.",
 	&"drummer": "« Le rythme est en toi, petit. Assieds-toi, écoute le vieux Kamba. »",
-	&"wounded": "« Je cherchais les tambours… les Muets m'ont surpris. Je ne retrouve plus le village. »",
-	&"rest": "Un feu crépite entre les racines. Ici, les Muets ne viennent pas.",
-	&"weaver_lady": "Elle tisse des fils volés aux Muets. « Un fil pour une plume, petit ? »",
+	&"wounded": "« Je cherchais les tambours… les Sourdines m'ont surpris. Je ne retrouve plus le village. »",
+	&"rest": "Un feu crépite entre les racines. Il chante trop fort pour les Sourdines : ici, elles ne viennent pas.",
+	&"weaver_lady": "Elle tisse les fils de son que les Sourdines laissent en éclatant. « Un fil pour une plume, petit ? »",
 	&"echo_spirit": "Une voix répète chacun de tes pas, un temps plus tard. Elle attend ta réponse.",
-	&"mute_tree": "Un fromager immense, gris comme les Muets. Ses racines battent encore, tout doucement.",
+	&"mute_tree": "Un fromager immense, tout gris : une Sourdine a bu sa sève. Ses racines battent encore, tout doucement.",
 }
 const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
 	&"spring": ["Boire : tous tes PV reviennent", "Y plonger la main : un don, contre %d % de tes PV"],
@@ -170,29 +170,29 @@ const BOON_TEXTS: Dictionary[StringName, String] = {
 	&"ember": "Tes coups brûlent : %d % de ton attaque par seconde.",
 	&"meteor": "Plongeon : +%d % de dégâts, onde plus large.",
 	&"fury": "+%d % de dégâts et de vitesse des coups.",
-	&"blaze": "+%d % de dégâts aux Muets en feu.",
-	&"cinders": "Un Muet libéré enflamme ses voisins.",
+	&"blaze": "+%d % de dégâts aux Sourdines en feu.",
+	&"cinders": "Une Sourdine qui éclate enflamme ses voisines.",
 	&"forge": "Coup chargé : +%d % de dégâts, et il brûle.",
 	&"prism": "Critiques : +%d % de dégâts.",
 	&"bark": "−%d % de dégâts reçus.",
 	&"counterpoint": "Riposte : +%d % de dégâts.",
-	&"dazzle": "%d % de chances d'étourdir le Muet touché.",
+	&"dazzle": "%d % de chances d'étourdir la Sourdine touchée.",
 	&"mist": "Roulade : invulnérable plus longtemps (+%d %).",
-	&"tide": "Ta roulade repousse les Muets traversés.",
-	&"frost": "Les Muets touchés sont ralentis (−%d %).",
+	&"tide": "Ta roulade repousse les Sourdines traversées.",
+	&"frost": "Les Sourdines touchées sont ralenties (−%d %).",
 	&"heart": "+%d PV max.",
-	&"thorns": "Ta roulade blesse les Muets traversés.",
-	&"sap": "+%d PV par Muet libéré.",
+	&"thorns": "Ta roulade blesse les Sourdines traversées.",
+	&"sap": "+%d PV par Sourdine éclatée.",
 	&"regrowth": "+%d PV à chaque clairière nettoyée.",
 	&"anchor": "+%d % d'équilibre brisé par tes coups.",
 	&"swift": "+%d % de vitesse de course et de roulade.",
 	&"tempo": "+%d % de vitesse des coups.",
 	&"halo": "+%d % de groove gagné.",
-	&"splash": "Chaque Muet libéré : +%d % de groove.",
+	&"splash": "Chaque Sourdine éclatée : +%d % de groove.",
 	&"rainbow": "Salto arc-en-ciel : +%d % de dégâts.",
 	&"echo": "Ton dernier coup de l'enchaînement libère une onde.",
 	&"hawk": "+%d % de chances de critique.",
-	&"wildfire": "Un critique enflamme le Muet.",
+	&"wildfire": "Un critique enflamme la Sourdine.",
 	&"geyser": "Une esquive parfaite fait jaillir une onde brûlante.",
 	&"sacred_grove": "Chaque esquive parfaite rend %d PV.",
 	&"bloom": "Le Salto arc-en-ciel rend %d % de tes PV.",
@@ -211,7 +211,7 @@ const BOON_FLAT: Array[StringName] = [&"heart", &"sap", &"regrowth", &"sacred_gr
 const RUN_WON := "Jungle libérée !"
 const RUN_LOST := "L'expédition s'arrête"
 const RUN_QUIT := "Retour au camp"
-const RUN_WON_SUB := "Le Grand Muet a retrouvé sa voix. Tu rapportes %s."
+const RUN_WON_SUB := "Le gardien a éclaté : la jungle retrouve ses voix. Tu rapportes %s."
 const RUN_LOST_SUB := "Tu es tombé à la clairière %d. Tu rapportes %s."
 const RUN_QUIT_SUB := "Tu rentres de la clairière %d. Tu rapportes %s."
 const RUN_ROOMS := "Clairières"
@@ -223,12 +223,12 @@ const FEATHER_MANY := "%d plumes d'or"
 ## Carte d'une page du carnet trouvée.
 const PAGE_FOUND := "Page %d du carnet"
 
-## Grand Muet libéré : il retrouve sa voix (bulle au-dessus de lui, docs/GDD.md, annexe).
+## Grande Sourdine qui éclate : les voix qu'elle avait bues s'envolent (bulle au-dessus d'elle).
 const BOSS_FREED_LINES: PackedStringArray = [
-	"Ma voix… elle est revenue !",
-	"Je me souviens de la chanson !",
-	"Merci, petit acrobate !",
-	"Enfin, j'entends la jungle !",
+	"Toutes les voix qu'elle avait bues s'envolent !",
+	"Une chanson oubliée remonte de la brume…",
+	"La jungle reprend son souffle.",
+	"Les couleurs reviennent d'un coup !",
 ]
 
 ## Messages éphémères (toast).
@@ -255,7 +255,7 @@ const REGION_LOCKED := "Libère le gardien d'avant"
 const RUN_REGION := "Région"
 const RUN_UNLOCKED := "Nouvelle région"
 const GUARDIAN_NAMES: Dictionary[StringName, String] = {
-	&"undergrowth": "Le Grand Muet", &"sunken": "Le Gardien des Ruines", &"canopy": "La Reine des Cimes",
+	&"undergrowth": "La Grande Sourdine", &"sunken": "Le Gardien des Ruines", &"canopy": "La Reine des Cimes",
 }
 const REGION_UNLOCKED := "Nouvelle région : %s"
 
@@ -284,7 +284,7 @@ const PACT_NAMES: Dictionary[StringName, String] = {
 	&"thick_skin": "Peaux épaisses", &"hard_hits": "Coups rudes", &"fragile": "Cœur fragile", &"stingy": "Jungle avare",
 }
 const PACT_TEXTS: Dictionary[StringName, String] = {
-	&"thick_skin": "+%d % de PV pour les Muets", &"hard_hits": "Les Muets frappent %d % plus fort",
+	&"thick_skin": "+%d % de PV pour les Sourdines", &"hard_hits": "Les Sourdines frappent %d % plus fort",
 	&"fragile": "Tu pars avec %d % de PV en moins", &"stingy": "Ni soin ni repos en chemin",
 }
 const PACT_CHOICE := "%s%s : %s · +%d %% de plumes"
@@ -333,7 +333,7 @@ const CHIEF_HELLO: PackedStringArray = [
 	"Chaque plume d'or rend un peu de vie au village.",
 ]
 const CHIEF_FIRST_WIN := "Le gardien chante à nouveau ! Tout le village danse pour toi !"
-const CHIEF_WON := "%s est libéré ! Les tambours te remercient."
+const CHIEF_WON := "%s n'est plus ! Les tambours te remercient."
 const CHIEF_UNLOCKED := "La route des %s est ouverte. Prends garde à son gardien."
 const CHIEF_BOSS_CLOSE := "%s vacillait déjà ! La prochaine fois, il chantera."
 const CHIEF_BOSS_LOST := "%s est fort. Reviens avec plus de dons."
@@ -343,7 +343,7 @@ const CHIEF_FAINT := "Tu t'es relevé, c'est l'essentiel. Repose-toi et repars."
 const CHIEF_QUIT := "Sage de rentrer. La jungle attendra."
 ## Répliques qui réagissent (version 3.7) : premières fois, chutes, famille de dons.
 const CHIEF_FIRSTS: Dictionary[StringName, String] = {
-	&"hidden": "Un Muet doré dormait dans un recoin ? Il y en a d'autres.",
+	&"hidden": "Une Sourdine dorée dormait dans un recoin ? Il y en a d'autres.",
 	&"stele": "Une stèle t'a parlé ? Elles ne parlent qu'aux curieux.",
 	&"duo": "Deux esprits dans un seul don ! Ça, c'est rare.",
 	&"pact": "Un pacte… Les esprits aiment ceux qui cherchent la difficulté.",
@@ -387,11 +387,11 @@ const CHIEF_FALLEN: Dictionary[StringName, String] = {
 	&"trap": "Les pièges suivent la musique : écoute le temps d'avant.",
 }
 
-## Muets : nom de chaque espèce, et nom d'un élite (espèce + particularité).
+## Sourdines : nom de chaque espèce, et nom d'une élite (espèce + particularité).
 const SPECIES_NAMES: Dictionary[StringName, String] = {
 	&"hopper": "Sautillant", &"flyer": "Volant", &"shielder": "Porte-bouclier", &"charger": "Cornu",
 	&"spitter": "Cracheur", &"weaver": "Tisserand", &"totem": "Totem chanteur", &"dancer": "Danseur",
-	&"brute": "Brute", &"boss": "Grand Muet",
+	&"brute": "Brute", &"boss": "Grande Sourdine",
 }
 const ELITE_NAMES: Dictionary[StringName, String] = {
 	&"swift": "%s vif", &"armored": "%s cuirassé", &"volatile": "%s éclatant", &"caller": "%s appelant",
@@ -464,7 +464,7 @@ const MENU_DECK_TITLE := "Ton instrument, tes objets, tes dons"
 const MENU_DECK_HINT := "Touche une carte pour la lire."
 const MENU_INSTRUMENT := "Instrument"
 const MENU_EMPTY := "Vide"
-const MENU_EMPTY_INFO := "Un Grand Muet libéré offre un objet ; on le porte depuis le Sac, au village."
+const MENU_EMPTY_INFO := "Chaque gardien vaincu offre un objet ; on le porte depuis le Sac, au village."
 const MENU_RANK := "Rang %d"
 
 ## Pause.
@@ -502,12 +502,12 @@ const SUMMARY_FAINT := "L'aube se lève"
 const SUMMARY_NEXT := "Prochaine nuit : %s."
 const SUMMARY_ENDLESS_OPEN := "Les nuits sans fin sont ouvertes."
 const SUMMARY_QUIT_SUB := "Tu es rentré sain et sauf. "
-const SUMMARY_FAINT_SUB := "Les Muets t'ont eu. "
+const SUMMARY_FAINT_SUB := "Les Sourdines t'ont eu. "
 const SUMMARY_BANKED_ONE := "%s reste au village : il en manque %d."
 const SUMMARY_BANKED_MANY := "%s restent au village : il en manque %d."
 const SUMMARY_NONE := "Repars : la jungle ne bouge pas tant que la nuit dure."
 const SUMMARY_DRUMS := "Tambours de la nuit"
-const SUMMARY_MUETS := "Muets libérés"
+const SUMMARY_MUETS := "Sourdines éclatées"
 const SUMMARY_LEVEL := "Niveau atteint"
 const SUMMARY_TIME := "Temps"
 const AGAIN := "Repartir"
@@ -527,7 +527,7 @@ const PAGE_EMPTY := "Page encore cachée."
 ## Sac.
 const BAG_TITLE := "Sac"
 const BAG_SUB := "%d/%d objets"
-const BAG_EMPTY := "Chaque Grand Muet libéré offre un cadeau : il arrive au village avec son tambour."
+const BAG_EMPTY := "Chaque gardien vaincu offre un cadeau : il arrive au village avec son tambour."
 const SLOT_EMPTY := "Vide"
 const ITEM_NEW := "nouveau"
 const ITEM_INFO := "%s · %s · niveau %d"
@@ -568,7 +568,7 @@ const EFFECT_LINES: Dictionary[StringName, String] = {
 	&"attack_speed": "+%d % de vitesse des coups",
 	&"groove": "+%d % de jauge de rythme",
 	&"dive": "+%d % de dégâts des plongeons",
-	&"heal_per_muet": "+%d PV par Muet libéré",
+	&"heal_per_muet": "+%d PV par Sourdine éclatée",
 	&"xp": "+%d % d'expérience",
 }
 ## Comparaison : écart en plus (vert) ou en moins (rose).
@@ -598,7 +598,7 @@ const TALENT_EFFECTS: Dictionary[StringName, String] = {
 	&"roll": "Groove gagné +%d %",
 	&"finale": "Ton 3e coup libère une onde de choc.",
 	&"breath": "+%d PV max",
-	&"sap": "+%d PV par Muet libéré",
+	&"sap": "+%d PV par Sourdine éclatée",
 	&"bark": "+%d % de résistance",
 	&"second": "Une fois par sortie, relève-toi à 40 % PV.",
 }

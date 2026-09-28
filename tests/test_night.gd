@@ -249,4 +249,4 @@ func test_la_resistance_a_un_plancher() -> void:
 func test_le_carnet_a_ses_douze_pages() -> void:
 	var notebook: NotebookData = load("res://data/notebook.tres") as NotebookData
 	assert_eq(notebook.pages.size(), 12)
-	assert_string_starts_with(notebook.text(1), "Avant le Grand Silence")
+	assert_string_starts_with(notebook.text(1), "Tout ce qui vit vibre")
