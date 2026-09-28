@@ -230,6 +230,15 @@ téléphone). Retours sur la version 2.9, à y intégrer :
   (détours, secrets, découvertes) sans que ce soit une obligation.
 - **Objets et cartes de dons** : de petites icônes voxel animées qui les représentent (le nom compte
   moins), et des effets en couleur pour comprendre d'un coup d'œil ce qu'ils font.
+- **Le rythme ne se voit pas** (retour le plus grave) : après pas mal de parties, le testeur n'avait
+  pas compris que le combat se joue en rythme. Le pilier du jeu est invisible. Constat dans le code :
+  les seuls signes sont l'anneau au sol autour du héros (qui se lit comme un simple cercle de
+  sélection), son éclat doré et un carillon qui se confond avec le son des coups ; aucun mot
+  « Parfait ! » ne s'affiche, le bonus de dégâts (×1,5) ne se voit pas, les Muets attaquent sur les
+  temps sans que ça se remarque, et le conseil « Frappe quand l'anneau se referme » de la nuit n'a pas
+  été porté dans l'expédition. À repenser à la racine : rendre le temps visible et physique (monde,
+  personnages, interface qui battent), rendre la récompense évidente (coup parfait spectaculaire,
+  chiffres, son), l'apprendre dès la première minute sans texte.
 - **Son des pièges** : le son des épines est vraiment envahissant à la longue. Cause : chaque piège
   annonce sa frappe tous les 2 temps avec le même son d'alerte que les attaques des Muets (plusieurs
   pièges par clairière), ce qui brouille aussi cette alerte. À revoir : un son propre aux pièges, discret,
