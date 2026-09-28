@@ -7,7 +7,8 @@ sinon il est refusé. Puis :
   voix) sont découpés en coups isolés dans `tools/audio/samples/` (le générateur de musique
   `make_music.py` les joue en couches) ;
 - les prises de forêt tropicale (oiseaux, insectes, grenouilles, fleuve) deviennent des boucles
-  d'ambiance sans couture dans `assets/audio/ambience/` (OGG, stéréo).
+  d'ambiance sans couture dans `assets/audio/ambience/` (OGG mono : le poids de l'APK compte, et le
+  téléphone joue le plus souvent sur son haut-parleur).
 
 Les sons téléchargés sont gardés dans ~/.cache/salto-tools/freesound (dossier réglable par
 SALTO_TOOLS_DIR). Chaque son est noté dans assets/LICENCES.md.
@@ -131,7 +132,7 @@ def make_ambience(name, takes):
         x = x - np.mean(x, axis=0)
         x = x / np.sqrt(np.mean(x ** 2)) * gain
         mix = x if mix is None else mix + x
-    loop = seamless(mix, LOOP_LENGTH, CROSSFADE)
+    loop = seamless(mix, LOOP_LENGTH, CROSSFADE).mean(axis=1)
     loop *= AMBIENCE_RMS / np.sqrt(np.mean(loop ** 2))
     peak = np.max(np.abs(loop))
     if peak > AMBIENCE_PEAK:

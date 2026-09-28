@@ -33,8 +33,8 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
   (la fenêtre de test est en paysage, comme le téléphone).
   La scène principale est l'expédition (`scenes/levels/expedition.tscn`, action-RPG procédural : une suite
   de clairières générées, dons des esprits, Grand Muet au bout) : elle s'ouvre sur l'écran titre. La nuit dans
-  le monde voxel (`scenes/levels/night.tscn`) et le parcours d'essai (`scenes/levels/test_course.tscn`) se
-  lancent depuis l'éditeur (F6).
+  le monde voxel (`scenes/levels/night.tscn`) et le parcours d'essai (`scenes/levels/test_course.tscn`, absent des
+  exports avec ses modèles KayKit) se lancent depuis l'éditeur (F6).
   Le prototype de référence (`docs/prototype/salto-rpg.html`) s'ouvre dans un navigateur.
 - **Lancer les tests** : `tools/test.sh` — addon **GUT 9.7.1** (`addons/gut`), fichiers `tests/test_*.gd`,
   sans fenêtre ; code de sortie non nul si un test échoue.
