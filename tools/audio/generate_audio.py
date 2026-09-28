@@ -688,6 +688,17 @@ def layer_canopy():
     return buf
 
 
+def sfx_trap():
+    """Piège (version 3.0) : un « tok » de bois sourd et un frottement d'épines, très court."""
+    rng = np.random.default_rng(300)
+    n = int(0.22 * RATE)
+    t = np.arange(n) / RATE
+    tok = np.sin(2 * np.pi * 220 * t * (1 + 0.3 * np.exp(-t / 0.01))) * env(n, 0.001, 0.035)
+    scrape = rng.standard_normal(n) * env(n, 0.004, 0.05)
+    scrape = np.convolve(scrape, np.ones(6) / 6, mode="same")
+    return 0.8 * tok + 0.25 * scrape
+
+
 def write(path, signal, peak=0.9):
     signal = signal / max(np.max(np.abs(signal)), 1e-9) * peak
     data = (signal * 32767).astype("<i2")
@@ -752,6 +763,8 @@ def main():
     # Régions 2.6 : une couche de musique par région, au gain des couches de la nuit.
     for name, buf in (("region_sunken", layer_sunken()), ("region_canopy", layer_canopy())):
         write(ROOT / "assets/audio/music" / f"{name}.wav", buf * layer_gain, peak=np.max(np.abs(buf)) * layer_gain)
+    # Refonte 3.0.
+    write(ROOT / "assets/audio/sfx/trap.wav", sfx_trap(), peak=0.4)
 
 
 if __name__ == "__main__":

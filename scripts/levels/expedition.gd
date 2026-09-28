@@ -32,6 +32,8 @@ extends Level
 @export var war_drum_model: PackedScene
 @export var war_drum_sound: AudioStream
 @export var chest_scene: PackedScene
+## Son discret des pièges (version 3.0).
+@export var trap_sound: AudioStream
 ## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
 ## Muets, de leurs ombres, des petits assemblages) ; pages du carnet (le vieux tambourinaire).
 @export var plume_scene: PackedScene
@@ -449,6 +451,7 @@ func _place_room_props() -> void:
 		trap.phase = trap_data[&"phase"]
 		trap.angle = trap_data[&"angle"]
 		trap.telegraph_scene = telegraph_scene
+		trap.sound = trap_sound
 		trap.material = prop_material
 		trap.position = Vector3(trap_data[&"x"], 0.0, trap_data[&"z"]) * _unit
 		pickups.add_child(trap)

@@ -6,6 +6,9 @@ extends MeshInstance3D
 ## Hauteur au-dessus du sol, pour ne pas se mélanger au sol (m).
 @export var ground_offset: float
 
+## Sans son d'annonce (les pièges : l'alerte sonore reste celle des Muets, version 3.0).
+var silent: bool = false
+
 var _duration: float = 0.0
 var _elapsed: float = 0.0
 var _material: ShaderMaterial
@@ -15,7 +18,8 @@ func _ready() -> void:
 	add_to_group(&"telegraphs")
 	_material = (material_override as ShaderMaterial).duplicate() as ShaderMaterial
 	material_override = _material
-	($Sound as AudioStreamPlayer3D).play()
+	if not silent:
+		($Sound as AudioStreamPlayer3D).play()
 
 
 ## Cercle de `radius` mètres centré en `center`, rempli en `duration` secondes.

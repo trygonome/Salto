@@ -1628,3 +1628,8 @@ func weapon(weapon_id: StringName) -> WeaponData:
 ## Calibration du son : appuis à mesurer, décalage maximal (s).
 @export var calibration_taps: int
 @export var calibration_max: float
+
+@export_group("Refonte 3.0")
+## Son des pièges : volume (dB) et distance au-delà de laquelle on ne l'entend plus (m).
+@export var trap_sound_db: float
+@export var trap_sound_distance: float

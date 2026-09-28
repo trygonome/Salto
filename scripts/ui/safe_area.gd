@@ -11,12 +11,8 @@ func _ready() -> void:
 
 func _apply() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	if not OS.has_feature("mobile"):
-		return
-	var window: Vector2 = Vector2(DisplayServer.window_get_size())
-	var safe: Rect2 = Rect2(DisplayServer.get_display_safe_area())
-	var scale: Vector2 = get_viewport_rect().size / window
-	offset_left = safe.position.x * scale.x
-	offset_top = safe.position.y * scale.y
-	offset_right = -(window.x - safe.end.x) * scale.x
-	offset_bottom = -(window.y - safe.end.y) * scale.y
+	var insets: Vector4 = SafeInsets.of(get_viewport())
+	offset_left = insets.x
+	offset_top = insets.y
+	offset_right = -insets.z
+	offset_bottom = -insets.w

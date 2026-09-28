@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3]
+[gd_scene load_steps=48 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -45,6 +45,7 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="63_drum_model"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="64_drum_sound"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="65_chest"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/trap.wav" id="66_trap_sound"]
 [ext_resource type="PackedScene" path="res://scenes/ui/calibration_screen.tscn" id="99_calibration"]
 
 [node name="Expedition" type="Node3D"]
@@ -66,6 +67,7 @@ telegraph_scene = ExtResource("62_telegraph")
 war_drum_model = ExtResource("63_drum_model")
 war_drum_sound = ExtResource("64_drum_sound")
 chest_scene = ExtResource("65_chest")
+trap_sound = ExtResource("66_trap_sound")
 plume_scene = ExtResource("30_plume")
 character_material = ExtResource("16_actor")
 character_shadow_material = ExtResource("26_actor_shadow")

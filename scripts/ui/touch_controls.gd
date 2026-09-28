@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Commandes tactiles du prototype : joystick flottant à gauche, trois boutons ronds colorés à
 ## droite (Frappe, Saut, Esquive) avec leur nom, la jauge de groove et l'anneau du battement autour
 ## de Frappe. Pour un conseil, le bouton à utiliser (ou le repère du joystick) brille. En paysage,
-## les boutons rétrécissent un peu.
+## les boutons rétrécissent un peu et s'écartent de l'encoche.
 
 ## Action du conseil « courir » (le joystick).
 const MOVE := &"move"
@@ -74,6 +74,14 @@ func stick_point() -> Vector2:
 func _layout() -> void:
 	var portrait: bool = CameraRig.is_portrait(get_viewport().get_visible_rect().size)
 	_buttons.scale = Vector2.ONE * (1.0 if portrait else landscape_scale)
+	# Paysage (version 3.0) : les commandes s'écartent de l'encoche et des bords arrondis.
+	var insets: Vector4 = SafeInsets.of(get_viewport())
+	_buttons.offset_left = -insets.z
+	_buttons.offset_right = -insets.z
+	_buttons.offset_top = -insets.w
+	_buttons.offset_bottom = -insets.w
+	($Joystick as Control).offset_left = insets.x
+	($Joystick as Control).offset_bottom = -insets.w
 
 
 func _make_halo(radius: float) -> ButtonHalo:

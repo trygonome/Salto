@@ -241,6 +241,10 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    gauche ; Frappe, Esquive, Saut en arc à droite ; vie et groove en haut à gauche ; pause en haut à
    droite), zones sûres (encoches) ; correctif du bouton « Partir en expédition » ; son des pièges (un son
    propre, discret, porté seulement près du héros). *Test : tout se joue en paysage, rien ne gêne les pouces.*
+   **Fait** (version 3.0) : paysage exclusif, caméra à champ plus étroit (héros plus grand), commandes et
+   HUD écartés de l'encoche, écran titre en deux colonnes sans défilement (le bouton jaune passait sous le
+   bas de l'écran en paysage : c'était le bug), pièges sans l'alerte des Muets et avec leur propre son
+   discret, qu'on n'entend que de près.
 2. **3.1 — Le combat libre, le monde qui bat la mesure.** Fin du jugement des appuis (plus de Parfait/Bien,
    plus d'anneau au sol ni de calibration) ; le groove se remplit par l'action (coups, combo, réponses, coup
    de grâce, esquive parfaite). Le monde garde la pulsation : Muets et pièges s'annoncent sur les temps,

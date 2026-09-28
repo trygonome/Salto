@@ -2,7 +2,7 @@
 
 ## Le projet
 Jeu d'action acrobatique et rythmique en 3D, fait avec **Godot 4** (GDScript).
-Cible : Android d'abord (portrait et paysage), web ensuite.
+Cible : Android d'abord (paysage exclusif depuis la version 3.0), web ensuite.
 Tout le contexte est dans `docs/` :
 - `docs/GDD.md` : conception, direction artistique, charte des retours à l'écran, textes
 - `docs/REGLAGES.md` : valeurs chiffrées validées dans le prototype
@@ -30,7 +30,7 @@ Tout le contexte est dans `docs/` :
 Godot **4.7.2**. Les scripts de `tools/` tournent sous Linux (sessions cloud, CI) et téléchargent au besoin
 Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (dossier réglable par `SALTO_TOOLS_DIR`).
 - **Lancer le jeu** : ouvrir le projet dans Godot 4.7 puis F5, ou `godot --path .`
-  (la fenêtre de test est en portrait ; la redimensionner en paysage pour tester l'autre cadrage).
+  (la fenêtre de test est en paysage, comme le téléphone).
   La scène principale est l'expédition (`scenes/levels/expedition.tscn`, action-RPG procédural : une suite
   de clairières générées, dons des esprits, Grand Muet au bout) : elle s'ouvre sur l'écran titre. La nuit dans
   le monde voxel (`scenes/levels/night.tscn`) et le parcours d'essai (`scenes/levels/test_course.tscn`) se

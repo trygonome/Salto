@@ -23,11 +23,11 @@ layer = 20
 script = ExtResource("1_title")
 notebook = ExtResource("9_notebook")
 saga_dot_size = 32.0
-max_width = 460.0
-side_margin = 20.0
-top_margin = 24.0
-bottom_margin = 28.0
-compact_height = 540.0
+max_width = 900.0
+side_margin = 28.0
+top_margin = 14.0
+bottom_margin = 14.0
+compact_height = 360.0
 
 [node name="Background" type="TextureRect" parent="."]
 anchors_preset = 15
@@ -60,27 +60,29 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_safe")
 
-[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+[node name="Margin" type="MarginContainer" parent="SafeArea"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_mode = 0
+mouse_filter = 2
 
-[node name="Margin" type="MarginContainer" parent="SafeArea/Scroll"]
-unique_name_in_owner = true
+[node name="Panes" type="HBoxContainer" parent="SafeArea/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 28
+
+[node name="Left" type="VBoxContainer" parent="SafeArea/Margin/Panes"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
 
-[node name="Column" type="VBoxContainer" parent="SafeArea/Scroll/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 6
-alignment = 2
-
-[node name="GameTitle" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="GameTitle" type="Label" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"DisplayTitle"
@@ -89,152 +91,142 @@ script = ExtResource("3_neon")
 echo_color = Color(0.086, 0.878, 1, 1)
 echo_offset = Vector2(-5, -5)
 
-[node name="Subtitle" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Subtitle" type="Label" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SubLabel"
 horizontal_alignment = 1
 
-[node name="Gap1" type="Control" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
 
-[node name="Saga" type="HBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+
+[node name="Saga" type="HBoxContainer" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Gap2" type="Control" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(0, 4)
-layout_mode = 2
-
-[node name="Chapter" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Chapter" type="Label" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ChapterLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ChapterSmall" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+
+[node name="ChapterSmall" type="Label" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Gap3" type="Control" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
 
-[node name="Region" type="HBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="RegionPrev" type="Button" parent="SafeArea/Scroll/Margin/Column/Region"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 52)
-layout_mode = 2
-focus_mode = 0
-text = "‹"
-
-[node name="RegionName" type="Label" parent="SafeArea/Scroll/Margin/Column/Region"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"ChapterLabel"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="RegionNext" type="Button" parent="SafeArea/Scroll/Margin/Column/Region"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 52)
-layout_mode = 2
-focus_mode = 0
-text = "›"
-
-[node name="Weapon" type="HBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="WeaponPrev" type="Button" parent="SafeArea/Scroll/Margin/Column/Weapon"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 52)
-layout_mode = 2
-focus_mode = 0
-text = "‹"
-
-[node name="WeaponName" type="Label" parent="SafeArea/Scroll/Margin/Column/Weapon"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"ChapterLabel"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="WeaponNext" type="Button" parent="SafeArea/Scroll/Margin/Column/Weapon"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(52, 52)
-layout_mode = 2
-focus_mode = 0
-text = "›"
-
-[node name="WeaponInfo" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="WeaponInfo" type="Label" parent="SafeArea/Margin/Panes/Left"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Gap4" type="Control" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(0, 6)
-layout_mode = 2
 
-[node name="Buttons" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Column" type="VBoxContainer" parent="SafeArea/Margin/Panes"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 10
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
 
-[node name="Play" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Play" type="Button" parent="SafeArea/Margin/Panes/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 theme_type_variation = &"CtaButton"
 
-[node name="Village" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Village" type="Button" parent="SafeArea/Margin/Panes/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 
-[node name="Bag" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Region" type="HBoxContainer" parent="SafeArea/Margin/Panes/Column"]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
+theme_override_constants/separation = 6
+alignment = 1
 
-[node name="Talents" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="RegionPrev" type="Button" parent="SafeArea/Margin/Panes/Column/Region"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 44)
 layout_mode = 2
 focus_mode = 0
+text = "‹"
 
-[node name="Notebook" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="RegionName" type="Label" parent="SafeArea/Margin/Panes/Column/Region"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ChapterLabel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RegionNext" type="Button" parent="SafeArea/Margin/Panes/Column/Region"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 44)
+layout_mode = 2
+focus_mode = 0
+text = "›"
+
+[node name="Weapon" type="HBoxContainer" parent="SafeArea/Margin/Panes/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="WeaponPrev" type="Button" parent="SafeArea/Margin/Panes/Column/Weapon"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 44)
+layout_mode = 2
+focus_mode = 0
+text = "‹"
+
+[node name="WeaponName" type="Label" parent="SafeArea/Margin/Panes/Column/Weapon"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ChapterLabel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaponNext" type="Button" parent="SafeArea/Margin/Panes/Column/Weapon"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 44)
+layout_mode = 2
+focus_mode = 0
+text = "›"
+
+[node name="Small" type="HBoxContainer" parent="SafeArea/Margin/Panes/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Bag" type="Button" parent="SafeArea/Margin/Panes/Column/Small"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
 
-[node name="NewGame" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Talents" type="Button" parent="SafeArea/Margin/Panes/Column/Small"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="Notebook" type="Button" parent="SafeArea/Margin/Panes/Column/Small"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="NewGame" type="Button" parent="SafeArea/Margin/Panes/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0

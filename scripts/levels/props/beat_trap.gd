@@ -21,6 +21,10 @@ var phase: int = 0
 var angle: float = 0.0
 var telegraph_scene: PackedScene
 var material: Material
+## Son de la frappe (discret, qu'on n'entend que près du piège ; version 3.0).
+var sound: AudioStream
+
+var _player: AudioStreamPlayer3D
 
 var _spikes: Node3D
 var _vine: Node3D
@@ -67,6 +71,13 @@ func _ready() -> void:
 		_vine.rotation.y = -angle
 		_vine.scale = Vector3(1.0, 1.0, 0.05)
 		add_child(_vine)
+	if sound:
+		_player = AudioStreamPlayer3D.new()
+		_player.stream = sound
+		_player.volume_db = tuning.trap_sound_db
+		_player.max_distance = tuning.trap_sound_distance
+		_player.unit_size = tuning.trap_sound_distance / 3.0
+		add_child(_player)
 	Rhythm.beat.connect(receive_beat)
 
 
@@ -93,6 +104,7 @@ func _warn() -> void:
 	if telegraph_scene == null:
 		return
 	var mark: Telegraph = telegraph_scene.instantiate() as Telegraph
+	mark.silent = true
 	get_parent().add_child(mark)
 	var duration: float = RhythmMath.beat_length(tuning)
 	if kind == SPIKES:
@@ -106,6 +118,9 @@ func strike() -> void:
 	var tuning: TuningData = Tuning.data
 	var hold: float = RhythmMath.beat_length(tuning) * tuning.trap_hold_fraction
 	var target: Node3D = _spikes if kind == SPIKES else _vine
+	if _player:
+		_player.pitch_scale = 1.0 + randf_range(-0.06, 0.06)
+		_player.play()
 	var tween: Tween = create_tween()
 	if kind == SPIKES:
 		tween.tween_property(target, "scale:y", 1.0, tuning.trap_rise_time)

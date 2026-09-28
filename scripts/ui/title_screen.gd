@@ -115,7 +115,7 @@ func refresh() -> void:
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME
 	_bag.text = GameTexts.BAG_BUTTON
-	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
+	_notebook.text = GameTexts.NOTEBOOK_SHORT % [profile.pages.size(), notebook.pages.size()]
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
 
 
