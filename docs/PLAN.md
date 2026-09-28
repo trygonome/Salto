@@ -215,10 +215,70 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
 pas) ; couche audio native Oboe/AAudio (chantier moteur ; la calibration suffit) ; masque qui cache les
 annonces d'attaque (lisibilité d'abord).
 
-## Phase 7 : la refonte jusqu'aux racines (en préparation)
-Le plan détaillé attend le rapport de recherche (prompt Gemini Deep Research : accroche, cohérence
-d'ensemble, monde fourni, agencement du jeu entier, langage visuel, rythme, finition indé, paysage sur
-téléphone). Retours sur la version 2.9, à y intégrer :
+## Phase 7 : la refonte jusqu'aux racines (versions 3.0 à 3.8)
+Sources : retours sur la version 2.9 (ci-dessous) et rapport de recherche Gemini « Refonte de Salto »
+(accroche, cohérence, monde fourni, agencement, langage visuel, rythme, finition, paysage).
+
+**Ce qu'on retient du rapport** : musique âme du monde plutôt que contrainte de timing (Gris, Okami,
+musique de Hades qui suit l'état de l'arène) ; navigation sans défilement en paysage ; code couleur des
+effets en quatre familles ; icônes voxel 3D animées sur des cartes fixes ; clairières assemblées par blocs
+(Spelunky) avec un tracé principal et des recoins facultatifs ; passages mis en scène (rituels, vague de
+couleur) ; récit réactif du Chef (Hades) ; finition « maquette miniature » ; zones sûres et contrôles aux
+pouces ; caméra à champ étroit pour le paysage.
+**Ce qu'on écarte ou corrige** : les chiffres de marché (sources peu fiables, sans incidence sur nos choix) ;
+son option C « rythme moteur synergique » : c'est à peu près le jeu actuel (rien n'est puni, un coup en
+rythme donne un bonus), et elle est restée invisible au testeur ; on garde donc le monde qui bat la mesure
+mais on retire le jugement des appuis. Contours et profondeur de champ en post-traitement : trop coûteux
+sur un Android moyen ; on vise le même effet par l'occlusion calculée à la génération. Les noms
+d'instruments et de régions proposés : on garde les nôtres.
+
+Ordre : d'abord les fondations qui touchent tout (paysage, pivot du combat), puis ce qu'on lit (langage
+visuel, navigation), puis le monde (clairières, passages, finition), puis ce qui fait revenir (hub, récit).
+Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
+
+1. **3.0 — Fondations paysage.** Paysage exclusif (orientation verrouillée, fenêtre de test en paysage) ;
+   caméra recadrée (champ étroit, vue plus large sur les côtés) ; HUD et contrôles aux pouces (joystick à
+   gauche ; Frappe, Esquive, Saut en arc à droite ; vie et groove en haut à gauche ; pause en haut à
+   droite), zones sûres (encoches) ; correctif du bouton « Partir en expédition » ; son des pièges (un son
+   propre, discret, porté seulement près du héros). *Test : tout se joue en paysage, rien ne gêne les pouces.*
+2. **3.1 — Le combat libre, le monde qui bat la mesure.** Fin du jugement des appuis (plus de Parfait/Bien,
+   plus d'anneau au sol ni de calibration) ; le groove se remplit par l'action (coups, combo, réponses, coup
+   de grâce, esquive parfaite). Le monde garde la pulsation : Muets et pièges s'annoncent sur les temps,
+   plantes et lumières respirent avec la musique. Musique qui suit le combat (exploration calme, combat
+   soutenu, retour au calme) et s'étoffe à chaque Muet libéré. Dons refondus en **quatre familles de
+   couleur** : Feu rouge (dégâts, brûlure, critiques), Eau bleue (protection, esquive, riposte,
+   étourdissement), Sève verte (soin, PV, racines), Vent jaune (vitesse, groove, Salto arc-en-ciel) ; les
+   dons « rythme » deviennent autre chose ; dons doubles recomposés. Passe de « game feel » sur les impacts.
+   *Test : sans y penser, frapper est agréable ; le groove monte en se battant bien.*
+3. **3.2 — Langage visuel : icônes voxel et couleurs.** Chaque don, objet, instrument, case du village et
+   récompense a sa petite icône voxel animée (elle tourne, respire) ; le cadre, la gemme de rareté et les
+   mots-clés portent la couleur de la famille ; un effet se comprend à l'image avant le texte (deux lignes
+   au plus). Cartes de dons côte à côte, fixes. *Test : on choisit un don sans lire son nom.*
+4. **3.3 — Navigation d'application, sans défilement.** Architecture des écrans en paysage : écran titre
+   réduit (toucher pour jouer), hub par onglets (Expédition, Village, Sac, Talents, Carnet, Réglages), pages
+   fixes, retour arrière cohérent, transitions ; pause en surimpression à onglets ; résumé en une page.
+   Cibles tactiles de 44 px et plus. *Test : on trouve tout en deux touches, on ne fait jamais défiler.*
+5. **3.4 — Des sentiers qui serpentent.** Clairières assemblées par blocs sur une grille : un tracé principal
+   sinueux de l'entrée à la sortie (les pressés le suivent), des arènes où se jouent les vagues, et des
+   recoins facultatifs derrière la végétation à trancher ou un détour (jarres, plumes, pages, stèle de don,
+   Muet caché) placés selon les règles d'adjacence (un creux bordé de rochers et d'arbres cache plus
+   souvent quelque chose) ; repères visibles de loin. *Test : on a envie de regarder dans les coins, sans y
+   être obligé.*
+6. **3.5 — Passages rituels.** Les arches deviennent des portes-totems : l'icône voxel de la récompense sur
+   le totem ; la franchir déclenche une vague de couleur qui dissout la brume de la zone suivante et une
+   transition musicale. *Test : changer de zone est un petit moment.*
+7. **3.6 — Finition « maquette miniature ».** Occlusion calculée à la génération (coins et pieds de mur
+   assombris), lumière chaude plus douce, brume de profondeur, vague de couleur qui se propage au sol quand
+   une zone est libérée (Gris) ; première minute mise en scène : une clairière sombre et muette, frapper la
+   stèle, la couleur et un premier accord reviennent. *Test : une capture d'écran paraît finie.*
+8. **3.7 — Hub vivant et récit réactif.** Le Chef et les villageois réagissent à tout (instrument choisi,
+   dons pris, morts, gardiens, première fois de chaque chose) ; les villageois ont leur place et leur vie ;
+   chaque gardien libéré rend une couche à la musique du village. *Test : on revient au village pour voir ce
+   qu'ils vont dire.*
+9. **3.8 — Polissage mobile.** Vibrations sur les actions majeures, profilage (60 images/s), ratios d'écran
+   (19,5:9, 20:9, tablettes), export web. *Test : fluide et confortable sur plusieurs téléphones.*
+
+Retours sur la version 2.9 intégrés à ces jalons :
 - **Bug** : le bouton jaune « Partir en expédition » de l'écran titre ne répondait pas (il a fallu passer
   par le village). Pistes : une région fermée affichée entre les flèches désactive le bouton ; un toucher
   pris pour un défilement dans le menu.
