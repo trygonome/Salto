@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Génère la musique en couches de la nuit (104 BPM) et les bruitages de base.
+"""Génère les bruitages du jeu, entièrement synthétisés (pas de licence tierce).
 
-Tout est synthétisé ici : pas de licence tierce. Chaque couche est une boucle de 8 mesures
-rendue dans un tampon circulaire (les queues de notes reviennent au début) : la reprise
-est sans couture. Les couches s'additionnent ; la base joue toujours, chaque tambour
-rapporté en ajoute une.
+Depuis la version 4.0, la musique est jouée par de vrais instruments (`make_music.py`, qui reprend
+d'ici le tempo, la boucle de 8 mesures et quelques sons) et les ambiances sont de vraies prises de
+forêt (`fetch_sounds.py`).
 
 Usage : python3 tools/audio/generate_audio.py   (demande numpy)
 """
@@ -70,106 +69,12 @@ def tom(pitch, length=0.4):
     return body + 0.35 * slap
 
 
-def shaker(length=0.09):
-    n = int(length * RATE)
-    noise = RNG.standard_normal(n)
-    noise = np.diff(noise, prepend=0.0)  # passe-haut grossier
-    return noise * env(n, 0.004, 0.025)
-
-
 def marimba(freq, length=0.6):
     n = int(length * RATE)
     t = np.arange(n) / RATE
     fundamental = np.sin(2 * np.pi * freq * t) * env(n, 0.002, 0.32)
     overtone = np.sin(2 * np.pi * freq * 4 * t) * env(n, 0.001, 0.03)
     return fundamental + 0.3 * overtone
-
-
-def bass(freq, length=0.5):
-    n = int(length * RATE)
-    t = np.arange(n) / RATE
-    tone = np.sin(2 * np.pi * freq * t) + 0.25 * np.sin(2 * np.pi * freq * 2 * t)
-    return np.tanh(1.6 * tone * env(n, 0.004, 0.28))
-
-
-def flute(freq, length):
-    n = int(length * RATE)
-    t = np.arange(n) / RATE
-    vibrato = 1 + 0.006 * np.sin(2 * np.pi * 5.2 * t) * np.minimum(t / 0.25, 1)
-    phase = 2 * np.pi * np.cumsum(freq * vibrato) / RATE
-    tone = np.sin(phase) + 0.12 * np.sin(2 * phase)
-    breath = RNG.standard_normal(n) * 0.04
-    shape = np.minimum(t / 0.05, 1.0) * np.minimum((length - t) / 0.08, 1.0).clip(0, 1)
-    return (tone + breath) * shape
-
-
-def pad(freqs, length):
-    n = int(length * RATE)
-    t = np.arange(n) / RATE
-    out = np.zeros(n)
-    for f in freqs:
-        for detune in (-0.004, 0.0, 0.004):
-            saw = 2 * ((f * (1 + detune) * t) % 1.0) - 1
-            out += saw
-    # Passe-bas simple (moyenne glissante) puis fondu d'entrée et de sortie.
-    kernel = np.ones(24) / 24
-    out = np.convolve(out, kernel, mode="same")
-    shape = np.minimum(t / 0.6, 1.0) * np.minimum((length - t) / 0.6, 1.0).clip(0, 1)
-    return out * shape / (len(freqs) * 3)
-
-
-def layer_base():
-    buf = np.zeros(LOOP_SAMPLES)
-    for bar in range(BARS):
-        b0 = bar * BEATS_PER_BAR
-        add(buf, b0, kick(), 0.9)
-        add(buf, b0 + 2, kick(), 0.7)
-        for eighth in range(8):
-            accent = 0.5 if eighth % 2 else 0.8
-            add(buf, b0 + eighth / 2, shaker(), 0.25 * accent)
-    chords = [[0, 4, 7], [2, 5, 9], [-3, 2, 4], [0, 4, 7]]  # degrés, deux mesures chacun
-    for i, chord in enumerate(chords):
-        freqs = [degree(d, -1) for d in chord]
-        add(buf, i * 2 * BEATS_PER_BAR, pad(freqs, 2 * BEATS_PER_BAR * BEAT), 0.5)
-    return buf
-
-
-def layer_drums():
-    buf = np.zeros(LOOP_SAMPLES)
-    pattern = [(0.0, 1), (0.75, 0), (1.5, 0), (2.0, 1), (2.5, 0), (3.25, 2), (3.5, 0)]
-    pitches = [190.0, 130.0, 260.0]
-    for bar in range(BARS):
-        for beat_offset, which in pattern:
-            add(buf, bar * BEATS_PER_BAR + beat_offset, tom(pitches[which]), 0.55)
-        if bar % 2 == 1:
-            add(buf, bar * BEATS_PER_BAR + 3.75, tom(pitches[2]), 0.4)
-    return buf
-
-
-def layer_bass():
-    buf = np.zeros(LOOP_SAMPLES)
-    roots = [0, 0, 2, 2, -3, -3, 0, 4]
-    for bar, root in enumerate(roots):
-        b0 = bar * BEATS_PER_BAR
-        for beat_offset, step in [(0, 0), (1.5, 0), (2, 2), (3, 1)]:
-            add(buf, b0 + beat_offset, bass(degree(root + step, -2)), 0.45)
-    return buf
-
-
-def layer_melody():
-    buf = np.zeros(LOOP_SAMPLES)
-    phrase = [  # (temps, degré, durée en temps)
-        (0, 5, 1), (1, 7, 0.5), (1.5, 6, 0.5), (2, 5, 1.5), (4, 7, 1), (5, 9, 1), (6, 8, 1.5),
-        (8, 7, 0.5), (8.5, 8, 0.5), (9, 9, 1), (10, 10, 2), (12, 9, 1), (13, 7, 1), (14, 5, 2),
-    ]
-    for repeat in range(2):
-        for beat_pos, d, length in phrase:
-            add(buf, repeat * 16 + beat_pos, flute(degree(d), length * BEAT), 0.28)
-    # Marimba en contrechant, sur les contretemps.
-    for bar in range(BARS):
-        for k, d in enumerate([5, 7, 9, 7]):
-            add(buf, bar * BEATS_PER_BAR + k + 0.5, marimba(degree(d + (bar % 2), 0)), 0.18)
-    return buf
 
 
 def voice(freq, length):
@@ -186,36 +91,6 @@ def voice(freq, length):
         tone += weight * np.sin(k * phase)
     shape = np.minimum(t / 0.12, 1.0) * np.minimum((length - t) / 0.25, 1.0).clip(0, 1)
     return tone * shape
-
-
-def clap(length=0.14):
-    n = int(length * RATE)
-    burst = RNG.standard_normal(n)
-    out = np.zeros(n)
-    for k, delay in enumerate((0.0, 0.011, 0.022)):
-        i = int(delay * RATE)
-        out[i:] += burst[: n - i] * env(n - i, 0.0005, 0.02 if k < 2 else 0.05)
-    kernel = np.array([1.0, -0.9])
-    return np.convolve(out, kernel, mode="same")
-
-
-def layer_band():
-    """La troupe du village : les Muets libérés tapent dans leurs mains (temps 2 et 4) et chantent
-    les accords de la base, en chœur (plus la troupe est grande et proche, plus on l'entend)."""
-    buf = np.zeros(LOOP_SAMPLES)
-    for bar in range(BARS):
-        b0 = bar * BEATS_PER_BAR
-        add(buf, b0 + 1, clap(), 0.24)
-        add(buf, b0 + 3, clap(), 0.24)
-        if bar % 2 == 1:
-            add(buf, b0 + 3.5, clap(), 0.15)
-    chords = [[0, 4, 7], [2, 5, 9], [-3, 2, 4], [0, 4, 7]]
-    for i, chord in enumerate(chords):
-        for j, d in enumerate(chord):
-            for half in range(2):
-                start = i * 2 * BEATS_PER_BAR + half * BEATS_PER_BAR + j * 0.05
-                add(buf, start, voice(degree(d, 0), BEATS_PER_BAR * BEAT * 0.9), 0.055)
-    return buf
 
 
 def sfx_hit():
@@ -447,51 +322,6 @@ def sfx_title():
     return out
 
 
-def ambience_night(length=16.0):
-    """Ambiance de la jungle la nuit, en boucle sans couture : grillons, grenouilles, vent."""
-    n = int(length * RATE)
-    buf = np.zeros(n)
-
-    def place(start, signal, gain):
-        idx = (int(start * RATE) + np.arange(len(signal))) % n
-        np.add.at(buf, idx, signal * gain)
-
-    # Vent : bruit mis en forme dans le domaine fréquentiel (donc périodique sur la boucle).
-    spectrum = np.fft.rfft(RNG.standard_normal(n))
-    freqs = np.fft.rfftfreq(n, 1 / RATE)
-    spectrum *= 1 / np.maximum(freqs, 40) * (freqs < 900)
-    wind = np.fft.irfft(spectrum, n)
-    wind /= np.max(np.abs(wind))
-    t = np.arange(n) / RATE
-    wind *= 0.6 + 0.4 * np.sin(2 * np.pi * t / length)
-    buf += 0.35 * wind
-    # Grillons : groupes de trilles aigus, chacun à son rythme.
-    for cricket in range(5):
-        carrier = RNG.uniform(3900, 5200)
-        period = RNG.uniform(0.55, 1.3)
-        pulses = int(RNG.integers(3, 6))
-        start = RNG.uniform(0, period)
-        gain = RNG.uniform(0.05, 0.12)
-        chirp_n = int(0.028 * RATE)
-        tc = np.arange(chirp_n) / RATE
-        chirp = np.sin(2 * np.pi * carrier * tc) * np.sin(np.pi * tc / tc[-1]) ** 2
-        time = start
-        while time < length:
-            for k in range(pulses):
-                place(time + k * 0.042, chirp, gain * RNG.uniform(0.7, 1.0))
-            time += period * RNG.uniform(0.85, 1.15)
-    # Grenouilles : quelques coassements graves.
-    for croak in range(4):
-        n_c = int(0.28 * RATE)
-        tc = np.arange(n_c) / RATE
-        f = RNG.uniform(260, 420)
-        ribbit = np.sin(2 * np.pi * f * tc) * (0.5 + 0.5 * np.sign(np.sin(2 * np.pi * 32 * tc)))
-        ribbit *= env(n_c, 0.01, 0.1)
-        ribbit = np.convolve(ribbit, np.ones(20) / 20, mode="same")
-        place(RNG.uniform(0, length), ribbit, 0.35)
-    return buf
-
-
 def sweep(length, f_start, f_end, shape):
     """Son qui glisse de f_start à f_end (Hz) : sinus, triangle ou carré."""
     n = int(length * RATE)
@@ -618,15 +448,6 @@ def sfx_sing():
     return out
 
 
-def udu(freq, length=0.5):
-    """Udu (jarre d'argile) : un « boum » creux dont la note glisse vers le bas."""
-    n = int(length * RATE)
-    t = np.arange(n) / RATE
-    f = freq * (1 + 0.5 * np.exp(-t / 0.03))
-    phase = 2 * np.pi * np.cumsum(f) / RATE
-    return (np.sin(phase) + 0.25 * np.sin(2.01 * phase)) * env(n, 0.004, 0.16)
-
-
 def drop(freq, length=0.25):
     """Goutte d'eau : une note qui monte très vite, courte et ronde."""
     n = int(length * RATE)
@@ -634,23 +455,6 @@ def drop(freq, length=0.25):
     f = freq * (1 + 0.8 * (1 - np.exp(-t / 0.012)))
     phase = 2 * np.pi * np.cumsum(f) / RATE
     return np.sin(phase) * env(n, 0.001, 0.05)
-
-
-def layer_sunken():
-    """Ruines englouties : udus graves, gouttes d'eau sur la gamme, un bourdon d'eau profond."""
-    rng = np.random.default_rng(260)
-    buf = np.zeros(LOOP_SAMPLES)
-    for bar in range(BARS):
-        b0 = bar * BEATS_PER_BAR
-        for beat_offset, d in [(0.0, 0), (1.5, 2), (2.5, 0), (3.0, 4)]:
-            add(buf, b0 + beat_offset, udu(degree(d, -2)), 0.5)
-        for k in range(3):
-            pos = b0 + rng.integers(0, 8) / 2
-            add(buf, pos, drop(degree(int(rng.integers(5, 12)), 0)), 0.16)
-    t = np.arange(LOOP_SAMPLES) / RATE
-    swell = 0.5 + 0.5 * np.sin(2 * np.pi * t / (LOOP_SAMPLES / RATE / 2))
-    buf += np.sin(2 * np.pi * degree(0, -2) * t) * (0.05 + 0.05 * swell)
-    return buf
 
 
 def whistle(freq, length):
@@ -661,31 +465,6 @@ def whistle(freq, length):
     phase = 2 * np.pi * np.cumsum(f) / RATE
     shape = np.minimum(t / 0.02, 1.0) * np.minimum((length - t) / 0.04, 1.0).clip(0, 1)
     return np.sin(phase) * shape
-
-
-def bamboo(freq, length=0.12):
-    """Bambou frappé : un claquement boisé, très court."""
-    n = int(length * RATE)
-    t = np.arange(n) / RATE
-    return (np.sin(2 * np.pi * freq * t) + 0.5 * np.sin(2 * np.pi * freq * 2.76 * t)) * env(n, 0.0005, 0.025)
-
-
-def layer_canopy():
-    """Canopée : bambous en doubles croches, appels d'oiseaux sur la gamme, dans les aigus."""
-    rng = np.random.default_rng(261)
-    buf = np.zeros(LOOP_SAMPLES)
-    for bar in range(BARS):
-        b0 = bar * BEATS_PER_BAR
-        for sixteenth in range(16):
-            if sixteenth % 4 == 0 or rng.random() < 0.35:
-                accent = 0.6 if sixteenth % 4 == 0 else 0.3
-                add(buf, b0 + sixteenth / 4, bamboo(degree(7 + sixteenth % 3, 1)), 0.22 * accent)
-        if bar % 2 == 0:
-            for k, d in enumerate([9, 11, 10]):
-                add(buf, b0 + 1 + k * 0.5, whistle(degree(d, 0), 0.22), 0.12)
-        else:
-            add(buf, b0 + 2.5, whistle(degree(int(rng.integers(8, 13)), 0), 0.5), 0.1)
-    return buf
 
 
 def sfx_trap():
@@ -734,17 +513,6 @@ def write(path, signal, peak=0.9):
 
 
 def main():
-    layers = {
-        "night_0_base": layer_base(),
-        "night_1_drums": layer_drums(),
-        "night_2_bass": layer_bass(),
-        "night_3_melody": layer_melody(),
-    }
-    # Même gain pour toutes les couches : leur somme ne sature pas.
-    total_peak = np.max(np.abs(sum(layers.values())))
-    layer_gain = 0.9 / total_peak
-    for name, buf in layers.items():
-        write(ROOT / "assets/audio/music" / f"{name}.wav", buf / total_peak * 0.9, peak=np.max(np.abs(buf)) / total_peak * 0.9)
     write(ROOT / "assets/audio/sfx/hit.wav", sfx_hit())
     write(ROOT / "assets/audio/sfx/chime.wav", sfx_chime(), peak=0.7)
     write(ROOT / "assets/audio/sfx/telegraph.wav", sfx_telegraph(), peak=0.7)
@@ -765,14 +533,9 @@ def main():
     write(ROOT / "assets/audio/sfx/slam.wav", sfx_slam(), peak=0.85)
     write(ROOT / "assets/audio/sfx/ui_click.wav", sfx_ui_click(), peak=0.4)
     write(ROOT / "assets/audio/sfx/title.wav", sfx_title(), peak=0.5)
-    write(ROOT / "assets/audio/ambience/night_ambience.wav", ambience_night(), peak=0.5)
     write(ROOT / "assets/audio/sfx/clink.wav", sfx_clink(), peak=0.45)
     write(ROOT / "assets/audio/sfx/spit.wav", sfx_spit(), peak=0.5)
     write(ROOT / "assets/audio/sfx/answer.wav", sfx_answer(), peak=0.6)
-    # La troupe du village, au même gain que les couches de la nuit (tirée en dernier : les autres
-    # sons ne changent pas).
-    band = layer_band()
-    write(ROOT / "assets/audio/music/night_band.wav", band * layer_gain, peak=np.max(np.abs(band)) * layer_gain)
     write(ROOT / "assets/audio/sfx/ui_card.wav", sfx_ui_card(), peak=0.5)
     # Combat 2.3 (chacun son tirage).
     write(ROOT / "assets/audio/sfx/break.wav", sfx_break(), peak=0.8)
@@ -782,9 +545,6 @@ def main():
     write(ROOT / "assets/audio/sfx/riposte.wav", sfx_riposte(), peak=0.7)
     # Bestiaire 2.4.
     write(ROOT / "assets/audio/sfx/sing.wav", sfx_sing(), peak=0.55)
-    # Régions 2.6 : une couche de musique par région, au gain des couches de la nuit.
-    for name, buf in (("region_sunken", layer_sunken()), ("region_canopy", layer_canopy())):
-        write(ROOT / "assets/audio/music" / f"{name}.wav", buf * layer_gain, peak=np.max(np.abs(buf)) * layer_gain)
     # Refonte 3.0.
     write(ROOT / "assets/audio/sfx/trap.wav", sfx_trap(), peak=0.4)
     # Passage rituel (version 3.5), tiré en dernier : les autres sons ne changent pas.

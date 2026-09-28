@@ -32,7 +32,7 @@
 [ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="33_voxel_actor"]
 [ext_resource type="Material" path="res://scenes/world/beam.tres" id="34_beam"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="23_debug"]
-[ext_resource type="AudioStream" path="res://assets/audio/ambience/night_ambience.wav" id="24_ambience"]
+[ext_resource type="Script" path="res://scripts/fx/ambience_player.gd" id="24_ambience"]
 [ext_resource type="PackedScene" path="res://scenes/fx/effects.tscn" id="90_effects"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/shielder.tscn" id="91_shielder"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/charger.tscn" id="92_charger"]
@@ -119,9 +119,7 @@ current = true
 far = 80.0
 
 [node name="Ambience" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("24_ambience")
-volume_db = -4.0
-autoplay = true
+script = ExtResource("24_ambience")
 
 [node name="TouchControls" parent="." instance=ExtResource("19_touch")]
 

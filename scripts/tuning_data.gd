@@ -249,6 +249,10 @@ extends Resource
 @export var music_silent_db: float
 ## Fondu quand une couche apparaît ou se tait (s).
 @export var music_layer_fade_time: float
+## Volume de l'ambiance de la forêt (version 4.0 : vraies prises, une par lieu) (dB).
+@export var ambience_volume_db: float
+## Fondu d'une ambiance dans la suivante quand on change de lieu (s).
+@export var ambience_fade_time: float
 ## Rayon de l'anneau de battement au début de chaque temps (m).
 @export var beat_ring_radius_max: float
 ## Rayon de l'anneau de battement sur le temps (m).

@@ -49,8 +49,12 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 - **Exporter la version web** : `tools/export_web.sh` → `build/web/` (moteur Compatibility, sans threads :
   s'héberge partout, par exemple sur itch.io). L'essayer en local : `tools/serve_web.sh` puis
   http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.
-- **Régénérer la musique et les bruitages** : `python3 tools/audio/generate_audio.py` (demande `numpy`) —
-  musique de la nuit en 4 couches à 104 BPM et sons d'impact, entièrement synthétisés.
+- **Régénérer la musique** : `python3 tools/audio/make_music.py` (demande `numpy`) — couches à 104 BPM jouées
+  par de vrais instruments (coups CC0 de `tools/audio/samples/`, accordés sur ré pentatonique).
+- **Retélécharger les sons libres** : `python3 tools/audio/fetch_sounds.py` (demande `numpy`, `ffmpeg`, le réseau) —
+  vérifie la licence CC0 de chaque son sur Freesound, prépare les coups d'instruments et les ambiances en boucle
+  (`assets/audio/ambience/*.ogg`). Chaque son est noté dans `assets/LICENCES.md`.
+- **Régénérer les bruitages** : `python3 tools/audio/generate_audio.py` (demande `numpy`) — entièrement synthétisés.
 - **Régénérer le thème de l'interface** : `python3 tools/ui/make_theme.py` → `assets/ui/theme.tres`
   (palette du prototype, polices Bungee et Nunito).
 

@@ -158,6 +158,7 @@ var _stone: SilenceStone
 @onready var touch_controls: TouchControls = $TouchControls
 @onready var camera_rig: Node3D = $CameraRig
 @onready var boon_screen: BoonScreen = $BoonScreen
+@onready var ambience: AmbiencePlayer = $Ambience
 
 
 func _enter_tree() -> void:
@@ -440,6 +441,7 @@ func _build_camp(region: StringName = &"") -> void:
 	gen.generate_room(next_seed, _radius, PackedFloat32Array([0.0]), _kind)
 	world.build(gen)
 	_ambient.setup(_radius * _unit)
+	ambience.play_place(&"village")
 	_place_hero()
 
 
@@ -463,6 +465,7 @@ func _enter_room() -> void:
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	_apply_region(run.region)
+	ambience.play_place(run.region)
 	# Sauvegarde pour reprendre ici si l'application se ferme (version 2.9).
 	Game.snapshot_run(hero.health.current)
 	for node: Node in foes.get_children() + pickups.get_children():
@@ -1274,6 +1277,7 @@ func enter_village() -> void:
 	_village_mood = Game.last_summary.get(&"kind", &"")
 	# Version 3.7 : chaque gardien libéré rend sa couche à la musique du village.
 	Rhythm.set_region_mix(Village.guardian_layers(Game.profile))
+	ambience.play_place(&"village")
 	if Game.last_summary.get(&"kind", &"") == &"won":
 		mood.burst()
 	Game.last_summary = {}

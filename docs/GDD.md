@@ -178,8 +178,9 @@ Relief à exploiter : rochers, souches, perchoirs en escalier.
 - **Riposte** : après une esquive parfaite, Frappe bondit sur le Muet esquivé : coup critique qui ébranle et projette.
 - **La troupe chante** : quand le combo tient, la couche de la troupe du village monte dans la musique.
 
-## 7. Les Muets
-Anciens musiciens du village : bouche cousue, grands yeux, antennes aux couleurs volées.
+## 7. Les Sourdines (appelées « Muets » dans le code)
+Vampires de son (version 4.0, voir §10) : bouche cousue, grands yeux, antennes aux couleurs qu'elles ont
+bues. Frappées assez fort, elles éclatent et rendent ce qu'elles avaient avalé.
 
 | Muet | Comportement | Réponse attendue | Coup qui la donne |
 |---|---|---|---|
@@ -218,7 +219,7 @@ d'une espèce, un conseil près du bon bouton apprend sa réponse.
 - **Coffres cachés** au sommet des perchoirs : une page du carnet, et le rythme qu'ils gardaient remplit la jauge
   de groove (pas d'objet : les objets sont les cadeaux des Grands Muets).
 - **Le carnet** (12 pages) raconte le Grand Silence : chaque nuit de la saga cache ses pages (le coffre des gongs
-  garde la première) ; le Roi Muet se révèle la nuit 5. L'écran Carnet (pause, titre) dit où chercher les pages
+  garde la première) ; le Roi des Sourdines se révèle la nuit 5. L'écran Carnet (pause, titre) dit où chercher les pages
   manquantes. Une page trouvée : petite carte en bas.
 - **Grand Muet libéré** : il retrouve sa voix, une courte réplique au-dessus de lui.
 
@@ -295,31 +296,38 @@ Sourdine : c'était leur ancien nom, et le nom du code.)
 
 ## 13. Audio
 Musique en couches calée sur 104 BPM ; chaque tambour rapporté ajoute une couche.
-La troupe du village (Muets libérés) a sa couche : un chœur et des mains qui claquent, d'autant plus fort
-que la troupe est grande et que le héros est près du village.
+Depuis la version 4.0, elle est jouée par **de vrais instruments** (prises libres CC0) : la basse du djembé
+et les hochets, la kalimba qui égrène les accords (base) ; les tons et claqués du djembé, la clave, le bata
+(tambours) ; la marimba du Ghana et l'udu (basse) ; la flûte de bambou et la zanka (mélodie). Tout est
+accordé sur ré majeur pentatonique.
+La troupe du village (les Sourdines rendues à la vie) a sa couche : des mains qui claquent (un vrai chœur)
+et des « ouh ! » en appel et réponse, d'autant plus fort que la troupe est grande et que le héros est près
+du village. Les Ruines ont leurs udus et leurs gouttes d'eau, la Canopée ses bambous et ses appels d'oiseaux.
+**Ambiances** : de vraies prises de forêt tropicale, une par lieu, en boucle — l'après-midi en Amazonie
+péruvienne (sous-bois), un fleuve sur les pierres et ses grenouilles (Ruines), oiseaux, insectes et le cri du
+piaha (Canopée), la forêt de nuages la nuit (village). Changer de lieu fond une ambiance dans l'autre.
 Gongs en gamme pentatonique. Coups en couches (impact + souffle + note), légères variations aléatoires.
 
 ## 14. Tranche verticale : hors périmètre
 Cinq nuits, nuits sans fin, cracheur, porte-bouclier, talents, carnet complet.
 
 ## Annexe : textes
-**Nuits** — 1 : Le vol des tambours · 2 : La nuit des boucliers · 3 : La charge des cornus · 4 : Le chœur des cracheurs · 5 : Le Roi Muet.
-**Chef, début de nuit 1** : « Les Muets ont volé nos trois tambours ! Rapporte-les avant l'aube. »
-**Muets libérés** : « Ma voix… elle est revenue ! » · « Je me souviens de la chanson ! » · « Merci, petit acrobate ! » · « Enfin, j'entends la jungle ! »
+**Nuits** — 1 : Le vol des tambours · 2 : La nuit des boucliers · 3 : La charge des cornus · 4 : Le chœur des cracheurs · 5 : Le Roi des Sourdines.
+**Chef, début de nuit 1** : « Les Sourdines ont volé nos trois tambours ! Rapporte-les avant l'aube. »
 
-**Pages du carnet**
-1. Avant le Grand Silence, chaque Muet était un musicien du village. Leurs voix faisaient danser la jungle.
-2. Le Grand Silence est venu une nuit sans lune. Il a bu les voix d'abord, puis les couleurs.
-3. Ceux qui ont perdu leur voix ont perdu leur visage. Ils errent, bouche cousue, en cherchant un rythme à voler.
-4. Les tambours sont les derniers cœurs du village. Tant qu'ils battent, le Silence ne peut pas entrer.
+**Pages du carnet** (version 4.0)
+1. Tout ce qui vit vibre : la voix, le tambour, la sève, et même la lumière. Les couleurs sont des chansons que l'œil entend.
+2. Une nuit sans lune, les Sourdines sont sorties de la brume. Elles boivent les vibrations comme d'autres boivent le sang.
+3. Là où une Sourdine se nourrit, le son meurt d'abord. Puis les couleurs pâlissent, et la sève s'arrête dans les arbres.
+4. Les tambours sont les derniers cœurs du village. Leur battement est trop fort pour elles : tant qu'ils battent, elles n'entrent pas.
 5. Les gongs des anciens sanctuaires gardent un morceau de chaque chanson. Rejoue-la, et ils se souviennent.
-6. Un Muet libéré retrouve sa voix d'un seul coup. Le premier son qu'il fait est toujours un rire.
-7. Les cornus portaient les grands tambours. Ils chargent encore, par habitude, vers le bruit qu'ils ont perdu.
-8. Les volants étaient les flûtistes. Écoute bien leurs ailes : elles sifflent encore un peu.
-9. Le Roi Muet fut le premier tambour du village. C'est lui qui a ouvert la porte au Silence, pour entendre ce qu'il y avait après la musique.
+6. Frappe une Sourdine assez fort et elle éclate. Tout ce qu'elle avait bu s'envole : un chant d'oiseau, un rire, une couleur.
+7. Les cornus foncent vers le moindre battement. Rien ne les affame plus qu'un tambour qui bat.
+8. Les volants ont appris à boire le vent. Écoute bien leurs ailes : elles ne font aucun bruit.
+9. Le Roi des Sourdines a bu le premier tambour du village. Depuis, il a faim de tout ce qui chante.
 10. Le Chef Taroum sait tout cela. Il n'en parle jamais, mais il danse plus fort chaque fois qu'un tambour revient.
-11. Quand les cinq nuits seront passées, le Silence ne partira pas. Il attendra, patient, qu'on oublie de jouer.
-12. Alors il faudra jouer encore, chaque nuit. C'est pour ça que les nuits sans fin existent.
+11. Les danseurs le savent : une danse est une vibration qu'on fait naître. Le corps devient tambour.
+12. Les Sourdines ne partiront jamais tout à fait. Elles attendent qu'on oublie de jouer. Alors il faut jouer encore, chaque nuit.
 
 ## Refonte (versions 3.0 et suivantes)
 - **Paysage exclusif** (3.0) : caméra à champ étroit, commandes aux pouces écartées de l'encoche, écran titre en

@@ -245,3 +245,9 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   centre) ; ils parlent à 1,6 m ; troupe à 60 % au village une fois le Grand Muet libéré.
 - Polissage (3.8) : vibration d'un gardien libéré 0,3 s à pleine force ; base de l'interface 800 × 400 (étirée en
   « expand » : 889 × 400 sur un 20:9, 800 × 600 sur une tablette 4:3).
+
+## Phase 8 (versions 4.0 et suivantes)
+- Sons (4.0) : couche de musique audible à −0,5 dB (les vrais instruments sont mixés 2,5 dB plus bas que les
+  couches synthétisées, pour que les sept couches ensemble ne saturent pas) ; ambiance de la forêt à −4 dB,
+  fondu de 2 s d'un lieu à l'autre ; boucles d'ambiance de 30 s (fondu de raccord de 3 s), mixées à −24 dB
+  efficaces.

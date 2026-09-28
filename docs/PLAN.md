@@ -396,6 +396,14 @@ récit des ennemis ; un entretien de la forêt au village (pas de plantations : 
    voix) joués par le générateur en couches, pour garder la musique qui s'étoffe ; inspirée des
    polyphonies en relais et des tambours d'eau des peuples de la forêt, sans enregistrement de ces
    peuples sans licence claire. *Test : la jungle sonne vraie, on comprend qui sont les ennemis.*
+   **Fait** (version 4.0) : Sourdines dans tous les textes (Chef, gardiens, bilans, carnet réécrit en 12
+   pages : « Tout ce qui vit vibre… »). Seize coups d'instruments CC0 vérifiés un à un sur Freesound
+   (djembé basse, claqué et ton, bata, udu grave et aigu, marimba du Ghana, kalimba, flûte de bambou, zanka,
+   hochets, graines, clave, triangle, mains d'un chœur de gospel, « ouh ! ») accordés sur ré pentatonique
+   par `tools/audio/make_music.py` : mêmes sept couches, même boucle de 8 mesures à 104 BPM. Quatre
+   ambiances réelles en boucle sans couture (`tools/audio/fetch_sounds.py`) : Amazonie péruvienne
+   (sous-bois), fleuve et grenouilles (Ruines), oiseaux et piaha hurleur (Canopée), forêt de nuages la nuit
+   (village) ; fondu d'un lieu à l'autre. Toutes les licences dans `assets/LICENCES.md`.
 2. **4.1 — La voie de l'Onde : danses à distance.** Une 4e voie de talents. L'énergie est la jauge de
    groove : le contact la remplit, la danse la dépense. Bouton « Danse » : appuyer, glisser le pouce pour
    viser (une ligne au sol), relâcher ; un toucher bref vise tout seul la Sourdine la plus proche. Pendant
