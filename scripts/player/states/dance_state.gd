@@ -80,6 +80,7 @@ func physics_update(delta: float) -> void:
 ## Fil d'écho : le rayon suit le pouce (ou la Sourdine la plus proche) et boit le groove.
 func _hold_thread(delta: float, tuning: TuningData) -> void:
 	hero.groove.add(-tuning.dance_thread_drain * delta)
+	Journal.count("thread_s", delta)
 	if not hero.thread_held or hero.groove.value <= 0.0 or not hero.is_on_floor():
 		machine.transition_to(&"Ground" if hero.is_on_floor() else &"Air")
 		return

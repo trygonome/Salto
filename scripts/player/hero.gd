@@ -110,6 +110,7 @@ var dance_aiming: bool = false
 var pending_figure: StringName = &""
 var _dance_step: int = 0
 var _dance_aim: DanceAim
+var _journal_groove: float = 0.0
 var _last_dance_end: float = -INF
 var _riposte_target: Muet
 var _riposte_until: float = -INF
@@ -204,6 +205,11 @@ func _physics_process(delta: float) -> void:
 	_hurt_invuln_left = maxf(_hurt_invuln_left - delta, 0.0)
 	combo.update(_clock)
 	groove.drain(delta, tuning.groove_idle_time, tuning.groove_drain_rate)
+	# Journal de jeu : le groove gagné et perdu (dépensé ou retombé) depuis l'image précédente.
+	var groove_change: float = groove.value - _journal_groove
+	if groove_change != 0.0:
+		Journal.count("groove_up" if groove_change > 0.0 else "groove_down", absf(groove_change))
+		_journal_groove = groove.value
 	if reads_player_input:
 		_read_player_input()
 	state_machine.physics_update(delta)
@@ -220,6 +226,7 @@ func _physics_process(delta: float) -> void:
 ## Frappe est jugée tout de suite par rapport au temps (au moment de l'appui, pas du coup).
 func press(action: StringName) -> void:
 	_buffer.press(action, _clock)
+	Journal.count("press:" + action)
 	action_pressed.emit(action)
 	if action == &"attack":
 		var judgement: RhythmMath.Judgement = judge.call()
@@ -615,6 +622,7 @@ func _accept_dance(figure: StringName) -> bool:
 	if figure == &"":
 		return false
 	if groove.value < DanceMath.cost(figure, tuning):
+		Journal.count("dance:fizzle")
 		thread_held = false
 		play_move_sound(&"fizzle")
 		var fx: Effects = Effects.of(self)
@@ -623,6 +631,8 @@ func _accept_dance(figure: StringName) -> bool:
 		dance_fizzled.emit()
 		return false
 	pending_figure = figure
+	Journal.count("dance:" + figure)
+	Journal.count("dance:manual" if dance_manual else "dance:auto")
 	if figure != DanceMath.THREAD:
 		groove.add(-DanceMath.cost(figure, tuning))
 		_dance_step = _chain_step() + 1
@@ -897,6 +907,10 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
+	Journal.count("hit:" + hit.move)
+	Journal.count("dmg", hit.damage)
+	if hit.critical:
+		Journal.count("crit")
 	if hit.target:
 		var muet: Muet = hit.target.get_parent() as Muet
 		# Braise : Pied de braise, Coup de forge (le coup chargé), Feu de joie (un critique).
@@ -957,6 +971,9 @@ func _on_grace(hit: HitData, fx: Effects) -> void:
 ## moment. À zéro point de vie, retour au point de départ.
 func _on_hurt(hit: HitData) -> void:
 	combo.reset()
+	var source: Muet = hit.attacker as Muet
+	Journal.count("hurt:" + (String(source.species) if source else String(hit.move) if hit.move != &"" else "piège"))
+	Journal.count("hurtdmg", hit.damage)
 	_hurt_invuln_left = tuning.hero_hurt_invuln
 	Feedback.hit_stop(tuning.hit_stop_hero)
 	Feedback.vibrate(tuning.vibration_hurt)
@@ -975,6 +992,7 @@ func _on_hurt(hit: HitData) -> void:
 func _on_dodged(hit: HitData) -> void:
 	if not invulnerable:
 		return
+	Journal.count("perfect_dodge")
 	# Le Muet esquivé s'offre à la riposte un moment.
 	var attacker: Muet = hit.attacker as Muet
 	if attacker and not attacker.is_freed():

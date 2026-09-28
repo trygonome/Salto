@@ -435,6 +435,14 @@ récit des ennemis ; un entretien de la forêt au village (pas de plantations : 
    chaque étape. Chaque gardien libéré ouvre sa région même si l'on tombe plus loin ; le résumé compte
    les gardiens ; le Chef salue la première fois (« Personne n'en revenait… »). APK construite par GitHub
    à chaque version (Releases du dépôt).
+   **4.2.1 — Journal de jeu** (demande du joueur) : chaque séance est notée sur l'appareil, rien n'est
+   envoyé : l'appareil (modèle, puce graphique, mémoire, écran, latence audio, calibrage), chaque
+   expédition (région, instrument, pactes, niveau, talents), chaque clairière (durée, issue, PV, coups
+   par mouvement, coups reçus par espèce, esquives parfaites, groove gagné et perdu, danses auto ou
+   visées, ratées, fil d'écho, appuis par bouton, Sourdines éclatées, images par seconde, pire image,
+   accrocs, temps de génération), les choix (passages, dons proposés et pris, rencontres, cases,
+   talents, niveaux) et les erreurs du moteur. Réglages > « Copier le journal » : un résumé lisible des
+   dix dernières séances dans le presse-papiers, à coller dans la conversation. 40 séances gardées.
 4. **4.3 — À deux : la coop en ligne.** (Demande du joueur.) Deux héros dans la même expédition, contre
    les Sourdines. Un téléphone héberge la partie (il décide de tout : Sourdines, dons, clairières), l'autre
    la rejoint avec un code de quatre lettres ; il envoie ses commandes et reçoit l'état du monde. Entre

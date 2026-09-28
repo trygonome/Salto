@@ -92,6 +92,7 @@ func _tile(t: Dictionary, branch: int, tuning: TuningData) -> TileButton:
 	tile.add(_label(text, &"TileSmall"))
 	tile.pressed.connect(func() -> void:
 		if profile.buy_talent(id):
+			Journal.event(&"talent", {"id": String(id), "rank": profile.talent_rank(id)})
 			_buy_sound.play()
 			Game.profile_changed()
 			_render())

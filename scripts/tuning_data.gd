@@ -1769,3 +1769,17 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var beyond_gates_delay: float
 @export var beyond_leg_rooms: int
 @export var room_wave_max: int
+
+@export_group("Phase 8, 4.2.1 : journal de jeu")
+## Séances gardées sur l'appareil ; le journal s'écrit au moins toutes les tant (s) ; une image plus
+## longue que tant (s) est lente, que tant (s) est un accroc ; erreurs différentes notées au plus.
+@export var journal_sessions_kept: int
+@export var journal_flush_period: float
+@export var journal_slow_frame: float
+@export var journal_hitch: float
+@export var journal_error_cap: int
+## « Copier le journal » : séances résumées au plus, en tant de caractères au plus ; le bouton dit
+## « copié » pendant tant (s).
+@export var journal_digest_sessions: int
+@export var journal_digest_max_chars: int
+@export var journal_copied_time: float

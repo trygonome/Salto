@@ -25,6 +25,8 @@ const CHOICE_SPLIT := " : "
 }
 
 @onready var _cards: BoxContainer = %Cards
+## Dons proposés (pour le journal de jeu).
+var _offered: Array = []
 @onready var _pick_sound: AudioStreamPlayer = $PickSound
 @onready var _card_sound: AudioStreamPlayer = $CardSound
 
@@ -49,9 +51,11 @@ func open(offer: Array, title: String = "") -> void:
 		child.queue_free()
 	%Title.text = title if title != "" else GameTexts.BOON_TITLE
 	%Sub.text = GameTexts.BOON_SUB
+	_offered = []
 	for entry: Variant in offer:
 		var id: StringName = (entry as Dictionary)[&"id"] if entry is Dictionary else StringName(entry)
 		var rarity: StringName = (entry as Dictionary)[&"rarity"] if entry is Dictionary else Boons.COMMON
+		_offered.append("%s/%s" % [id, rarity])
 		var ranks: int = maxi(1, Boons.ranks_gained(owned, id, rarity, tuning))
 		var level: int = Boons.rank(owned, id) + ranks
 		var card: TileButton = _card([GameTexts.BOON_NAMES[id], boon_tag(id, rarity, level), GameTexts.boon_text(id, level, tuning)])
@@ -143,6 +147,7 @@ func _make_choice(index: int) -> void:
 
 
 func _choose(id: StringName, ranks: int) -> void:
+	Journal.event(&"boon", {"offered": _offered, "chosen": String(id), "ranks": ranks})
 	_pick_sound.play()
 	hide_screen()
 	get_tree().paused = false

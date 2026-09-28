@@ -197,6 +197,15 @@ func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 	refresh_stats()
 	save()
 	stats_changed.emit()
+	var talents: Dictionary = {}
+	for id: Variant in profile.talents:
+		talents[String(id)] = profile.talents[id]
+	Journal.event(&"run_start", {
+		"region": String(run.region), "weapon": String(run.weapon), "rooms": rooms,
+		"pacts": Array(run.pacts).map(func(p: StringName) -> String: return String(p)),
+		"level": profile.level, "talents": talents, "expeditions": profile.expeditions - 1,
+		"village": Village.built_count(profile), "health": stats.max_health if stats else 0.0,
+	})
 
 
 ## Prend le don des esprits `id` (ou le monte d'un rang) : les forces du héros changent.
@@ -252,6 +261,13 @@ func end_run(kind: StringName) -> Dictionary:
 		&"guardians": freed.size(), &"beyond": run.is_beyond(),
 	}
 	last_summary = summary
+	# Journal de jeu (version 4.2.1) : la clairière en cours se ferme, puis l'expédition.
+	Journal.end_room(String(kind))
+	Journal.event(&"run_end", {
+		"kind": String(kind), "room": reached, "rooms": run.room_count, "feathers": brought, "time": snappedf(run.elapsed, 0.1),
+		"muets": run.muets_freed, "guardians": freed.size(), "beyond": run.is_beyond(), "fallen_to": String(run.fallen_to),
+		"boss_left": snappedf(run.boss_left, 0.01), "boons": run.boon_ranks(), "level": profile.level,
+	})
 	run = null
 	refresh_stats()
 	save()
@@ -283,6 +299,7 @@ func add_xp(amount: float) -> void:
 	if gained > 0:
 		refresh_stats()
 		save()
+		Journal.event(&"level", {"level": profile.level})
 		level_up.emit(profile.level)
 
 

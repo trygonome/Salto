@@ -425,6 +425,7 @@ func preview_region(region: StringName) -> void:
 
 
 func _show_title() -> void:
+	Journal.event(&"screen", {"name": "titre"})
 	in_sortie = false
 	hero.reads_player_input = false
 	hud.visible = false
@@ -481,8 +482,15 @@ func _enter_room() -> void:
 		_exit_angles.append((i - (exits - 1) / 2.0) * EXIT_SPREAD)
 	var fight: bool = run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET
 	# (Pas de Muet caché pendant la première expédition : elle apprend une espèce à la fois.)
+	var gen_start: int = Time.get_ticks_usec()
 	gen.generate_room(run.room_seed(), _radius, _exit_angles, _kind, fight and not run.tutorial)
 	world.build(gen)
+	# Journal de jeu (version 4.2.1) : la clairière commence.
+	Journal.begin_room({
+		"i": run.room, "kind": String(_kind), "reward": String(run.reward), "region": String(run.region),
+		"hp0": roundf(hero.health.current), "hpmax": roundf(hero.health.maximum), "groove0": snappedf(hero.groove.value, 0.1),
+		"gen_ms": roundi(float(Time.get_ticks_usec() - gen_start) / 1000.0),
+	})
 	_ambient.setup(_radius * _unit)
 	for p: Vector3 in gen.pickups:
 		var plume: Node3D = plume_scene.instantiate() as Node3D
@@ -869,6 +877,7 @@ func _blocked(p: Vector2, margin: float) -> bool:
 func _on_muet_freed(muet: Muet) -> void:
 	if Game.run:
 		Game.run.muets_freed += 1
+	Journal.count("freed:" + String(muet.species))
 	_remaining -= 1
 	if _remaining > 0 or _ending or not in_sortie or muet.is_boss():
 		return
@@ -885,6 +894,7 @@ func _room_cleared() -> void:
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	_cleared = true
+	Journal.end_room("cleared", {"hp1": roundf(hero.health.current)})
 	# Version 3.6 : la clairière libérée, une vague de couleur part du héros sur le sol.
 	mood.wave(hero.global_position, false)
 	mood.pulse(tuning.cleared_pulse)
@@ -971,6 +981,9 @@ func _on_gate_chosen(reward: StringName) -> void:
 	if not in_sortie or _ending:
 		return
 	var tuning: TuningData = Tuning.data
+	Journal.end_room("passed", {"hp1": roundf(hero.health.current)})
+	var offered: Array = pickups.get_children().filter(func(n: Node) -> bool: return n is ExitGate).map(func(g: Node) -> String: return String((g as ExitGate).reward))
+	Journal.event(&"gate", {"offered": offered, "chosen": String(reward)})
 	# Au-delà (version 4.2) : rentrer, c'est gagner l'expédition.
 	if reward == RunState.HOME:
 		_ending = true
@@ -1170,6 +1183,7 @@ func _on_choice_made(index: int) -> void:
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	_cleared = true
+	Journal.event(&"encounter", {"id": String(_encounter), "choice": index})
 	var boon: bool = false
 	match [_encounter, index]:
 		[&"spring", 0]:
@@ -1239,6 +1253,7 @@ func _next_page() -> int:
 ## portes s'ouvrent au bout des sentiers de l'arène — rentrer au village, ou aller au-delà.
 func _on_boss_freed(_muet: Muet) -> void:
 	var tuning: TuningData = Tuning.data
+	Journal.end_room("guardian", {"hp1": roundf(hero.health.current)})
 	mood.set_progress(1.0, false)
 	get_tree().call_group(&"world_mood", &"burst")
 	Feedback.vibrate(tuning.vibration_guardian)
@@ -1268,6 +1283,7 @@ func _on_hero_fainted() -> void:
 			var muet: Muet = node as Muet
 			if muet.is_boss() and not muet.is_freed():
 				Game.run.boss_left = muet.health.current / muet.health.maximum
+	Journal.end_room("faint", {"hp1": 0.0, "by": String(Game.run.fallen_to) if Game.run else ""})
 	hud.show_toast(GameTexts.TOAST_FAINT)
 	get_tree().create_timer(Tuning.data.faint_summary_delay, false).timeout.connect(end_sortie.bind(&"faint"))
 
@@ -1293,6 +1309,7 @@ func _on_hero_hurt(hit: HitData) -> void:
 ## On entre au village à pied : le Chef, les danseurs, les chantiers, le passage du nord.
 func enter_village() -> void:
 	var tuning: TuningData = Tuning.data
+	Journal.event(&"screen", {"name": "village"})
 	in_village = true
 	in_sortie = false
 	get_tree().call_group(&"title_screen", &"close")
@@ -1472,6 +1489,7 @@ func _talk_to_plot(id: StringName) -> void:
 func _on_build_choice(index: int) -> void:
 	var tuning: TuningData = Tuning.data
 	var id: StringName = _plot_near
+	Journal.event(&"build", {"plot": String(id), "choice": index})
 	if index != 0 or id == &"" or not Village.build(Game.profile, id, tuning):
 		return
 	Game.refresh_stats()
@@ -1501,6 +1519,7 @@ func _on_build_choice(index: int) -> void:
 
 ## La page « Préparer l'expédition » (région, instrument, pactes ; version 3.3).
 func _open_depart() -> void:
+	Journal.event(&"screen", {"name": "départ"})
 	var screen: Node = get_tree().get_first_node_in_group(&"depart_screen")
 	if screen == null:
 		_depart()

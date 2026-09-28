@@ -25,6 +25,7 @@ func enter(_previous: StringName) -> void:
 	hero.visual.trail.rainbow = _rainbow
 	if _rainbow:
 		hero.groove.empty()
+		Journal.count("rainbow")
 		hero.invulnerable = true
 		hero.velocity = Vector3.UP * tuning.rainbow_hop_speed
 		hero.visual.play_salto(tuning.salto_duration)

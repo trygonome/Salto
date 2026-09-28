@@ -82,6 +82,7 @@ func _entries() -> Array[Control]:
 func open() -> void:
 	if visible or get_tree().paused or not _in_sortie():
 		return
+	Journal.count("pause")
 	get_tree().paused = true
 	_quit_armed = false
 	_showing_help = false

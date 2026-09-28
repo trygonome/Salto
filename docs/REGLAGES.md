@@ -261,3 +261,6 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Au-delà (4.2) : portes 2,5 s après le gardien ; étapes de 6 clairières (5 puis le gardien) ; vagues d'au
   plus 10 Sourdines (une expédition ordinaire en compte au plus 8) ; la puissance suit toujours le rang de la
   clairière (0,5 rang par clairière), les plumes aussi (20 + 5 par clairière).
+- Journal (4.2.1) : 40 séances gardées ; écrit au moins toutes les 30 s (et à chaque fin de clairière) ; image
+  lente au-delà de 25 ms, accroc au-delà de 100 ms ; 30 erreurs différentes au plus ; le résumé copie les 10
+  dernières séances en 60 000 caractères au plus.

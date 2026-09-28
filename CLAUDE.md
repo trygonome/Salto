@@ -49,6 +49,9 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 - **APK sur GitHub** : à chaque changement de version (`project.godot`), GitHub Actions (`.github/workflows/apk.yml`)
   construit l'APK optimisée et la publie dans les Releases du dépôt, sans limite de taille. Lien fixe vers la
   dernière : https://github.com/trygonome/Salto/releases/latest/download/salto.apk
+- **Journal de jeu** (autoload `Journal`, version 4.2.1) : chaque séance est notée dans `user://journal/`
+  (JSON, une ligne par évènement) ; Réglages > « Copier le journal » met un résumé lisible dans le
+  presse-papiers (`JournalDigest`). Les tests le coupent (`tests/pre_run.gd`).
 - **Exporter la version web** : `tools/export_web.sh` → `build/web/` (moteur Compatibility, sans threads :
   s'héberge partout, par exemple sur itch.io). L'essayer en local : `tools/serve_web.sh` puis
   http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.
