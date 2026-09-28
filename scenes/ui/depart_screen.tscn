@@ -1,13 +1,13 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/summary_screen.gd" id="1_screen"]
+[ext_resource type="Script" path="res://scripts/ui/depart_screen.gd" id="1_screen"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
 [ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 
-[node name="SummaryScreen" type="CanvasLayer"]
-layer = 25
+[node name="DepartScreen" type="CanvasLayer"]
+layer = 30
 script = ExtResource("1_screen")
 max_width = 860.0
 side_margin = 16.0
@@ -44,19 +44,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Panes" type="HBoxContainer" parent="SafeArea/Margin"]
+[node name="Column" type="VBoxContainer" parent="SafeArea/Margin"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 24
-mouse_filter = 2
-
-[node name="Left" type="VBoxContainer" parent="SafeArea/Margin/Panes"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="SafeArea/Margin/Panes/Left"]
+[node name="Title" type="Label" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ScreenTitle"
@@ -66,69 +61,72 @@ script = ExtResource("3_neon")
 echo_color = Color(0.086, 0.878, 1, 1)
 echo_offset = Vector2(-3, -3)
 
-[node name="Sub" type="Label" parent="SafeArea/Margin/Panes/Left"]
-unique_name_in_owner = true
+[node name="Rows" type="GridContainer" parent="SafeArea/Margin/Column"]
 layout_mode = 2
-theme_type_variation = &"SubLabel"
-horizontal_alignment = 1
-autowrap_mode = 3
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
 
-[node name="Gain" type="Label" parent="SafeArea/Margin/Panes/Left"]
+[node name="RegionLabel" type="Label" parent="SafeArea/Margin/Column/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"GainLabel"
-horizontal_alignment = 1
-autowrap_mode = 3
+custom_minimum_size = Vector2(84, 0)
+theme_type_variation = &"TinyLabel"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="Column" type="VBoxContainer" parent="SafeArea/Margin/Panes"]
+[node name="Regions" type="HBoxContainer" parent="SafeArea/Margin/Column/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(320, 0)
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WeaponLabel" type="Label" parent="SafeArea/Margin/Column/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(84, 0)
+theme_type_variation = &"TinyLabel"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Weapons" type="HBoxContainer" parent="SafeArea/Margin/Column/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="PactsLabel" type="Label" parent="SafeArea/Margin/Column/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(84, 0)
+theme_type_variation = &"TinyLabel"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="PactCards" type="HBoxContainer" parent="SafeArea/Margin/Column/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Buttons" type="HBoxContainer" parent="SafeArea/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
-mouse_filter = 2
 
-[node name="StatsPanel" type="PanelContainer" parent="SafeArea/Margin/Panes/Column"]
-layout_mode = 2
-theme_type_variation = &"WoodPanel"
-
-[node name="Stats" type="GridContainer" parent="SafeArea/Margin/Panes/Column/StatsPanel"]
+[node name="Back" type="Button" parent="SafeArea/Margin/Column/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/h_separation = 22
-theme_override_constants/v_separation = 4
-columns = 2
+focus_mode = 0
+custom_minimum_size = Vector2(180, 0)
 
-[node name="Buttons" type="HBoxContainer" parent="SafeArea/Margin/Panes/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Again" type="Button" parent="SafeArea/Margin/Panes/Column/Buttons"]
+[node name="Go" type="Button" parent="SafeArea/Margin/Column/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 theme_type_variation = &"CtaButton"
-size_flags_horizontal = 3
-
-[node name="Home" type="Button" parent="SafeArea/Margin/Panes/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-size_flags_horizontal = 3
-
-[node name="Bag" type="Button" parent="SafeArea/Margin/Panes/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-visible = false
-focus_mode = 0
-
-[node name="Talents" type="Button" parent="SafeArea/Margin/Panes/Column"]
-unique_name_in_owner = true
-layout_mode = 2
-visible = false
-focus_mode = 0
+custom_minimum_size = Vector2(280, 0)
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]
 process_mode = 3

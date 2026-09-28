@@ -270,6 +270,15 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    réduit (toucher pour jouer), hub par onglets (Expédition, Village, Sac, Talents, Carnet, Réglages), pages
    fixes, retour arrière cohérent, transitions ; pause en surimpression à onglets ; résumé en une page.
    Cibles tactiles de 44 px et plus. *Test : on trouve tout en deux touches, on ne fait jamais défiler.*
+   **Fait** (version 3.3) : plus aucun écran ne défile ; Sac, Talents, Carnet et Réglages sont des onglets
+   (rail à icônes voxel à gauche, « Retour » en bas, qui ramène toujours d'où l'on vient ; le Sac et les
+   Talents restent grisés loin du village) ; page Réglages à part ; pause en deux colonnes (où l'on est,
+   gestes, dons pris en icônes / Reprendre, onglets, Rentrer) ; résumé en une page (chiffres à droite,
+   boutons côte à côte) ; nouvelle page « Préparer l'expédition » : région, instrument et pactes en cartes
+   à icône, bonus de plumes sur « Partir » ; elle s'ouvre depuis l'écran titre, le passage du nord, le
+   râtelier et la pierre des pactes (les flèches de l'écran titre ont disparu) ; talents en rangées basses
+   (nom et rangs sur une ligne), carnet en grille de pages avec la page lue à droite. Reste pour 3.8 : les
+   écrans 4:3 des tablettes (cartes plus étroites).
 5. **3.4 — Des sentiers qui serpentent.** Clairières assemblées par blocs sur une grille : un tracé principal
    sinueux de l'entrée à la sortie (les pressés le suivent), des arènes où se jouent les vagues, et des
    recoins facultatifs derrière la végétation à trancher ou un détour (jarres, plumes, pages, stèle de don,

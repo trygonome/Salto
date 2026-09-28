@@ -178,14 +178,16 @@ func test_la_pierre_des_pactes_au_village() -> void:
 	hero.global_position = Vector3(stone.x, 0.0, stone.y) + Vector3(0.0, 0.0, tuning.village_plot_radius * 0.5)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
-	assert_true(screen.is_open(), "la pierre parle")
-	assert_eq(screen.get_node("%Cards").get_child_count(), Pacts.IDS.size() + 1)
-	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
+	var screen: DepartScreen = level.get_node("DepartScreen") as DepartScreen
+	assert_true(screen.is_open(), "la pierre ouvre la page de départ")
+	assert_true(get_tree().paused)
+	assert_eq(screen.get_node("%PactCards").get_child_count(), Pacts.IDS.size())
+	(screen.get_node("%PactCards").get_child(0) as Button).pressed.emit()
 	assert_eq(Game.profile.pacts, [Pacts.IDS[0]] as Array[StringName])
-	await get_tree().process_frame
 	assert_true(screen.is_open(), "elle reste ouverte")
-	(screen.get_node("%Cards").get_child(Pacts.IDS.size()) as Button).pressed.emit()
-	await get_tree().process_frame
+	var bonus: String = "%d" % roundi(tuning.pact_bonus[Pacts.IDS[0]] * 100.0)
+	assert_true((screen.get_node("%Go") as Button).text.contains(bonus), "le bonus s'affiche sur « Partir »")
+	screen.go_back()
 	assert_false(screen.is_open(), "c'est décidé")
-	assert_true(String(level.current_goal()[&"sub"]).contains("%d" % roundi(tuning.pact_bonus[Pacts.IDS[0]] * 100.0)), "le bonus s'affiche")
+	assert_false(get_tree().paused, "on reprend la marche au village")
+	assert_true(String(level.current_goal()[&"sub"]).contains(bonus), "le bonus s'affiche")

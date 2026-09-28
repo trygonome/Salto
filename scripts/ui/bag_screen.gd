@@ -1,12 +1,12 @@
 class_name BagScreen
 extends ScreenLayer
-## Sac du prototype : les trois objets portés (chevillières, masque, talisman), le sac (le plus
-## rare d'abord, « nouveau » sur ceux pas encore regardés) et, pour l'objet choisi, ses effets, la
-## comparaison avec l'objet porté et Équiper.
+## Sac (un onglet du menu ; version 3.3 en paysage) : à gauche, les trois objets portés
+## (chevillières, masque, talisman) et, pour l'objet choisi, ses effets, la comparaison avec l'objet
+## porté et Équiper ; à droite, le sac en icônes voxel (le plus rare d'abord, « nouveau » sur ceux pas
+## encore regardés).
 
-## Couleur de chaque rareté (commun, rare, épique, légendaire), pictogramme de chaque emplacement.
+## Couleur de chaque rareté (commun, rare, épique, légendaire).
 @export var rarity_colors: Array[Color]
-@export var slot_icons: Array[Texture2D]
 ## Couleur du nom d'un emplacement vide.
 @export var empty_slot_color: Color
 ## Taille des pictogrammes (px) ; largeur visée d'une tuile du sac (px).
@@ -17,6 +17,8 @@ var _selected: ItemData
 
 @onready var _sub: Label = %Sub
 @onready var _equipped: HBoxContainer = %Equipped
+## Icône voxel de chaque emplacement (version 3.3).
+const SLOT_ICONS: Array[StringName] = [&"anklets", &"mask", &"talisman"]
 @onready var _panel: PanelContainer = %ItemPanel
 @onready var _item_name: Label = %ItemName
 @onready var _item_info: Label = %ItemInfo
@@ -61,7 +63,6 @@ func _render() -> void:
 		if not profile.is_equipped(item):
 			others.append(item)
 	others.sort_custom(func(a: ItemData, b: ItemData) -> bool: return a.rarity > b.rarity or (a.rarity == b.rarity and a.level > b.level))
-	_inventory.columns = maxi(2, floori((_equipped.size.x if _equipped.size.x > 0.0 else max_width) / tile_width))
 	for item: ItemData in others:
 		var tile: TileButton = _tile(item.slot, item, false)
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -70,21 +71,16 @@ func _render() -> void:
 	_render_panel()
 
 
-## Tuile d'un objet (porté : ses effets ; dans le sac : « nouveau »), ou d'un emplacement vide.
+## Tuile d'un objet (version 3.3 : son icône voxel d'abord ; porté : son nom ; dans le sac : son
+## niveau, « nouveau »), ou d'un emplacement vide. Le nom de l'objet est dans la couleur de sa rareté.
 func _tile(slot: ItemData.Slot, item: ItemData, worn: bool) -> TileButton:
 	var tile := TileButton.new()
 	tile.theme_type_variation = &"TileSelected" if item and item == _selected else &"TileButton"
-	var icon := TextureRect.new()
-	icon.texture = slot_icons[slot]
-	icon.custom_minimum_size = Vector2.ONE * icon_size
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tile.add(icon)
-	var title: Label = tile.add(_label(GameTexts.item_name(item) if item else GameTexts.SLOT_NAMES[slot], &"TileTitle")) as Label
+	tile.add(VoxelIconView.create(VoxelIcons.cells(SLOT_ICONS[slot]), icon_size, item != null and item == _selected))
+	var text: String = (GameTexts.item_name(item) if worn else GameTexts.ITEM_LEVEL % item.level) if item else GameTexts.SLOT_NAMES[slot]
+	var title: Label = tile.add(_label(text, &"TileTitle" if worn else &"TileSmall")) as Label
 	title.modulate = rarity_colors[item.rarity] if item else empty_slot_color
-	if worn:
-		tile.add(_label("\n".join(GameTexts.item_lines(item)) if item else GameTexts.SLOT_EMPTY, &"TileSmall"))
-	elif item.is_new:
+	if item and not worn and item.is_new:
 		tile.add(_label(GameTexts.ITEM_NEW, &"NewTag"))
 	if item:
 		tile.pressed.connect(_select.bind(item))

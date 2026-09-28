@@ -10,6 +10,7 @@ const BagScene: PackedScene = preload("res://scenes/ui/bag_screen.tscn")
 const TalentsScene: PackedScene = preload("res://scenes/ui/talents_screen.tscn")
 const SummaryScene: PackedScene = preload("res://scenes/ui/summary_screen.tscn")
 const NotebookScene: PackedScene = preload("res://scenes/ui/notebook_screen.tscn")
+const SettingsScene: PackedScene = preload("res://scenes/ui/settings_screen.tscn")
 const HintZoneScript: GDScript = preload("res://scripts/levels/props/hint_zone.gd")
 
 var hud: Hud
@@ -204,16 +205,47 @@ func test_l_experience_a_rapporter_bat_dans_la_barre() -> void:
 	Game.playing = false
 
 
-func test_les_vibrations_se_coupent_dans_la_pause() -> void:
+func test_les_vibrations_se_coupent_dans_les_reglages_depuis_la_pause() -> void:
 	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	var settings: SettingsScreen = SettingsScene.instantiate() as SettingsScreen
 	world.add_child(menu)
+	world.add_child(settings)
 	menu.open()
-	var button: Button = menu.get_node("%Vibration") as Button
+	(menu.get_node("%Settings") as Button).pressed.emit()
+	assert_true(settings.is_open(), "les réglages s'ouvrent depuis la pause")
+	var button: Button = settings.get_node("%Vibration") as Button
 	assert_eq(button.text, GameTexts.VIBRATION_ON, "activées par défaut")
 	button.pressed.emit()
 	assert_false(Game.profile.vibration)
 	assert_eq(button.text, GameTexts.VIBRATION_OFF)
 	assert_false(Save.load_profile().vibration, "gardé")
+	settings.go_back()
+	assert_true(menu.is_open(), "retour : des réglages à la pause")
+	menu.close()
+
+
+func test_les_onglets_passent_d_un_ecran_a_l_autre_sans_repasser_par_la_pause() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	var screen: NotebookScreen = NotebookScene.instantiate() as NotebookScreen
+	var settings: SettingsScreen = SettingsScene.instantiate() as SettingsScreen
+	world.add_child(menu)
+	world.add_child(screen)
+	world.add_child(settings)
+	Game.start_sortie()
+	Game.leave_village()
+	menu.open()
+	(menu.get_node("%Notebook") as Button).pressed.emit()
+	assert_true(screen.is_open())
+	var tab: Button = screen.get_node_or_null(^"SafeArea/Rail/settings_screen") as Button
+	assert_not_null(tab, "le rail d'onglets est à gauche")
+	assert_true((screen.get_node("SafeArea/Rail/bag_screen") as Button).disabled, "le sac attend le village")
+	tab.pressed.emit()
+	assert_false(screen.is_open())
+	assert_true(settings.is_open(), "l'onglet Réglages remplace le carnet")
+	settings.go_back()
+	assert_true(menu.is_open(), "« Retour » ramène toujours là d'où l'on venait")
+	menu.close()
+	Game.playing = false
 
 
 func test_le_carnet_raconte_les_pages_trouvees_et_dit_ou_chercher_les_autres() -> void:
@@ -224,7 +256,7 @@ func test_le_carnet_raconte_les_pages_trouvees_et_dit_ou_chercher_les_autres() -
 	Game.add_page(5)
 	menu.open()
 	var button: Button = menu.get_node("%Notebook") as Button
-	assert_eq(button.text, GameTexts.NOTEBOOK_BUTTON % [1, screen.notebook.pages.size()])
+	assert_eq(button.text, GameTexts.NOTEBOOK_SHORT % [1, screen.notebook.pages.size()])
 	button.pressed.emit()
 	assert_true(screen.is_open(), "le carnet s'ouvre depuis la pause")
 	var texts: Array[String] = []
@@ -232,7 +264,10 @@ func test_le_carnet_raconte_les_pages_trouvees_et_dit_ou_chercher_les_autres() -
 		texts.append((label as Label).text)
 	assert_has(texts, screen.notebook.text(5), "la page trouvée se lit")
 	assert_false(texts.has(screen.notebook.text(1)), "les autres restent cachées")
-	assert_has(texts, GameTexts.PAGE_GONGS % 1, "la page 1 : les gongs de la nuit 1")
+	var first: Button = screen.get_node("%Pages").get_child(0) as Button
+	assert_eq(first.text, "?", "une page cachée est une tuile « ? »")
+	first.pressed.emit()
+	assert_eq((screen.get_node("%DetailText") as Label).text, GameTexts.PAGE_GONGS % 1, "la page 1 : les gongs de la nuit 1")
 	screen.go_back()
 	assert_true(menu.is_open(), "retour : du carnet à la pause")
 

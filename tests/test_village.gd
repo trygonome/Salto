@@ -148,6 +148,9 @@ func test_on_marche_au_village_et_on_y_rebatit() -> void:
 	assert_false(screen.is_open(), "il ne reparle pas tout de suite")
 	gates = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
 	(gates[0] as ExitGate).chosen.emit(&"depart")
+	var depart: DepartScreen = level.get_node("DepartScreen") as DepartScreen
+	assert_true(depart.is_open(), "le passage du nord ouvre la page de départ")
+	(depart.get_node("%Go") as Button).pressed.emit()
 	await get_tree().create_timer(tuning.room_fade_time * 3.0).timeout
 	assert_false(level.in_village)
 	assert_true(level.in_sortie, "on part en expédition")

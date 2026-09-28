@@ -359,6 +359,10 @@ func summon_guards(boss: Muet) -> void:
 func preview_region(region: StringName) -> void:
 	if in_sortie:
 		return
+	# Au village, on ne reconstruit pas la clairière (le Chef et les danseurs y sont) : ses couleurs suffisent.
+	if in_village:
+		_apply_region(region)
+		return
 	_build_camp(region)
 
 
@@ -756,7 +760,7 @@ func _add_gate(reward: StringName, p: Vector2) -> void:
 
 func _on_gate_chosen(reward: StringName) -> void:
 	if in_village:
-		_depart()
+		_open_depart()
 		return
 	if not in_sortie or _ending:
 		return
@@ -1121,25 +1125,9 @@ func _process_village(delta: float) -> void:
 ## Une case : rebâtie et au rang maximal, elle dit ce qu'elle fait ; sinon, on peut la rebâtir.
 func _talk_to_plot(id: StringName) -> void:
 	var tuning: TuningData = Tuning.data
-	if id == PACT_STONE:
-		var lines := PackedStringArray()
-		for pact: StringName in Pacts.IDS:
-			var amount: int = roundi({Pacts.THICK_SKIN: tuning.pact_muet_health, Pacts.HARD_HITS: tuning.pact_hard_hits, Pacts.FRAGILE: tuning.pact_fragile}.get(pact, 0.0) * 100.0)
-			var effect: String = GameTexts.PACT_TEXTS[pact].replace("%d", str(amount))
-			lines.append(GameTexts.PACT_CHOICE % [GameTexts.PACT_NAMES[pact], GameTexts.PACT_ON if Game.profile.pacts.has(pact) else "", effect, roundi(tuning.pact_bonus.get(pact, 0.0) * 100.0)])
-		lines.append(GameTexts.PACTS_DONE)
-		var all: Array[bool] = []
-		for i: int in lines.size():
-			all.append(true)
-		boon_screen.open_choices(GameTexts.PACTS_TITLE, GameTexts.PACTS_TEXT, lines, all)
-		return
-	if id == RACK:
-		var names := PackedStringArray()
-		var enabled: Array[bool] = []
-		for weapon: WeaponData in tuning.weapons:
-			names.append("%s : %s" % [GameTexts.WEAPON_NAMES.get(weapon.id, ""), GameTexts.WEAPON_TEXTS.get(weapon.id, "")])
-			enabled.append(weapon.id != Game.profile.weapon)
-		boon_screen.open_choices(GameTexts.RACK_TITLE, GameTexts.RACK_TEXT, names, enabled)
+	if id == PACT_STONE or id == RACK:
+		# Version 3.3 : le râtelier et la pierre des pactes ouvrent la page de départ.
+		_open_depart()
 		return
 	var profile: Profile = Game.profile
 	var price: int = Village.cost(profile, id, tuning)
@@ -1161,22 +1149,6 @@ func _talk_to_plot(id: StringName) -> void:
 func _on_build_choice(index: int) -> void:
 	var tuning: TuningData = Tuning.data
 	var id: StringName = _plot_near
-	if id == PACT_STONE:
-		if index < Pacts.IDS.size():
-			Game.profile.pacts = Pacts.toggle(Game.profile.pacts, Pacts.IDS[index])
-			Game.save()
-			# La pierre reste ouverte jusqu'à « C'est décidé ».
-			_talk_to_plot.call_deferred(PACT_STONE)
-		return
-	if id == RACK:
-		Game.profile.weapon = tuning.weapons[index].id
-		Game.save()
-		hero.equip(Game.profile.weapon)
-		hud.show_toast(GameTexts.WEAPON_TAKEN % GameTexts.WEAPON_NAMES.get(Game.profile.weapon, ""))
-		var fx: Effects = Effects.of(self)
-		if fx:
-			fx.burst(hero.global_position + Vector3.UP * tuning.hero_height, tuning.fx_plume_cubes, tuning.fx_plume_speed)
-		return
 	if index != 0 or id == &"" or not Village.build(Game.profile, id, tuning):
 		return
 	Game.refresh_stats()
@@ -1202,6 +1174,36 @@ func _on_build_choice(index: int) -> void:
 		fx.ring(at, tuning.fx_level_ring, fx.gold, tuning.fx_level_ring_time, true)
 	mood.pulse(tuning.rainbow_world_pulse)
 	hud.show_toast(GameTexts.BUILD_DONE % GameTexts.BUILDING_NAMES[id])
+
+
+## La page « Préparer l'expédition » (région, instrument, pactes ; version 3.3).
+func _open_depart() -> void:
+	var screen: Node = get_tree().get_first_node_in_group(&"depart_screen")
+	if screen == null:
+		_depart()
+		return
+	get_tree().paused = true
+	hero.input_move = Vector2.ZERO
+	screen.call(&"open", func() -> void:
+		get_tree().paused = false
+		_reopen_gate())
+
+
+## « Partir » depuis la page de départ : du village (fondu), ou de l'écran titre.
+func depart_from_screen() -> void:
+	get_tree().paused = false
+	if in_village:
+		_depart()
+	else:
+		start_sortie()
+
+
+## Revenu au village sans partir : le passage du nord peut reservir.
+func _reopen_gate() -> void:
+	for node: Node in pickups.get_children():
+		if node is ExitGate:
+			node.queue_free()
+	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - Tuning.data.room_exit_inset / _unit))
 
 
 ## Le passage du nord : on part en expédition (fondu au noir).

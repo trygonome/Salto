@@ -4,9 +4,9 @@
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
+[ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 [ext_resource type="Script" path="res://scripts/ui/pips.gd" id="5_pips"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/pickup.wav" id="6_buy"]
-[ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
 
 [node name="TalentsScreen" type="CanvasLayer"]
 layer = 30
@@ -14,11 +14,12 @@ script = ExtResource("1_screen")
 locked_alpha = 0.4
 idle_alpha = 0.8
 branch_colors = Array[Color]([Color(0.31, 0.878, 0.627, 1), Color(1, 0.373, 0.659, 1), Color(0.498, 0.722, 1, 1)])
-max_width = 640.0
-side_margin = 12.0
-top_margin = 16.0
-bottom_margin = 28.0
+max_width = 860.0
+side_margin = 16.0
+top_margin = 10.0
+bottom_margin = 12.0
 compact_height = 540.0
+rail_tab = &"talents_screen"
 
 [node name="Background" type="Control" parent="."]
 anchors_preset = 15
@@ -39,27 +40,23 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_safe")
 
-[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+[node name="Margin" type="MarginContainer" parent="SafeArea"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_mode = 0
+mouse_filter = 2
 
-[node name="Margin" type="MarginContainer" parent="SafeArea/Scroll"]
+[node name="Column" type="VBoxContainer" parent="SafeArea/Margin"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_constants/separation = 6
+mouse_filter = 2
 
-[node name="Column" type="VBoxContainer" parent="SafeArea/Scroll/Margin"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Title" type="Label" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ScreenTitle"
@@ -69,19 +66,29 @@ script = ExtResource("3_neon")
 echo_color = Color(0.086, 0.878, 1, 1)
 echo_offset = Vector2(-3, -3)
 
-[node name="Sub" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Head" type="HBoxContainer" parent="SafeArea/Margin/Column"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="Sub" type="Label" parent="SafeArea/Margin/Column/Head"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SubLabel"
 horizontal_alignment = 1
-autowrap_mode = 3
 
-[node name="Tree" type="HBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Reset" type="Button" parent="SafeArea/Margin/Column/Head"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"TextButton"
+
+[node name="Tree" type="HBoxContainer" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PipsModel" type="Control" parent="SafeArea/Scroll/Margin/Column"]
+[node name="PipsModel" type="Control" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -91,23 +98,11 @@ radius = 4.0
 gap = 3.0
 line = 1.5
 
-[node name="Buttons" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 10
-
-[node name="Back" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="Back" type="Button" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 theme_type_variation = &"CtaButton"
-
-[node name="Reset" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-theme_type_variation = &"TextButton"
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]
 process_mode = 3

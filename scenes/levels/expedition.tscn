@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3]
+[gd_scene load_steps=49 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -46,6 +46,8 @@
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="64_drum_sound"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="65_chest"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/trap.wav" id="66_trap_sound"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="67_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/depart_screen.tscn" id="68_depart"]
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_night")
@@ -129,6 +131,10 @@ autoplay = true
 [node name="TalentsScreen" parent="." instance=ExtResource("29_talents")]
 
 [node name="NotebookScreen" parent="." instance=ExtResource("43_notebook_screen")]
+
+[node name="SettingsScreen" parent="." instance=ExtResource("67_settings")]
+
+[node name="DepartScreen" parent="." instance=ExtResource("68_depart")]
 
 [node name="BoonScreen" parent="." instance=ExtResource("51_boon")]
 

@@ -1,13 +1,16 @@
 class_name PauseMenu
 extends ScreenLayer
-## Pause du prototype : la nuit en cours, un rappel des gestes, Reprendre, Sac et Talents (au
-## village seulement : c'est là que le héros grandit), Carnet, Vibrations, Son, chiffres de dégâts (et
-## infos techniques des versions de test), Rentrer au village (touché deux fois : la sortie se
+## Pause (version 3.3, deux colonnes) : à gauche, où l'on est, un rappel des gestes et les dons de
+## l'expédition en icônes ; à droite, Reprendre, Sac et Talents (au village seulement : c'est là que
+## le héros grandit), Carnet, Réglages, Rentrer au village (touché deux fois : la sortie se
 ## termine). S'ouvre avec le bouton de pause, Échap / Start, le bouton retour d'Android, ou quand
 ## le jeu passe en arrière-plan.
 
 ## Pages du carnet (leur nombre).
 @export var notebook: NotebookData
+
+## Taille des icônes des dons pris (px).
+@export var boon_icon_size: float = 34.0
 
 var _quit_armed: bool = false
 
@@ -16,11 +19,9 @@ var _quit_armed: bool = false
 @onready var _bag: Button = %Bag
 @onready var _talents: Button = %Talents
 @onready var _notebook: Button = %Notebook
-@onready var _sound: Button = %Sound
-@onready var _damage: Button = %DamageNumbers
-@onready var _vibration: Button = %Vibration
-@onready var _debug: Button = %DebugInfo
+@onready var _settings: Button = %Settings
 @onready var _quit: Button = %Quit
+@onready var _boons: HFlowContainer = %Boons
 
 
 func _ready() -> void:
@@ -33,19 +34,8 @@ func _ready() -> void:
 	_bag.pressed.connect(func() -> void: _open_sub(&"bag_screen"))
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
 	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
-	_sound.pressed.connect(func() -> void:
-		Game.set_muted(not Game.profile.muted)
-		_refresh())
-	_vibration.pressed.connect(func() -> void:
-		Game.set_vibration(not Game.profile.vibration)
-		_refresh())
-	_damage.pressed.connect(func() -> void:
-		Game.set_damage_numbers(not Game.profile.damage_numbers)
-		_refresh())
-	_debug.pressed.connect(func() -> void:
-		Game.set_debug_info(not Game.profile.debug_info)
-		_refresh())
-	_debug.visible = DebugOverlay.available()
+	_settings.text = GameTexts.SETTINGS_BUTTON
+	_settings.pressed.connect(func() -> void: _open_sub(&"settings_screen"))
 	_quit.pressed.connect(_on_quit)
 
 
@@ -119,11 +109,14 @@ func _refresh() -> void:
 	else:
 		_bag.text = GameTexts.BAG_AT_VILLAGE
 		_talents.text = GameTexts.TALENTS_AT_VILLAGE
-	_sound.text = GameTexts.SOUND_OFF if profile.muted else GameTexts.SOUND_ON
-	_damage.text = GameTexts.DAMAGE_NUMBERS_ON if profile.damage_numbers else GameTexts.DAMAGE_NUMBERS_OFF
-	_notebook.text = GameTexts.NOTEBOOK_BUTTON % [profile.pages.size(), notebook.pages.size()]
-	_vibration.text = GameTexts.VIBRATION_ON if profile.vibration else GameTexts.VIBRATION_OFF
-	_debug.text = GameTexts.DEBUG_ON if profile.debug_info else GameTexts.DEBUG_OFF
+	_notebook.text = GameTexts.NOTEBOOK_SHORT % [profile.pages.size(), notebook.pages.size()]
+	# Les dons de l'expédition en cours, en icônes (version 3.3).
+	for child: Node in _boons.get_children():
+		child.queue_free()
+	if Game.run:
+		for id: StringName in Game.run.boons:
+			if Game.run.boons[id] > 0:
+				_boons.add_child(VoxelIconView.create(VoxelIcons.boon(id), boon_icon_size, false))
 	var village: Node = get_tree().get_first_node_in_group(&"night_level")
 	var in_village: bool = village != null and bool(village.get(&"in_village"))
 	_quit.text = GameTexts.QUIT_CONFIRM if _quit_armed else (GameTexts.QUIT_TO_TITLE if in_village else GameTexts.QUIT)

@@ -2,9 +2,9 @@ class_name TitleScreen
 extends ScreenLayer
 ## Écran titre du prototype, par-dessus le village qui danse : SALTO, la saga des cinq nuits (faites,
 ## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
-## Talents, Carnet, Nouvelle partie (touchée deux fois). En expédition (version 2.6) : la région
-## où partir, choisie entre les flèches (une région fermée dit comment l'ouvrir) ; Le village
-## (version 2.7) : y entrer à pied ; l'instrument-arme (version 2.8), entre des flèches.
+## Talents, Carnet, Réglages, Nouvelle partie (touchée deux fois). En expédition : Le village
+## (version 2.7) : y entrer à pied ; « Partir en expédition » ouvre la page de départ (version 3.3 :
+## région, instrument et pactes en cartes, sans défilement).
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
@@ -12,8 +12,6 @@ extends ScreenLayer
 @export var notebook: NotebookData
 
 var _reset_armed: bool = false
-## Région montrée entre les flèches (vide : celle du profil).
-var _shown_region: StringName = &""
 
 @onready var _saga: HBoxContainer = %Saga
 @onready var _chapter: Label = %Chapter
@@ -23,10 +21,8 @@ var _shown_region: StringName = &""
 @onready var _village: Button = %Village
 @onready var _talents: Button = %Talents
 @onready var _notebook: Button = %Notebook
+@onready var _settings: Button = %Settings
 @onready var _new_game: Button = %NewGame
-@onready var _weapon: HBoxContainer = %Weapon
-@onready var _region: HBoxContainer = %Region
-@onready var _region_name: Label = %RegionName
 
 
 func _ready() -> void:
@@ -39,11 +35,8 @@ func _ready() -> void:
 	_village.pressed.connect(_on_village)
 	_talents.pressed.connect(func() -> void: _open_sub(&"talents_screen"))
 	_notebook.pressed.connect(func() -> void: _open_sub(&"notebook_screen"))
+	_settings.pressed.connect(func() -> void: _open_sub(&"settings_screen"))
 	_new_game.pressed.connect(_on_new_game)
-	(%RegionPrev as Button).pressed.connect(_step_region.bind(-1))
-	(%RegionNext as Button).pressed.connect(_step_region.bind(1))
-	(%WeaponPrev as Button).pressed.connect(_step_weapon.bind(-1))
-	(%WeaponNext as Button).pressed.connect(_step_weapon.bind(1))
 
 
 func _band_anchor() -> Control:
@@ -93,15 +86,9 @@ func refresh() -> void:
 	else:
 		_chapter_small.text = GameTexts.TITLE_PITCH
 	_play.text = GameTexts.CONTINUE if profile.started else GameTexts.START
-	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
-	var expedition: bool = level != null and level.is_expedition()
+	var expedition: bool = _is_expedition()
 	_saga.visible = not expedition
-	_region.visible = expedition
 	_village.visible = expedition
-	_weapon.visible = expedition
-	(%WeaponInfo as Control).visible = expedition
-	(%WeaponName as Label).text = GameTexts.WEAPON_NAMES.get(profile.weapon, "")
-	(%WeaponInfo as Label).text = GameTexts.WEAPON_TEXTS.get(profile.weapon, "")
 	_village.text = GameTexts.VILLAGE_BUTTON
 	_play.disabled = false
 	if expedition:
@@ -110,40 +97,18 @@ func refresh() -> void:
 		_play.text = GameTexts.EXPEDITION_START
 		if Game.has_saved_run():
 			_play.text = GameTexts.EXPEDITION_RESUME % [int(profile.saved_run.get("room", 0)) + 1, int(profile.saved_run.get("rooms", 7))]
-		_show_region()
 	_new_game.visible = profile.started
 	_reset_armed = false
 	_new_game.text = GameTexts.NEW_GAME
 	_bag.text = GameTexts.BAG_BUTTON
+	_settings.text = GameTexts.SETTINGS_BUTTON
 	_notebook.text = GameTexts.NOTEBOOK_SHORT % [profile.pages.size(), notebook.pages.size()]
 	_talents.text = GameTexts.TALENTS_BUTTON_POINTS % GameTexts.plural(profile.talent_points, GameTexts.POINT) if profile.talent_points > 0 else GameTexts.TALENTS_BUTTON
 
 
-## Région affichée : son nom ; fermée, comment l'ouvrir (et on ne peut pas y partir).
-func _show_region() -> void:
-	var profile: Profile = Game.profile
-	var open_regions: Array[StringName] = Regions.unlocked(profile.regions_won)
-	var shown: StringName = _shown_region if _shown_region != &"" else profile.region
-	_region_name.text = GameTexts.REGION_NAMES.get(shown, "")
-	var locked: bool = not open_regions.has(shown)
-	if locked:
-		_chapter_small.text = GameTexts.REGION_LOCKED
-		_play.disabled = true
-	(%RegionPrev as Button).disabled = Regions.IDS.find(shown) <= 0
-	(%RegionNext as Button).disabled = Regions.IDS.find(shown) >= Regions.IDS.size() - 1
-
-
-## Montre la région d'à côté ; ouverte, elle devient celle où partir (le camp prend ses couleurs).
-func _step_region(step: int) -> void:
-	var profile: Profile = Game.profile
-	var shown: StringName = _shown_region if _shown_region != &"" else profile.region
-	var index: int = clampi(Regions.IDS.find(shown) + step, 0, Regions.IDS.size() - 1)
-	_shown_region = Regions.IDS[index]
-	if Regions.unlocked(profile.regions_won).has(_shown_region):
-		profile.region = _shown_region
-		Game.save()
-	get_tree().call_group(&"night_level", &"preview_region", _shown_region)
-	refresh()
+func _is_expedition() -> bool:
+	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
+	return level != null and level.is_expedition()
 
 
 ## Entrer au village à pied (rebâtir, écouter le Chef), puis partir par le nord.
@@ -152,25 +117,17 @@ func _on_village() -> void:
 	get_tree().call_group(&"night_level", &"enter_village")
 
 
-## Instrument d'à côté (version 2.8) : c'est avec lui qu'on partira ; le héros du camp le prend.
-func _step_weapon(step: int) -> void:
-	var weapons: Array[WeaponData] = Tuning.data.weapons
-	var index: int = 0
-	for i: int in weapons.size():
-		if weapons[i].id == Game.profile.weapon:
-			index = i
-	Game.profile.weapon = weapons[posmod(index + step, weapons.size())].id
-	Game.save()
-	get_tree().call_group(&"hero", &"equip", Game.profile.weapon)
-	refresh()
-
-
 func _on_play() -> void:
 	close()
-	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
+	var expedition: bool = _is_expedition()
 	# Une expédition interrompue se reprend là où elle s'était arrêtée.
-	if level and level.is_expedition() and Game.has_saved_run():
+	if expedition and Game.has_saved_run():
 		get_tree().call_group(&"night_level", &"resume_sortie")
+		return
+	# En expédition, on prépare d'abord le départ (région, instrument, pactes) ; « Retour » ramène ici.
+	var depart: Node = get_tree().get_first_node_in_group(&"depart_screen")
+	if expedition and depart:
+		depart.call(&"open", open)
 		return
 	get_tree().call_group(&"night_level", &"start_sortie")
 
@@ -184,7 +141,7 @@ func _on_new_game() -> void:
 	get_tree().call_group(&"night_level", &"restart", false)
 
 
-## Ouvre le sac ou les talents ; « Retour » ramène ici.
+## Ouvre le sac, les talents, le carnet ou les réglages ; « Retour » ramène ici.
 func _open_sub(group: StringName) -> void:
 	hide_screen()
 	var screen: Node = get_tree().get_first_node_in_group(group)

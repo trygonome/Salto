@@ -97,12 +97,14 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
     courir, frapper, esquiver, le coup de grâce, le coup chargé, et la réponse qu'attend chaque espèce la
     première fois qu'on la croise (les neuf espèces). Le 4e coup des maracas, le 2e du tambour-marteau et la
     3e fléchette répondent aussi au sautillant.
-  - *Calibrer le son* (pause) : on touche un grand tambour sur chaque temps ; après 8 appuis, le décalage médian
-    corrige le jugement du rythme (le tambour bat sur le temps corrigé). Remise à zéro possible.
-  - *Pactes* (la pierre des pactes, au village, à droite du passage) : peaux épaisses (+40 % de PV pour les
+  - *Pactes* (page « Préparer l'expédition », ouverte aussi par la pierre des pactes du village) : peaux épaisses (+40 % de PV pour les
     Muets, +25 % de plumes), coups rudes (les Muets frappent 30 % plus fort, +25 %), cœur fragile (30 % de PV en
     moins, +30 %), jungle avare (ni soin ni repos en chemin, pas de soin dans les jarres, +20 %). Le bonus
-    s'affiche dans l'objectif du village ; le résumé compte les pactes.
+    s'affiche sur « Partir » et dans l'objectif du village ; le résumé compte les pactes.
+- **Préparer l'expédition** (version 3.3) : une page, sans défilement, en trois rangées de cartes à icône voxel :
+  la région (une région fermée dit comment l'ouvrir), l'instrument, les pactes ; « Partir » (avec le bonus de
+  plumes) lance l'expédition. Elle s'ouvre depuis « Partir en expédition » de l'écran titre, le passage du nord
+  du village, le râtelier et la pierre des pactes.
 Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le
 combat, les Muets et le monde.
 
@@ -205,7 +207,8 @@ Le héros **grandit au village** : c'est là que l'on revient, que l'on fête et
   Pas de butin au sol : chaque **Grand Muet offre un cadeau** qui voyage avec son tambour et arrive dans le sac
   au village (perdu en route, il retourne à l'autel avec le tambour). Sac plein : le plus faible des objets
   non portés laisse sa place.
-- Le **sac et les talents** s'ouvrent au village (depuis la pause) et depuis l'écran titre et le résumé.
+- Le **sac et les talents** s'ouvrent au village (depuis la pause) et depuis l'écran titre ; en expédition,
+  leurs onglets restent grisés.
 - Ni monnaie, ni forge, ni défis, ni score : le résumé d'une sortie dit les tambours, les Muets libérés,
   le niveau et le temps.
 
@@ -237,6 +240,12 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
   À l'ouverture : le titre tombe, le bandeau se tisse, chaque élément surgit l'un après l'autre ; chaque carte
   de don sonne un petit tambour, un ton plus haut que la précédente ; un bouton appuyé s'enfonce.
   Dans le jeu, l'objectif, les messages et le bouton pause sont de petites plaques de bois.
+- **Navigation** (version 3.3, paysage) : aucun écran ne défile. Écran titre en deux colonnes (le titre et le
+  chapitre à gauche ; Partir, Le village, puis Sac, Talents, Carnet, Réglages en grille à droite). Sac,
+  Talents, Carnet et Réglages sont des **onglets** : un rail à icônes voxel à gauche passe de l'un à l'autre,
+  « Retour » en bas ramène toujours d'où l'on vient (titre, pause). Pause en deux colonnes : où l'on est, les
+  gestes et les dons pris (icônes) à gauche ; Reprendre, les onglets et Rentrer à droite. Résumé en une page :
+  le titre à gauche, les chiffres et les boutons côte à côte à droite.
 
 ## 12. Charte des retours à l'écran (leçon du prototype)
 - **Le monde parle d'abord** : effets, sons, réactions des personnages avant tout texte.

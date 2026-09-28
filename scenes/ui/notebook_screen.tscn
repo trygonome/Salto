@@ -4,18 +4,19 @@
 [ext_resource type="Script" path="res://scripts/ui/safe_area.gd" id="2_safe"]
 [ext_resource type="Script" path="res://scripts/ui/neon_label.gd" id="3_neon"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="4_click"]
-[ext_resource type="Resource" path="res://data/notebook.tres" id="5_notebook"]
 [ext_resource type="Script" path="res://scripts/ui/screen_backdrop.gd" id="90_backdrop"]
+[ext_resource type="Resource" path="res://data/notebook.tres" id="5_notebook"]
 
 [node name="NotebookScreen" type="CanvasLayer"]
 layer = 30
 script = ExtResource("1_screen")
 notebook = ExtResource("5_notebook")
-max_width = 560.0
-side_margin = 12.0
-top_margin = 16.0
-bottom_margin = 28.0
+max_width = 860.0
+side_margin = 16.0
+top_margin = 10.0
+bottom_margin = 12.0
 compact_height = 540.0
+rail_tab = &"notebook_screen"
 
 [node name="Background" type="Control" parent="."]
 anchors_preset = 15
@@ -36,27 +37,23 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_safe")
 
-[node name="Scroll" type="ScrollContainer" parent="SafeArea"]
+[node name="Margin" type="MarginContainer" parent="SafeArea"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_mode = 0
+mouse_filter = 2
 
-[node name="Margin" type="MarginContainer" parent="SafeArea/Scroll"]
+[node name="Column" type="VBoxContainer" parent="SafeArea/Margin"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_constants/separation = 6
+mouse_filter = 2
 
-[node name="Column" type="VBoxContainer" parent="SafeArea/Scroll/Margin"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Title" type="Label" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ScreenTitle"
@@ -66,25 +63,49 @@ script = ExtResource("3_neon")
 echo_color = Color(0.086, 0.878, 1, 1)
 echo_offset = Vector2(-3, -3)
 
-[node name="Sub" type="Label" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Sub" type="Label" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SubLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Pages" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
+[node name="Body" type="HBoxContainer" parent="SafeArea/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Pages" type="GridContainer" parent="SafeArea/Margin/Column/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+columns = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
 
-[node name="Buttons" type="VBoxContainer" parent="SafeArea/Scroll/Margin/Column"]
-custom_minimum_size = Vector2(300, 0)
+[node name="Detail" type="PanelContainer" parent="SafeArea/Margin/Column/Body"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 10
+size_flags_horizontal = 3
+theme_type_variation = &"PagePanel"
 
-[node name="Back" type="Button" parent="SafeArea/Scroll/Margin/Column/Buttons"]
+[node name="DetailBox" type="VBoxContainer" parent="SafeArea/Margin/Column/Body/Detail"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DetailTitle" type="Label" parent="SafeArea/Margin/Column/Body/Detail/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PageTitle"
+autowrap_mode = 3
+
+[node name="DetailText" type="Label" parent="SafeArea/Margin/Column/Body/Detail/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PageLine"
+autowrap_mode = 3
+
+[node name="Back" type="Button" parent="SafeArea/Margin/Column"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0

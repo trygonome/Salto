@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3]
+[gd_scene load_steps=43 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/voxel_night.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -40,6 +40,7 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/gong.tscn" id="40_gong"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="41_chest"]
 [ext_resource type="Resource" path="res://data/notebook.tres" id="42_notebook"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="67_settings"]
 
 [sub_resource type="CylinderShape3D" id="Shape_village"]
 height = 4.0
@@ -137,6 +138,8 @@ autoplay = true
 [node name="TalentsScreen" parent="." instance=ExtResource("29_talents")]
 
 [node name="NotebookScreen" parent="." instance=ExtResource("43_notebook_screen")]
+
+[node name="SettingsScreen" parent="." instance=ExtResource("67_settings")]
 
 [node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
 

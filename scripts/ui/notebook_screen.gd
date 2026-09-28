@@ -7,7 +7,16 @@ extends ScreenLayer
 @export var notebook: NotebookData
 
 @onready var _sub: Label = %Sub
-@onready var _pages: VBoxContainer = %Pages
+@onready var _pages: GridContainer = %Pages
+@onready var _detail: PanelContainer = %Detail
+@onready var _detail_title: Label = %DetailTitle
+@onready var _detail_text: Label = %DetailText
+
+## Taille d'une tuile de page (px) ; page montrée à droite.
+@export var tile_size: float = 52.0
+## Transparence d'une page encore cachée.
+@export var missing_alpha: float = 0.55
+var _page: int = 0
 
 
 func _ready() -> void:
@@ -32,15 +41,25 @@ func _render() -> void:
 	for child: Node in _pages.get_children():
 		_pages.remove_child(child)
 		child.queue_free()
+	if _page <= 0 or _page > total:
+		_page = profile.pages[profile.pages.size() - 1] if not profile.pages.is_empty() else 1
 	for page: int in range(1, total + 1):
-		var panel := PanelContainer.new()
 		var found: bool = profile.has_page(page)
-		panel.theme_type_variation = &"PagePanel" if found else &"SlotPanel"
-		var box := VBoxContainer.new()
-		panel.add_child(box)
-		box.add_child(_label(GameTexts.PAGE_TITLE % page, &"PageTitle" if found else &"ItemTitle"))
-		box.add_child(_label(notebook.text(page) if found else _where(page), &"PageLine" if found else &"SmallLabel"))
-		_pages.add_child(panel)
+		var tile := Button.new()
+		tile.text = str(page) if found else "?"
+		tile.custom_minimum_size = Vector2.ONE * tile_size
+		tile.focus_mode = Control.FOCUS_NONE
+		tile.theme_type_variation = &"TileSelected" if page == _page else &"TileButton"
+		tile.modulate.a = 1.0 if found else missing_alpha
+		tile.pressed.connect(func() -> void:
+			_page = page
+			_render())
+		_clicks(tile)
+		_pages.add_child(tile)
+	var shown: bool = profile.has_page(_page)
+	_detail_title.text = GameTexts.PAGE_TITLE % _page
+	_detail_text.text = notebook.text(_page) if shown else _where(_page)
+	_detail.theme_type_variation = &"PagePanel" if shown else &"SlotPanel"
 
 
 ## Où chercher une page encore cachée.

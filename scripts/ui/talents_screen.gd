@@ -74,13 +74,20 @@ func _tile(t: Dictionary, branch: int, tuning: TuningData) -> TileButton:
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tile.theme_type_variation = &"TileCan" if can else &"TileSelected" if rank > 0 else &"TileButton"
 	tile.modulate.a = locked_alpha if locked else 1.0 if rank > 0 or can else idle_alpha
-	tile.add(_label(GameTexts.TALENT_NAMES[id], &"TileTitle"))
+	# Nom et rangs sur une ligne, l'effet dessous : les quatre rangées tiennent en paysage (version 3.3).
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override(&"separation", 6)
+	var name_label: Label = _label(GameTexts.TALENT_NAMES[id], &"TileTitle")
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	row.add_child(name_label)
 	var pips: Pips = _pips_model.duplicate() as Pips
 	pips.visible = true
 	pips.maximum = t[&"max"]
 	pips.rank = rank
-	pips.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	tile.add(pips)
+	pips.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(pips)
+	tile.add(row)
 	var text: String = GameTexts.TALENT_LOCKED % [required, GameTexts.BRANCH_NAMES[branch]] if locked else GameTexts.talent_effect(id, rank, tuning)
 	tile.add(_label(text, &"TileSmall"))
 	tile.pressed.connect(func() -> void:

@@ -470,17 +470,39 @@ func test_chaque_region_a_son_gardien_et_s_ouvre_en_le_liberant() -> void:
 	get_tree().paused = false
 
 
-func test_l_ecran_titre_choisit_la_region() -> void:
+func test_la_page_de_depart_choisit_region_instrument_et_pactes() -> void:
 	await _open_level()
 	var title: TitleScreen = level.get_node("TitleScreen") as TitleScreen
-	assert_true((title.get_node("%Region") as Control).visible)
-	assert_eq((title.get_node("%RegionName") as Label).text, GameTexts.REGION_NAMES[Regions.UNDERGROWTH])
-	(title.get_node("%RegionNext") as Button).pressed.emit()
-	assert_eq((title.get_node("%RegionName") as Label).text, GameTexts.REGION_NAMES[Regions.SUNKEN])
-	assert_true((title.get_node("%Play") as Button).disabled, "fermée : on ne peut pas y partir")
-	assert_eq(Game.profile.region, Regions.UNDERGROWTH)
+	var depart: DepartScreen = level.get_node("DepartScreen") as DepartScreen
+	title.open()
+	(title.get_node("%Play") as Button).pressed.emit()
+	assert_true(depart.is_open(), "« Partir en expédition » prépare d'abord le départ")
+	assert_false(level.in_sortie)
+	var regions: Node = depart.get_node("%Regions")
+	assert_eq(regions.get_child_count(), Regions.IDS.size(), "une carte par région")
+	var sunken: Button = regions.get_child(Regions.IDS.find(Regions.SUNKEN)) as Button
+	assert_true(sunken.disabled, "fermée : on ne peut pas y partir")
 	Game.profile.regions_won.assign([Regions.UNDERGROWTH])
-	(title.get_node("%RegionPrev") as Button).pressed.emit()
-	(title.get_node("%RegionNext") as Button).pressed.emit()
-	assert_false((title.get_node("%Play") as Button).disabled)
+	depart.open(title.open)
+	sunken = depart.get_node("%Regions").get_child(Regions.IDS.find(Regions.SUNKEN)) as Button
+	assert_false(sunken.disabled)
+	sunken.pressed.emit()
 	assert_eq(Game.profile.region, Regions.SUNKEN, "ouverte : c'est là qu'on partira")
+	var weapons: Node = depart.get_node("%Weapons")
+	assert_eq(weapons.get_child_count(), tuning.weapons.size(), "une carte par instrument")
+	(weapons.get_child(1) as Button).pressed.emit()
+	assert_eq(Game.profile.weapon, tuning.weapons[1].id)
+	var pacts: Node = depart.get_node("%PactCards")
+	assert_eq(pacts.get_child_count(), Pacts.IDS.size())
+	(pacts.get_child(0) as Button).pressed.emit()
+	assert_true(Game.profile.pacts.has(Pacts.IDS[0]), "un pacte se prend d'une touche")
+	var go: Button = depart.get_node("%Go") as Button
+	assert_ne(go.text, GameTexts.DEPART_GO, "le bonus de plumes s'affiche")
+	depart.go_back()
+	assert_true(title.is_open(), "« Retour » ramène à l'écran titre")
+	(title.get_node("%Play") as Button).pressed.emit()
+	(depart.get_node("%Go") as Button).pressed.emit()
+	assert_false(depart.is_open())
+	assert_true(level.in_sortie, "« Partir » lance l'expédition")
+	assert_eq(Game.run.region, Regions.SUNKEN)
+	get_tree().paused = false

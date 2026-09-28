@@ -1,7 +1,8 @@
 class_name ScreenLayer
 extends CanvasLayer
-## Écran plein du prototype (titre, pause, résumé, sac, talents) : une colonne centrée qui défile
-## si elle dépasse, au plus `max_width` px de large. Il tourne même quand le jeu est en pause ; le
+## Écran plein (titre, pause, résumé, sac, talents…) : une page centrée, au plus `max_width` px de
+## large, qui tient sur l'écran en paysage (version 3.3 : plus de défilement ; les pages du menu ont
+## un rail d'onglets à gauche). Il tourne même quand le jeu est en pause ; le
 ## bouton retour d'Android (ou Échap) fait comme son bouton « Retour ».
 ## À l'ouverture, le fond apparaît, le titre tombe, le bandeau tissé se tisse dessous et chaque
 ## élément surgit l'un après l'autre ; un bouton appuyé s'écrase un instant (Tuning.ui_*).
@@ -13,12 +14,25 @@ extends CanvasLayer
 @export var bottom_margin: float
 ## Sous cette hauteur d'écran (px, paysage), le titre rapetisse.
 @export var compact_height: float
+## Onglet de ce menu (version 3.3 : sac, talents, carnet, réglages) : un rail d'onglets à gauche
+## passe d'une page à l'autre, avec « Retour » en bas ; vide : pas de rail.
+@export var rail_tab: StringName
+
+## Onglets du menu : groupe de l'écran, nom, icône voxel.
+const RAIL_TABS: Array[Array] = [
+	[&"bag_screen", GameTexts.BAG_BUTTON, &"anklets"], [&"talents_screen", GameTexts.TALENTS_BUTTON, &"altar"],
+	[&"notebook_screen", GameTexts.NOTEBOOK_TAB, &"secret"], [&"settings_screen", GameTexts.SETTINGS_BUTTON, &"tempo"],
+]
+## Largeur du rail (px) et écart avec la page.
+const RAIL_WIDTH := 104.0
+const RAIL_GAP := 14.0
 
 ## Ce que fait « Retour » (l'écran d'où l'on vient) ; vide : rien.
 var back_action: Callable
 
 var _band: WovenBand
 var _tween: Tween
+var _rail: VBoxContainer
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _click: AudioStreamPlayer = $ClickSound
@@ -37,11 +51,76 @@ func _ready() -> void:
 		_band = WovenBand.new()
 		_band.name = "Band"
 		anchor.add_sibling(_band)
+	if rail_tab != &"":
+		_build_rail()
+
+
+## Rail d'onglets du menu (sac, talents, carnet, réglages) ; le sac et les talents ne s'ouvrent
+## qu'au village (ou avant de partir).
+func _build_rail() -> void:
+	var back: Node = get_node_or_null(^"%Back")
+	if back:
+		(back as Control).visible = false
+	_rail = VBoxContainer.new()
+	_rail.name = "Rail"
+	_rail.add_theme_constant_override(&"separation", 6)
+	_rail.alignment = BoxContainer.ALIGNMENT_CENTER
+	var area: Control = _margin.get_parent() as Control
+	area.add_child(_rail)
+	_rail.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	_rail.offset_left = side_margin
+	_rail.offset_right = side_margin + RAIL_WIDTH
+	for tab: Array in RAIL_TABS:
+		var button := TileButton.new()
+		button.name = String(tab[0])
+		button.theme_type_variation = &"TileSelected" if tab[0] == rail_tab else &"TileButton"
+		button.add(VoxelIconView.create(VoxelIcons.cells(tab[2]), 30.0, tab[0] == rail_tab))
+		var label := Label.new()
+		label.text = tab[1]
+		label.theme_type_variation = &"TileTitle"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.add(label)
+		button.pressed.connect(_switch_tab.bind(tab[0]))
+		_clicks(button)
+		_rail.add_child(button)
+	var leave := Button.new()
+	leave.text = GameTexts.BACK
+	leave.theme_type_variation = &"CtaButton"
+	leave.focus_mode = Control.FOCUS_NONE
+	leave.pressed.connect(go_back)
+	_clicks(leave)
+	_rail.add_child(leave)
+
+
+## Les onglets du sac et des talents sont grisés pendant une expédition.
+func _refresh_rail() -> void:
+	if _rail == null:
+		return
+	var home: bool = Game.at_village or not Game.playing
+	for child: Node in _rail.get_children():
+		var button: TileButton = child as TileButton
+		if button and (button.name == "bag_screen" or button.name == "talents_screen"):
+			button.disabled = not home
+			button.modulate.a = 1.0 if home else Tuning.data.ui_disabled_alpha
+
+
+## Passe à l'onglet `group` : même « Retour ».
+func _switch_tab(group: StringName) -> void:
+	if group == rail_tab:
+		return
+	var screen: Node = get_tree().get_first_node_in_group(group)
+	if screen == null:
+		return
+	var back: Callable = back_action
+	back_action = Callable()
+	hide_screen()
+	screen.call(&"open", back)
 
 
 ## Montre l'écran (sa colonne remonte en haut), en l'animant.
 func show_screen() -> void:
 	visible = true
+	_refresh_rail()
 	_layout()
 	var scroll: ScrollContainer = _margin.get_parent() as ScrollContainer
 	if scroll:
@@ -173,7 +252,13 @@ func _scale_centered(value: float, item: Control) -> void:
 func _layout() -> void:
 	var width: float = get_viewport().get_visible_rect().size.x
 	var side: float = maxf(side_margin, (width - max_width) / 2.0)
-	_margin.add_theme_constant_override(&"margin_left", roundi(side))
+	var left: float = side
+	if _rail:
+		# Le rail prend la largeur de son plus large bouton (au moins RAIL_WIDTH).
+		var rail_width: float = maxf(RAIL_WIDTH, _rail.get_combined_minimum_size().x)
+		_rail.offset_right = _rail.offset_left + rail_width
+		left = maxf(side, side_margin + rail_width + RAIL_GAP)
+	_margin.add_theme_constant_override(&"margin_left", roundi(left))
 	_margin.add_theme_constant_override(&"margin_right", roundi(side))
 	_margin.add_theme_constant_override(&"margin_top", roundi(top_margin))
 	_margin.add_theme_constant_override(&"margin_bottom", roundi(bottom_margin))
