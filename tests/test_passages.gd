@@ -18,6 +18,11 @@ func before_each() -> void:
 	Game.run = null
 
 
+func after_all() -> void:
+	Game.profile = Profile.new()
+	Game.refresh_stats()
+
+
 func after_each() -> void:
 	get_tree().paused = false
 	Game.run = null

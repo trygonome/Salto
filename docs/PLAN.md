@@ -341,6 +341,13 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    envoyés d'un bloc à la carte graphique, formes de collision posées sans nœuds et le corps ajouté au
    monde une fois rempli (55 → 18 ms). Export web reconstruit (Compatibility). Reste à mesurer sur le
    téléphone : les images/s en jeu (« Infos techniques » dans les Réglages).
+   **Correctifs** (version 3.8.1, d'après la vidéo du téléphone) : « Retour » sur la page de départ au
+   passage du nord la rouvrait aussitôt (le passage recréé sous le héros le détectait) : il attend
+   maintenant que le héros s'éloigne ; le joystick se relâche quand le jeu se met en pause (un doigt levé
+   pendant une page ouverte n'était pas entendu : le héros restait bloqué à marcher contre le râtelier) ;
+   la vague arc-en-ciel d'un passage restait figée au sol du village quand on quittait l'expédition
+   pendant qu'elle courait ; une case, le râtelier et la pierre des pactes ne parlent plus au héros qui
+   passe, seulement à celui qui s'arrête devant ; le voile d'un passage est plus sombre (moins éblouissant).
 
 Retours sur la version 2.9 intégrés à ces jalons :
 - **Bug** : le bouton jaune « Partir en expédition » de l'écran titre ne répondait pas (il a fallu passer

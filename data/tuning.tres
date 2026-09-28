@@ -1429,3 +1429,6 @@ villager_rest_time = 4.0
 villager_talk_radius = 1.6
 village_guardian_band = 0.6
 vibration_guardian = Vector2(0.3, 1)
+village_stop_speed = 0.6
+village_plot_dwell = 0.35
+gate_rearm_distance = 1.6

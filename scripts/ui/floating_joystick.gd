@@ -49,8 +49,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	# Un doigt levé pendant que l'appli n'a plus la main ne serait jamais signalé.
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+	# Un doigt levé pendant que l'appli n'a plus la main, ou pendant une pause (une page ouverte :
+	# le joystick n'écoute plus), ne serait jamais signalé : le héros continuerait de marcher.
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_PAUSED:
 		_release()
 
 

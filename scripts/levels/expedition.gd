@@ -121,6 +121,9 @@ var _chief: Villager
 var _chief_lines := PackedStringArray()
 var _line_left: float = 0.0
 var _plot_near: StringName = &""
+## Temps passé arrêté près d'une case (version 3.8.1 : une case ne parle qu'au héros qui s'y arrête,
+## pas à celui qui passe).
+var _plot_dwell: float = 0.0
 var _plot_marks: Dictionary[StringName, Node3D] = {}
 ## Habitants des cases rebâties (version 3.7), s'ils ont déjà parlé au héros qui passe, et l'humeur
 ## du village (comment s'est finie la dernière expédition).
@@ -939,7 +942,7 @@ func _open_exits() -> void:
 
 
 ## Un passage qui promet `reward`, en `p` (u), tourné vers `facing` (u ; le centre par défaut).
-func _add_gate(reward: StringName, p: Vector2, facing: Vector2 = Vector2.ZERO) -> void:
+func _add_gate(reward: StringName, p: Vector2, facing: Vector2 = Vector2.ZERO) -> ExitGate:
 	var gate: ExitGate = gate_scene.instantiate() as ExitGate
 	gate.reward = reward
 	gate.position = Vector3(p.x, 0.0, p.y) * _unit
@@ -947,6 +950,7 @@ func _add_gate(reward: StringName, p: Vector2, facing: Vector2 = Vector2.ZERO) -
 	gate.rotation.y = atan2(inward.x, inward.y)
 	pickups.add_child(gate)
 	gate.chosen.connect(_on_gate_chosen)
+	return gate
 
 
 func _on_gate_chosen(reward: StringName) -> void:
@@ -1391,12 +1395,17 @@ func _process_village(delta: float) -> void:
 		if mark == null or at.distance_to(Vector2(mark.global_position.x, mark.global_position.z)) > tuning.village_plot_radius + tuning.village_plot_leave:
 			_plot_near = &""
 		return
+	var stopped: bool = Vector2(hero.velocity.x, hero.velocity.z).length() < tuning.village_stop_speed
 	for id: StringName in _plot_marks:
 		var mark: Node3D = _plot_marks[id]
 		if at.distance_to(Vector2(mark.global_position.x, mark.global_position.z)) < tuning.village_plot_radius:
-			_plot_near = id
-			_talk_to_plot(id)
+			_plot_dwell = _plot_dwell + delta if stopped else 0.0
+			if _plot_dwell >= tuning.village_plot_dwell:
+				_plot_dwell = 0.0
+				_plot_near = id
+				_talk_to_plot(id)
 			return
+	_plot_dwell = 0.0
 
 
 ## Une case : rebâtie et au rang maximal, elle dit ce qu'elle fait ; sinon, on peut la rebâtir.
@@ -1480,7 +1489,8 @@ func _reopen_gate() -> void:
 	for node: Node in pickups.get_children():
 		if node is ExitGate:
 			node.queue_free()
-	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - Tuning.data.room_exit_inset / _unit))
+	# (Le héros est peut-être encore dessus : le passage attend qu'il s'éloigne.)
+	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - Tuning.data.room_exit_inset / _unit)).wait_for_leave = true
 
 
 ## Le passage du nord : on part en expédition (version 3.5 : un voile doré, la première clairière

@@ -33,6 +33,8 @@ const INK := Vector3(2.75, 0.3, 0.12)
 ## Icône de la récompense : taille d'une case (m), vitesse de rotation (tours par seconde).
 const ICON_CELL := 0.1
 const ICON_SPIN := 0.25
+## Voile du passage : luminosité de la couleur de la récompense (part).
+const VEIL_DIM := 0.55
 ## Hauteur de départ de la porte qui surgit (part de sa taille).
 const RISE_FROM := 0.02
 
@@ -42,6 +44,9 @@ var reward: StringName = &""
 var _taken: bool = false
 var _time: float = 0.0
 var _emblem: Node3D
+## Recréé sous les pieds du héros (retour de la page de départ) : il attend que le héros s'en
+## éloigne avant de pouvoir être franchi, sinon il se rouvrirait aussitôt.
+var wait_for_leave: bool = false
 
 @onready var _icon: Sprite3D = $Icon
 @onready var _zone: Area3D = $Zone
@@ -96,20 +101,25 @@ static func totem_cells(color: Vector3) -> PackedFloat32Array:
 	return cells
 
 
-## Couleur d'interface de la récompense promise (voile du passage).
+## Couleur du voile du passage : celle de la récompense promise, assombrie (un crépuscule coloré
+## plutôt qu'un éclair qui éblouit).
 func veil_color() -> Color:
 	var coded: Vector3 = colors.get(reward, WOOD)
-	return WorldMood.hsl(coded.x - floorf(coded.x), coded.y, coded.z)
+	return WorldMood.hsl(coded.x - floorf(coded.x), coded.y, coded.z * VEIL_DIM)
 
 
 func _process(delta: float) -> void:
 	_time += delta
+	if wait_for_leave:
+		var hero: Node3D = get_tree().get_first_node_in_group(&"hero") as Node3D
+		if hero == null or Vector2(hero.global_position.x - global_position.x, hero.global_position.z - global_position.z).length() > Tuning.data.gate_rearm_distance:
+			wait_for_leave = false
 	_emblem.position.y = icon_height + sin(TAU * _time / bob_period) * bob_height
 	_emblem.rotation.y = TAU * ICON_SPIN * _time
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if _taken or not body is Hero:
+	if _taken or wait_for_leave or not body is Hero:
 		return
 	_taken = true
 	chosen.emit(reward)

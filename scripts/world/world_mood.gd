@@ -45,6 +45,9 @@ func _ready() -> void:
 	_halo = tuning.groove_halo_min
 	RenderingServer.global_shader_parameter_set(&"salto_unit", tuning.voxel_unit)
 	RenderingServer.global_shader_parameter_set(&"salto_fog_density", tuning.fog_density)
+	# (Les réglages partagés survivent au rechargement d'une scène : une vague en cours quand on a
+	# quitté resterait figée au sol.)
+	RenderingServer.global_shader_parameter_set(&"salto_wave", Vector4.ZERO)
 	RenderingServer.global_shader_parameter_set(&"salto_cut", 1.0)
 	clear_target()
 

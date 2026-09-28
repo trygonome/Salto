@@ -182,8 +182,8 @@ func test_la_pierre_des_pactes_au_village() -> void:
 	await get_tree().process_frame
 	var stone: Vector2 = WorldGen.VILLAGE_PACTS * tuning.voxel_unit
 	hero.global_position = Vector3(stone.x, 0.0, stone.y) + Vector3(0.0, 0.0, tuning.village_plot_radius * 0.5)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# (Elle ne parle qu'au héros qui s'arrête près d'elle.)
+	await get_tree().create_timer(tuning.village_plot_dwell + 0.1).timeout
 	var screen: DepartScreen = level.get_node("DepartScreen") as DepartScreen
 	assert_true(screen.is_open(), "la pierre ouvre la page de départ")
 	assert_true(get_tree().paused)

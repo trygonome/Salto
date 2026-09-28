@@ -132,8 +132,8 @@ func test_on_marche_au_village_et_on_y_rebatit() -> void:
 	assert_eq((gates[0] as ExitGate).reward, &"depart")
 	var plot: Vector2 = WorldGen.VILLAGE_PLOTS[Village.ALTAR] * tuning.voxel_unit
 	hero.global_position = Vector3(plot.x, 0.0, plot.y) + Vector3(0.0, 0.0, tuning.village_plot_radius * 0.5)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# (Elle ne parle qu'au héros qui s'arrête près d'elle.)
+	await get_tree().create_timer(tuning.village_plot_dwell + 0.1).timeout
 	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
 	assert_true(screen.is_open(), "le chantier parle")
 	var cards: Array[Node] = screen.get_node("%Cards").get_children()

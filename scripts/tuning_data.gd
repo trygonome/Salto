@@ -1692,3 +1692,11 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export_group("Refonte 3.8 : polissage mobile")
 ## Vibration d'un gardien libéré (durée s, force 0 à 1).
 @export var vibration_guardian: Vector2
+
+@export_group("Correctifs 3.8.1")
+## Une case, le râtelier ou la pierre des pactes ne parlent qu'au héros arrêté près d'eux : vitesse
+## sous laquelle il est arrêté (m/s), temps qu'il y reste (s). Un passage recréé sous le héros se
+## rouvre quand il s'en est éloigné de tant (m).
+@export var village_stop_speed: float
+@export var village_plot_dwell: float
+@export var gate_rearm_distance: float
