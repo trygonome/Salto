@@ -285,6 +285,17 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    Muet caché) placés selon les règles d'adjacence (un creux bordé de rochers et d'arbres cache plus
    souvent quelque chose) ; repères visibles de loin. *Test : on a envie de regarder dans les coins, sans y
    être obligé.*
+   **Fait** (version 3.4) : chaque clairière de combat est une arène au bout d'un sentier de terre battue
+   qui serpente depuis le sud (trois coudes, un rocher à chaque coude) ; des sentiers plus courts mènent
+   aux sorties, dont les passages sont au bout ; les Muets attendent que le héros entre dans l'arène. Un
+   à trois recoins au bord de l'arène, et parfois un au coude du sentier : un passage étroit, gardé par un
+   fourré à trancher (deux coups) ou un rideau de fougères, signalé par des fleurs vives et un champignon
+   lumineux ; au fond, des jarres, un nid de plumes d'or, une stèle des esprits (un don au choix entre
+   deux) ou un Muet doré endormi qui s'éveille quand on entre. Règles de voisinage : un recoin gardé
+   par un fourré cache plus souvent une stèle ou un Muet doré, un recoin bordé de rochers plus souvent
+   des plumes. Un repère au-delà des sorties, visible de loin : l'arbre-lanterne (tour en ruine chez les
+   Ruines). Clôture invisible en poteaux serrés le long de tout ce qui se marche ; arbres du fond à gros
+   cubes (autant de cubes qu'avant pour une jungle plus grande). Le village garde son cercle.
 6. **3.5 — Passages rituels.** Les arches deviennent des portes-totems : l'icône voxel de la récompense sur
    le totem ; la franchir déclenche une vague de couleur qui dissout la brume de la zone suivante et une
    transition musicale. *Test : changer de zone est un petit moment.*

@@ -97,29 +97,25 @@ func test_une_clairiere_garde_ses_passages_degages() -> void:
 
 
 func test_le_bord_d_une_clairiere_est_un_mur_d_arbres_visible() -> void:
-	var hero_width: float = 2.0 * tuning.hero_radius / tuning.voxel_unit
 	for kind: StringName in WorldGen.ROOM_KINDS + [&"arena"] as Array[StringName]:
 		var gen := WorldGen.new()
-		var radius: float = tuning.room_radius_max
-		var gaps := PackedFloat32Array([-0.28, 0.28, PI])
-		gen.generate_room(7, radius, gaps, kind)
-		var row: float = radius + WorldGen.ROOM_RING_GAP + WorldGen.ROOM_RING_JITTER
-		assert_gt(gen.border_radius, row, "le mur invisible est derrière la rangée d'arbres (%s)" % kind)
-		assert_lt(gen.border_radius - row, hero_width, "juste derrière : on voit où la clairière s'arrête")
-		var a: float = 0.0
-		while a < TAU:
-			a += 0.05
-			var near_gap: bool = false
-			for gap: float in gaps:
-				near_gap = near_gap or absf(angle_difference(a, gap)) < WorldGen.ROOM_GAP_ANGLE * 2.0
-			if near_gap:
-				continue
-			# Entre deux arbres ou buissons voisins du bord, pas de trou où passer.
-			var p: Vector2 = WorldGen.gap_point(a, radius + WorldGen.ROOM_RING_GAP + WorldGen.ROOM_RING_JITTER / 2.0)
+		gen.generate_room(7, tuning.room_radius_max, PackedFloat32Array([-0.28, 0.28]), kind)
+		assert_false(gen.fence.is_empty(), "une clôture invisible (%s)" % kind)
+		for post: Vector2 in gen.fence:
+			assert_lt(gen.walk.depth(post), -WorldGen.FENCE_OFFSET + 0.1, "juste derrière le bord (%s)" % kind)
+		# Tout le long du bord : un arbre ou un buisson tout près (on voit où l'on ne passe pas), et
+		# des poteaux serrés (aucun trou où passer).
+		for p: Vector2 in gen.walk.outline(1.0, WorldGen.ROOM_RING_GAP):
 			var nearest: float = INF
 			for s: WorldGen.Solid in gen.solids:
 				nearest = minf(nearest, p.distance_to(Vector2(s.x, s.z)) - s.r)
-			assert_lt(nearest, WorldGen.ROOM_TREE_SPACING / 2.0, "un arbre ou un buisson à %.2f rad (%s)" % [a, kind])
+			assert_lt(nearest, WorldGen.ROOM_TREE_SPACING, "un arbre ou un buisson près de %s (%s)" % [p, kind])
+		for p: Vector2 in gen.walk.outline(0.5, WorldGen.FENCE_OFFSET):
+			var post: float = INF
+			for q: Vector2 in gen.fence:
+				post = minf(post, p.distance_to(q))
+			# (Le héros ne tient nulle part sur la ligne de la clôture : il toucherait un poteau.)
+			assert_lt(post, WorldGen.FENCE_R + tuning.hero_radius / tuning.voxel_unit, "pas de trou dans la clôture près de %s (%s)" % [p, kind])
 
 
 func test_chaque_clairiere_a_sa_forme_et_sa_taille() -> void:
@@ -184,7 +180,9 @@ func _muets() -> Array[Muet]:
 	return list
 
 
+## Le héros entre dans l'arène (les vagues l'y attendent, version 3.4), puis les Muets arrivent.
 func _wait_muets() -> void:
+	hero.global_position = Vector3(0.0, 0.0, tuning.room_radius_min * tuning.voxel_unit * 0.5)
 	for i: int in 200:
 		await get_tree().physics_frame
 		if not _muets().is_empty():
@@ -423,6 +421,7 @@ func test_le_tresor_et_le_passage_secret() -> void:
 	Game.run.reward = RunState.TREASURE
 	Game.run.elite_done = true
 	level.call(&"_enter_room")
+	hero.global_position = Vector3.ZERO
 	# (Des renforts peuvent arriver : on libère jusqu'à ce que la clairière soit nettoyée.)
 	for i: int in 600:
 		if level.get(&"_cleared"):

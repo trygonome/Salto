@@ -10,6 +10,12 @@ uniform vec3 grass_hsl = vec3(0.31, 0.7, 0.27);
 // Taches de terre (part du sol) et leur couleur (teinte, saturation, luminosité).
 uniform float dirt_amount = 0.2;
 uniform vec3 dirt_color = vec3(0.08, 0.42, 0.3);
+// Sentiers de terre battue (version 3.4) : segments (ax, az, bx, bz en u), style (demi-largeur du
+// chemin en u, force : 1 le tracé principal, moins pour un détour), leur nombre, leur couleur.
+uniform vec4 trail_segments[16];
+uniform vec2 trail_styles[16];
+uniform int trail_count = 0;
+uniform vec3 trail_color = vec3(0.09, 0.4, 0.37);
 
 #include "res://scenes/world/salto_world.gdshaderinc"
 
@@ -57,6 +63,17 @@ void fragment() {
 	h = mix(h, dirt_color.x, dirt);
 	s = mix(s, dirt_color.y, dirt);
 	l = mix(l, dirt_color.z + n * 0.03, dirt);
+	float track = 0.0;
+	for (int i = 0; i < trail_count; i++) {
+		vec4 sg = trail_segments[i];
+		// Bords irréguliers : le bruit décale la distance au tracé.
+		float d = seg(p, sg.xy, sg.zw) + (mid - 0.5) * 1.4;
+		float w = trail_styles[i].x;
+		track = max(track, (1.0 - smoothstep(w - 0.7, w + 0.3, d)) * trail_styles[i].y);
+	}
+	h = mix(h, trail_color.x, track);
+	s = mix(s, trail_color.y, track);
+	l = mix(l, trail_color.z + n * 0.04 - (1.0 - step(0.12, fract(n * 7.0))) * 0.05, track);
 	vec2 s0 = salto_sanctuary_0.xy;
 	vec2 s1 = salto_sanctuary_1.xy;
 	vec2 s2 = salto_sanctuary_2.xy;

@@ -112,6 +112,11 @@ func _build_voxels() -> void:
 
 func _build_ground() -> void:
 	var tuning: TuningData = Tuning.data
+	# Terre battue des sentiers (version 3.4 ; aucune au village).
+	if ground_material:
+		ground_material.set_shader_parameter(&"trail_segments", gen.tracks)
+		ground_material.set_shader_parameter(&"trail_styles", gen.track_styles)
+		ground_material.set_shader_parameter(&"trail_count", gen.tracks.size())
 	var plane := PlaneMesh.new()
 	plane.size = Vector2.ONE * tuning.world_ground_size
 	var ground := MeshInstance3D.new()
@@ -188,7 +193,8 @@ func _add_bounce_pad(s: WorldGen.Solid) -> void:
 	add_child(pad)
 
 
-## Murs invisibles en cercle au bord du monde.
+## Murs invisibles au bord du monde : en cercle, ou (version 3.4) des poteaux serrés le long des
+## sentiers et des recoins.
 func _build_border() -> void:
 	var tuning: TuningData = Tuning.data
 	var body := StaticBody3D.new()
@@ -196,6 +202,16 @@ func _build_border() -> void:
 	body.collision_layer = 1
 	body.collision_mask = 0
 	add_child(body)
+	if not gen.fence.is_empty():
+		for p: Vector2 in gen.fence:
+			var post := CylinderShape3D.new()
+			post.radius = WorldGen.FENCE_R * _unit
+			post.height = tuning.world_wall_height
+			var shape := CollisionShape3D.new()
+			shape.shape = post
+			shape.position = Vector3(p.x * _unit, tuning.world_wall_height / 2.0, p.y * _unit)
+			body.add_child(shape)
+		return
 	var radius: float = gen.border_radius * _unit + tuning.world_border_thickness / 2.0
 	var count: int = tuning.world_border_segments
 	var width: float = TAU * radius / count * BORDER_OVERLAP

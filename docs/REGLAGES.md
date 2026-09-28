@@ -222,5 +222,17 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 ## Confort mobile (version 2.9)
 - Pactes : peaux épaisses +40 % de PV des Muets (+25 % de plumes), coups rudes +30 % de dégâts reçus (+25 %),
   cœur fragile −30 % de PV (+30 %), jungle avare sans soin ni repos (+20 %) ; les bonus s'additionnent.
-- Calibration : 8 appuis, médiane, bornée à ±250 ms.
 - Première expédition : vagues d'apprentissage sur les clairières 1 à 3 (1 puis 2 Muets), pas d'élite.
+
+## Refonte (versions 3.0 à 3.4)
+- Paysage : caméra à 10,5 m, champ de 36°. Son des pièges : −14 dB, entendu jusqu'à 7 m.
+- Combat libre (3.1) : 0,35 de groove par coup qui touche, +8 % par coup du combo (12 au plus) ; givre : 2 s,
+  ralenti de 60 % au plus ; talent Métronome : +6 % de vitesse des coups par rang ; pulsation du monde à 30 % ;
+  une couche de musique de plus pendant un combat.
+- Sentiers (3.4, en u, le héros mesure 7 u) : arène de 30 à 40 ; sentier d'entrée de 34 sur 8 de large, trois
+  coudes écartés de 4 à 7 ; sentiers de sortie de 15 sur 7, un coude ; la vague part quand le héros passe à
+  90 % du rayon de l'arène. Recoins : 1 à 3 (95 %, 60 %, 30 %), creux de rayon 5 au bout d'un passage de 4,8 de
+  large, plus un au coude du sentier une fois sur deux ; fourré une fois sur deux (0,75 m, deux coups). Poids
+  de départ : jarres 4, plumes 2, stèle 0,5, Muet doré 1,5 ; un fourré : jarres −2,5, plumes +0,5, stèle +1,5,
+  Muet +1 ; chaque rocher (0 à 2) : plumes +1,5, stèle +0,5. Nid : 12 plumes d'or, +3 par clairière ; stèle :
+  2 dons au choix, s'éveille à 1,4 m ; 3 jarres. Clôture : poteaux de rayon 1,1 tous les 1,5, à 1 du bord.

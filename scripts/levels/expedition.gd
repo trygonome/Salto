@@ -118,6 +118,13 @@ var _coach: ExpeditionCoach
 ## Musique qui suit le combat (version 3.1) : couches de la clairière, et si l'on se bat.
 var _music_layers: int = 1
 var _fighting: bool = false
+## Sentiers (version 3.4) : les vagues attendent que le héros entre dans l'arène ; une stèle des
+## esprits offre son don (sans ouvrir les passages) ; le Muet doré caché d'un recoin.
+var _arena_waiting: bool = false
+var _stele_pending: bool = false
+var _hidden_spawner: EnemySpawner
+## Recoin où dort le Muet doré (u) : il s'éveille quand le héros y entre (Vector2.INF : aucun).
+var _hidden_at := Vector2.INF
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -179,6 +186,12 @@ func _process(delta: float) -> void:
 	if in_sortie:
 		var tuning: TuningData = Tuning.data
 		_coach.update(delta)
+		var at := Vector2(hero.global_position.x, hero.global_position.z)
+		if _arena_waiting and not _ending and at.length() < _radius * _unit * tuning.arena_trigger:
+			_arena_waiting = false
+			get_tree().create_timer(tuning.room_wave_delay, false).timeout.connect(_start_wave)
+		if _hidden_at != Vector2.INF and at.distance_to(_hidden_at * _unit) < WorldGen.NICHE_R * _unit:
+			_wake_hidden()
 		# Pendant un combat, la musique s'étoffe ; nettoyée, la clairière retrouve son calme.
 		var fighting: bool = _remaining > 0 and not _cleared
 		if fighting != _fighting:
@@ -227,8 +240,12 @@ func current_goal() -> Dictionary:
 	if _cleared:
 		var goal: Dictionary = {&"title": title, &"sub": GameTexts.ROOM_CHOOSE, &"icon": &"won"}
 		if not _exit_angles.is_empty():
-			# Le repère montre le milieu des passages.
+			# Le repère montre le milieu des passages (le bout des sentiers de sortie).
 			var p: Vector2 = WorldGen.gap_point(0.0, _radius) * _unit
+			if not gen.exit_paths.is_empty():
+				p = Vector2.ZERO
+				for path: PackedVector2Array in gen.exit_paths:
+					p += path[path.size() - 1] * _unit / gen.exit_paths.size()
 			goal[&"point"] = Vector3(p.x, 0.0, p.y)
 		return goal
 	if run.is_boss_room():
@@ -236,7 +253,11 @@ func current_goal() -> Dictionary:
 	if _encounter != &"":
 		var icon: StringName = RunState.REST if _encounter == &"rest" else RunState.ENCOUNTER
 		return {&"title": GameTexts.ENCOUNTER_NAMES[_encounter], &"sub": GameTexts.ROOM_ENCOUNTER, &"icon": icon, &"point": Vector3.ZERO}
-	return {&"title": title, &"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward}
+	var fight_goal: Dictionary = {&"title": title, &"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward}
+	if _arena_waiting:
+		# Sur le sentier : le repère montre l'arène.
+		fight_goal[&"point"] = Vector3.ZERO
+	return fight_goal
 
 
 ## Nom de la clairière en cours (selon sa forme, tiré de sa graine).
@@ -403,6 +424,10 @@ func _enter_room() -> void:
 	_elite_boon = false
 	_secret_at = Vector2.INF
 	_chest = null
+	_arena_waiting = false
+	_stele_pending = false
+	_hidden_spawner = null
+	_hidden_at = Vector2.INF
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	_apply_region(run.region)
@@ -414,15 +439,18 @@ func _enter_room() -> void:
 	_exit_angles = PackedFloat32Array()
 	for i: int in exits:
 		_exit_angles.append((i - (exits - 1) / 2.0) * EXIT_SPREAD)
-	gen.generate_room(run.room_seed(), _radius, _exit_angles, _kind)
+	var fight: bool = run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET
+	# (Pas de Muet caché pendant la première expédition : elle apprend une espèce à la fois.)
+	gen.generate_room(run.room_seed(), _radius, _exit_angles, _kind, fight and not run.tutorial)
 	world.build(gen)
 	_ambient.setup(_radius * _unit)
 	for p: Vector3 in gen.pickups:
 		var plume: Node3D = plume_scene.instantiate() as Node3D
 		plume.position = p * _unit
 		pickups.add_child(plume)
-	if not run.is_boss_room() and run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET:
+	if not run.is_boss_room() and fight:
 		_place_room_props()
+	_place_niches()
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
 	_music_layers = mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size())
 	_fighting = false
@@ -443,7 +471,8 @@ func _enter_room() -> void:
 		_cleared = true
 		_place_chest()
 		return
-	get_tree().create_timer(tuning.room_wave_delay, false).timeout.connect(_start_wave)
+	# Version 3.4 : les Muets attendent que le héros arrive dans l'arène par le sentier.
+	_arena_waiting = true
 
 
 ## Couleurs de la région : feuillage, sol, brume ; sa couche de musique.
@@ -492,6 +521,66 @@ func _breakable(kind: StringName, p: Vector2) -> Breakable:
 	return item
 
 
+## Les recoins (version 3.4) : un fourré à trancher à l'entrée des recoins cachés ; au fond, des
+## jarres, un nid de plumes d'or, une stèle des esprits ou un Muet doré endormi.
+func _place_niches() -> void:
+	var tuning: TuningData = Tuning.data
+	for niche: Dictionary in gen.niches:
+		var center: Vector2 = niche[&"center"]
+		var dir: Vector2 = niche[&"dir"]
+		if niche[&"hidden"]:
+			pickups.add_child(_breakable(Breakable.THICKET, niche[&"mouth"]))
+		match niche[&"reward"]:
+			Niches.JARS:
+				for k: int in tuning.niche_jars:
+					var angle: float = TAU * k / tuning.niche_jars
+					pickups.add_child(_breakable(Breakable.JAR, center + Vector2(cos(angle), sin(angle)) * WorldGen.NICHE_R * 0.4))
+			Niches.FEATHERS:
+				pickups.add_child(_breakable(Breakable.NEST, center))
+			Niches.STELE:
+				var stele := SpiritStele.new()
+				stele.material = prop_material
+				stele.position = Vector3(center.x, 0.0, center.y) * _unit
+				# La dalle regarde l'entrée du recoin.
+				stele.rotation.y = atan2(dir.x, dir.y)
+				pickups.add_child(stele)
+				stele.awakened.connect(_on_stele_awakened)
+			Niches.MUET:
+				_hidden_at = center
+
+
+## Une stèle s'éveille : un don au choix (il ne termine pas la clairière).
+func _on_stele_awakened() -> void:
+	if not in_sortie or Game.run == null or boon_screen.is_open():
+		return
+	_stele_pending = true
+	hero.input_move = Vector2.ZERO
+	boon_screen.open(Boons.deal(Game.run.rng, Game.run.boons, Tuning.data.stele_offer, Tuning.data), GameTexts.STELE_TITLE)
+
+
+## Le héros entre dans le recoin du Muet doré : il s'éveille (hors des vagues, il garde son creux).
+func _wake_hidden() -> void:
+	var tuning: TuningData = Tuning.data
+	var spawner := EnemySpawner.new()
+	spawner.scene = hopper_scene
+	spawner.elite = Muet.ELITE_GOLDEN
+	spawner.position = Vector3(_hidden_at.x, 0.0, _hidden_at.y) * _unit
+	spawner.tier = floori(Game.run.room * tuning.room_tier_per_room) if Game.run else 0
+	_hidden_at = Vector2.INF
+	foes.add_child(spawner)
+	spawner.muet_freed.connect(_on_hidden_freed)
+	_hidden_spawner = spawner
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(spawner.position, tuning.fx_spawn_ring, fx.gold, tuning.fx_spawn_ring_time)
+
+
+## Le Muet doré d'un recoin est libéré (hors des vagues).
+func _on_hidden_freed(_muet: Muet) -> void:
+	if Game.run:
+		Game.run.muets_freed += 1
+
+
 ## Le rocher fêlé cède : un passage secret s'ouvrira là (tout de suite si les passages sont ouverts).
 func _on_secret_revealed(_at: Vector3, p: Vector2) -> void:
 	_secret_at = p
@@ -532,9 +621,15 @@ func terrain_speed(position_m: Vector3) -> float:
 func _place_hero() -> void:
 	var tuning: TuningData = Tuning.data
 	var start: Vector2 = WorldGen.gap_point(ENTRANCE, _radius - tuning.room_entry_inset / _unit)
+	var facing := Vector3.FORWARD
+	# Version 3.4 : au bout du sentier d'entrée, tourné vers le chemin.
+	if gen.entry_path.size() > 1 and not in_village:
+		start = gen.entry_path[gen.entry_path.size() - 1]
+		var toward: Vector2 = (gen.entry_path[gen.entry_path.size() - 2] - start).normalized()
+		facing = Vector3(toward.x, 0.0, toward.y)
 	hero.global_position = Vector3(start.x, 0.0, start.y) * _unit
 	hero.velocity = Vector3.ZERO
-	hero.face_now(Vector3.FORWARD)
+	hero.face_now(facing)
 	hero.reset_physics_interpolation()
 	camera_rig.call(&"snap")
 
@@ -658,7 +753,9 @@ func on_elite_freed(muet: Muet) -> void:
 	var tuning: TuningData = Tuning.data
 	if not in_sortie or Game.run == null:
 		return
-	_elite_boon = true
+	# Le Muet doré caché d'un recoin donne son or, pas de don.
+	if _hidden_spawner == null or muet != _hidden_spawner.muet:
+		_elite_boon = true
 	if muet.elite == Muet.ELITE_GOLDEN:
 		Game.run.feathers += tuning.elite_golden_feathers
 		hud.show_toast(GameTexts.FEATHERS_FOUND % tuning.elite_golden_feathers)
@@ -724,6 +821,10 @@ func _on_boon_chosen(id: StringName, ranks: int) -> void:
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.burst(hero.global_position + Vector3.UP * Tuning.data.hero_height, Tuning.data.fx_plume_cubes, Tuning.data.fx_plume_speed)
+	# Le don d'une stèle ne termine pas la clairière.
+	if _stele_pending:
+		_stele_pending = false
+		return
 	_after_reward()
 
 
@@ -742,17 +843,22 @@ func _open_exits() -> void:
 	var tuning: TuningData = Tuning.data
 	var rewards: Array[StringName] = Game.run.exit_rewards(_exit_angles.size())
 	for i: int in mini(rewards.size(), _exit_angles.size()):
-		_add_gate(rewards[i], WorldGen.gap_point(_exit_angles[i], _radius - tuning.room_exit_inset / _unit))
+		# Version 3.4 : au bout du sentier de chaque sortie.
+		if i < gen.exit_paths.size():
+			var path: PackedVector2Array = gen.exit_paths[i]
+			_add_gate(rewards[i], path[path.size() - 1], path[path.size() - 2])
+		else:
+			_add_gate(rewards[i], WorldGen.gap_point(_exit_angles[i], _radius - tuning.room_exit_inset / _unit))
 	if _secret_at != Vector2.INF:
 		_add_gate(RunState.SECRET, _secret_at)
 
 
-## Un passage qui promet `reward`, en `p` (u), tourné vers le centre.
-func _add_gate(reward: StringName, p: Vector2) -> void:
+## Un passage qui promet `reward`, en `p` (u), tourné vers `facing` (u ; le centre par défaut).
+func _add_gate(reward: StringName, p: Vector2, facing: Vector2 = Vector2.ZERO) -> void:
 	var gate: ExitGate = gate_scene.instantiate() as ExitGate
 	gate.reward = reward
 	gate.position = Vector3(p.x, 0.0, p.y) * _unit
-	var inward: Vector2 = -p.normalized()
+	var inward: Vector2 = (facing - p).normalized()
 	gate.rotation.y = atan2(inward.x, inward.y)
 	pickups.add_child(gate)
 	gate.chosen.connect(_on_gate_chosen)

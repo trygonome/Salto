@@ -1648,3 +1648,18 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var world_beat_amount: float
 ## Couches de musique en plus pendant un combat.
 @export var music_fight_layers: int
+
+@export_group("Refonte 3.4 : sentiers et recoins")
+## Fourré qui garde un recoin : rayon (m), coups pour le trancher.
+@export var thicket_radius: float
+@export var thicket_hits: int
+## Nid de plumes d'or d'un recoin : plumes, et en plus par clairière.
+@export var nest_feathers: int
+@export var nest_feathers_per_room: int
+## Stèle des esprits : distance où elle s'éveille (m), dons proposés.
+@export var stele_radius: float
+@export var stele_offer: int
+## Jarres d'un recoin.
+@export var niche_jars: int
+## Les vagues commencent quand le héros entre dans l'arène (part de son rayon), puis ce délai (s).
+@export var arena_trigger: float

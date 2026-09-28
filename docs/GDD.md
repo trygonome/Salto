@@ -101,6 +101,16 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
     Muets, +25 % de plumes), coups rudes (les Muets frappent 30 % plus fort, +25 %), cœur fragile (30 % de PV en
     moins, +30 %), jungle avare (ni soin ni repos en chemin, pas de soin dans les jarres, +20 %). Le bonus
     s'affiche sur « Partir » et dans l'objectif du village ; le résumé compte les pactes.
+- **Sentiers et recoins** (version 3.4) : on arrive dans chaque clairière par un sentier de terre battue
+  qui serpente depuis le sud ; les Muets attendent dans l'arène (le repère la montre) et la vague commence
+  quand on y entre. Des sentiers plus courts mènent aux passages de sortie ; au-delà, un repère visible de
+  loin (arbre-lanterne, ou tour en ruine chez les Ruines). Les curieux trouvent des recoins au bord de
+  l'arène ou d'un coude : un passage étroit derrière un fourré à trancher (deux coups) ou un rideau de
+  fougères, que des fleurs vives et un champignon lumineux signalent. Au fond : trois jarres, un nid de
+  plumes d'or (12, +3 par clairière), une stèle des esprits (un don au choix entre deux, une fois ; la
+  clairière continue) ou un Muet doré endormi qui s'éveille quand on entre (de l'or, pas de don d'élite ;
+  jamais pendant la première expédition). Un fourré cache plus souvent une stèle ou un Muet doré ; des
+  rochers à l'entrée, plus souvent des plumes. Rien n'oblige à y aller.
 - **Préparer l'expédition** (version 3.3) : une page, sans défilement, en trois rangées de cartes à icône voxel :
   la région (une région fermée dit comment l'ouvrir), l'instrument, les pactes ; « Partir » (avec le bonus de
   plumes) lance l'expédition. Elle s'ouvre depuis « Partir en expédition » de l'écran titre, le passage du nord

@@ -46,7 +46,9 @@ func _muets() -> Array[Muet]:
 	return list
 
 
+## Le héros entre dans l'arène (les vagues l'y attendent, version 3.4), puis les Muets arrivent.
 func _wait_muets() -> void:
+	hero.global_position = Vector3(0.0, 0.0, tuning.room_radius_min * tuning.voxel_unit * 0.5)
 	for i: int in 200:
 		await get_tree().physics_frame
 		if not _muets().is_empty():

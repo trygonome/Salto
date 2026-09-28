@@ -58,6 +58,56 @@ const ROOM_CENTER_CLEAR := 9.0
 const ROOM_LANE := 3.0
 ## Formes de clairière d'expédition (hors celle du Grand Muet).
 const ROOM_KINDS: Array[StringName] = [&"clearing", &"ruins", &"grove", &"logs", &"mushrooms"]
+## Sentiers (version 3.4, u) : le sentier d'entrée serpente du sud jusqu'à l'arène (longueur,
+## coudes, écart des coudes, demi-largeur) ; un sentier plus court mène à chaque passage de sortie.
+const TRAIL_LENGTH := 34.0
+const TRAIL_BENDS := 3
+const TRAIL_SWAY := 7.0
+const TRAIL_HALF := 4.0
+const EXIT_TRAIL_LENGTH := 15.0
+const EXIT_TRAIL_BENDS := 2
+const EXIT_TRAIL_SWAY := 3.5
+const EXIT_TRAIL_HALF := 3.5
+## Où les sentiers quittent l'arène (u, en dedans du bord).
+const TRAIL_INSET := 2.0
+## Recoins (u) : rayon, profondeur au-delà du bord, demi-largeur du passage ; au plus NICHE_MAX,
+## chacun avec sa chance ; écarts (rad) avec l'entrée, les sorties et entre eux ; chance d'un
+## fourré à trancher (sinon un rideau de fougères) ; le recoin d'un coude du sentier d'entrée.
+const NICHE_R := 5.0
+const NICHE_DEPTH := 9.0
+const NICHE_MOUTH := 2.4
+const NICHE_MAX := 3
+const NICHE_CHANCES: Array[float] = [0.95, 0.6, 0.3]
+const NICHE_CLEAR_ENTRY := 0.8
+const NICHE_CLEAR_EXIT := 0.65
+const NICHE_APART := 0.9
+const NICHE_THICKET_CHANCE := 0.5
+const NICHE_ROCK_SIDE := 2.2
+const TRAIL_NICHE_CHANCE := 0.5
+const TRAIL_NICHE_DEPTH := 8.0
+## Clôture invisible juste derrière le bord (u) : espacement, écart au bord, rayon des poteaux.
+const FENCE_SPACING := 1.5
+const FENCE_OFFSET := 1.0
+const FENCE_R := 1.1
+## Au bord des sentiers : palmiers et arbres serrés, puis une rangée d'arbres à gros cubes (moins de
+## cubes pour la même taille ; ils font l'horizon). Un bord « large » (l'arène) garde ses buissons.
+const WIDE_EDGE := 10.0
+const FAR_SPACING := 9.0
+const FAR_TREE_SCALE := 1.7
+const FAR_TREE_RADIUS := 2
+const FAR_KAPOK_SHARE := 0.12
+const TRAIL_PALM_SHARE := 0.6
+const TRAIL_TREE_SCALE := 1.3
+const TRAIL_TREE_RADIUS := 2
+## Repère de la clairière (u) : au-delà des sorties, visible de loin.
+const LANDMARK_DEPTH := 20.0
+const LANDMARK_CLEAR := 7.0
+## Terre battue au sol (u, part de la largeur, force) : le tracé principal (du sentier d'entrée à
+## travers l'arène jusqu'aux sorties), plus pâle dans l'arène ; un détour vers chaque recoin.
+const TRACK_WIDTH := 0.5
+const TRACK_ARENA := 0.35
+const TRACK_NICHE := 0.4
+const TRACK_MAX := 16
 ## Végétation (version 2.5) : part de palmiers au premier rang du bord, de fromagers au second,
 ## lianes qui pendent devant (et leur hauteur, u), palmiers et fougères dans la clairière, touffes
 ## d'herbe, cailloux ; courbure des palmiers ; bas des lianes ; rayon des mares (u).
@@ -159,6 +209,20 @@ var traps: Array[Dictionary] = []
 var drums := PackedVector2Array()
 var jars := PackedVector2Array()
 var secret := Vector2.INF
+## Sentiers (version 3.4) : où l'on marche (arène, sentiers, recoins) ; clôture invisible (poteaux,
+## u) ; sentier d'entrée (du bord de l'arène au point de départ du héros, le dernier point) ;
+## sentiers de sortie (chacun finit au passage) ; recoins (center, mouth, dir : Vector2 ; hidden :
+## bool ; rocks : int ; reward : voir Niches) ; repère visible de loin (Vector2.INF : aucun).
+var walk := WalkArea.new()
+var fence := PackedVector2Array()
+var entry_path := PackedVector2Array()
+var exit_paths: Array[PackedVector2Array] = []
+var niches: Array[Dictionary] = []
+var landmark := Vector2.INF
+## Terre battue au sol (pour le sol) : segments (ax, az, bx, bz), styles (demi-largeur, force).
+var tracks: Array[Vector4] = []
+var track_styles := PackedVector2Array()
+var _arena_r: float = 0.0
 ## Décalage de teinte des feuillages et des herbes (région de l'expédition).
 var foliage_shift: float = 0.0
 ## Village (version 2.7) : rang de chaque case rebâtie (voir Village) ; le lire avant
@@ -233,7 +297,11 @@ func generate(seed_value: int, nights_done: int) -> void:
 ## invisible est derrière), sauf aux passages (angles `gaps`, en radians depuis le nord, dans le
 ## sens des aiguilles d'une montre), puis le décor de sa forme (le centre et l'axe des passages
 ## restent dégagés), des fleurs.
-func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kind: StringName = &"clearing") -> void:
+## Clairière d'expédition : une arène de rayon `radius` (u), ses passages de sortie aux angles
+## `gaps` ; `kind` sa forme ; `fight` : des Muets y attendent (un recoin peut en cacher un).
+## Version 3.4 : on y arrive par un sentier qui serpente depuis le sud, des sentiers mènent aux
+## sorties, des recoins se cachent derrière la végétation (le village garde son cercle).
+func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kind: StringName = &"clearing", fight: bool = true) -> void:
 	_rng = ProtoRandom.new(seed_value)
 	voxels.clear()
 	shadows.clear()
@@ -246,7 +314,14 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 	_clear_modules()
 	gong_clearing = Vector2.INF
 	border_radius = radius + ROOM_WALL_BEHIND
-	_room_border(radius, gaps)
+	_arena_r = radius
+	var trails: bool = kind != &"village"
+	if trails:
+		_lay_trails(radius, gaps, kind, fight)
+		_trail_border()
+		_lay_tracks()
+	else:
+		_room_border(radius, gaps)
 	match kind:
 		&"ruins":
 			_room_ruins(radius, gaps, ROOM_RUIN_RING, ROOM_RUIN_PILLARS, true)
@@ -284,8 +359,291 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 		_sv(sin(a) * r, 0.25, -cos(a) * r, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
 	_grass(radius, ROOM_GRASS)
 	_pebbles(radius, ROOM_PEBBLES)
+	if trails:
+		_trail_dressing(kind)
 	if kind != &"arena" and kind != &"village":
 		_room_props(radius, gaps, kind)
+
+
+## Où l'on marche : l'arène, le sentier d'entrée qui serpente du sud, un sentier par sortie, les
+## recoins (derrière un fourré ou un rideau de fougères, au bord de l'arène ou d'un coude).
+func _lay_trails(radius: float, gaps: PackedFloat32Array, kind: StringName, fight: bool) -> void:
+	walk.add_disc(Vector2.ZERO, radius)
+	# (Le sud est vers +z : Vector2.DOWN.)
+	entry_path = WalkArea.winding(gap_point(PI, radius - TRAIL_INSET), Vector2.DOWN, TRAIL_LENGTH, TRAIL_BENDS, TRAIL_SWAY, _rolls(TRAIL_BENDS + 1))
+	walk.add_path(entry_path, TRAIL_HALF)
+	var exits := PackedFloat32Array()
+	if kind != &"arena":
+		for gap: float in gaps:
+			# (Le passage du sud est l'entrée.)
+			if absf(angle_difference(gap, PI)) < NICHE_CLEAR_ENTRY:
+				continue
+			exits.append(gap)
+			var path: PackedVector2Array = WalkArea.winding(gap_point(gap, radius - TRAIL_INSET), gap_point(gap, 1.0), EXIT_TRAIL_LENGTH, EXIT_TRAIL_BENDS, EXIT_TRAIL_SWAY, _rolls(EXIT_TRAIL_BENDS + 1))
+			walk.add_path(path, EXIT_TRAIL_HALF)
+			exit_paths.append(path)
+	if kind == &"arena" or kind == &"village":
+		return
+	# Les recoins du bord de l'arène, loin de l'entrée, des sorties et les uns des autres.
+	var count: int = 0
+	for chance: float in NICHE_CHANCES:
+		if _rnd() < chance:
+			count += 1
+	var angles := PackedFloat32Array()
+	for t: int in ROOM_TRIES:
+		if angles.size() >= count:
+			break
+		var a: float = _rnd() * TAU
+		if absf(angle_difference(a, PI)) < NICHE_CLEAR_ENTRY:
+			continue
+		var free: bool = true
+		for gap: float in exits:
+			free = free and absf(angle_difference(a, gap)) >= NICHE_CLEAR_EXIT
+		for other: float in angles:
+			free = free and absf(angle_difference(a, other)) >= NICHE_APART
+		if free:
+			angles.append(a)
+	for a: float in angles:
+		_add_niche(gap_point(a, radius - TRAIL_INSET), gap_point(a, 1.0), TRAIL_INSET, NICHE_DEPTH + TRAIL_INSET, fight)
+	# Un recoin au coude du milieu du sentier d'entrée, du côté où il tourne.
+	if _rnd() < TRAIL_NICHE_CHANCE and entry_path.size() > 2:
+		var bend: Vector2 = entry_path[1]
+		var outward := Vector2(signf(bend.x) if bend.x != 0.0 else 1.0, 0.0)
+		var center: Vector2 = bend + outward * (TRAIL_HALF + TRAIL_NICHE_DEPTH)
+		if center.length() > radius + NICHE_R + ROOM_RING_STEP and walk.depth(center) < -NICHE_R - 2.0:
+			_add_niche(bend, outward, TRAIL_HALF, TRAIL_HALF + TRAIL_NICHE_DEPTH, fight)
+
+
+## Un recoin : un passage étroit de `from` dans la direction `dir`, un creux rond à `depth` de
+## `from` ; le bord qu'il perce est à `edge` de `from` (son entrée juste derrière, dans la rangée
+## d'arbres) ; gardé par un fourré ou des fougères, parfois bordé de rochers.
+func _add_niche(from: Vector2, dir: Vector2, edge: float, depth: float, fight: bool) -> void:
+	var center: Vector2 = from + dir * depth
+	walk.add_lane(from, center, NICHE_MOUTH)
+	walk.add_disc(center, NICHE_R)
+	var hidden: bool = _rnd() < NICHE_THICKET_CHANCE
+	var rocks: int = floori(_rnd() * 3.0)
+	var reward: StringName = Niches.pick(_rnd(), hidden, rocks, fight)
+	var mouth: Vector2 = from + dir * (edge + ROOM_RING_GAP * 0.5)
+	niches.append({&"center": center, &"mouth": mouth, &"dir": dir, &"hidden": hidden, &"rocks": rocks, &"reward": reward})
+
+
+## Vrai si `p` (dans l'arène) est devant l'entrée d'un sentier ou d'un recoin (à `margin` près) :
+## juste derrière le bord, dans la même direction, on peut encore marcher.
+func _at_mouth(p: Vector2, margin: float) -> bool:
+	if walk.is_empty() or p.is_zero_approx():
+		return false
+	var dir: Vector2 = p.normalized()
+	var side: Vector2 = dir.orthogonal() * margin
+	var beyond: float = _arena_r + ROOM_RING_GAP + 1.0
+	for shift: Vector2 in [Vector2.ZERO, side, -side]:
+		if walk.contains((p + shift).normalized() * beyond):
+			return true
+	return false
+
+
+## La terre battue : le long des sentiers, à travers l'arène (de l'entrée au centre, du centre à
+## chaque sortie, plus pâle) et, plus discrète, vers chaque recoin.
+func _lay_tracks() -> void:
+	var main: Array[PackedVector2Array] = [entry_path]
+	main.append_array(exit_paths)
+	for path: PackedVector2Array in main:
+		var half: float = TRAIL_HALF if path == entry_path else EXIT_TRAIL_HALF
+		for i: int in range(1, path.size()):
+			_track(path[i - 1], path[i], half * TRACK_WIDTH, 1.0)
+		_track(path[0], Vector2.ZERO, TRAIL_HALF * TRACK_WIDTH * 0.8, TRACK_ARENA)
+	for niche: Dictionary in niches:
+		var center: Vector2 = niche[&"center"]
+		var dir: Vector2 = niche[&"dir"]
+		_track(niche[&"mouth"] - dir * ROOM_RING_GAP * 2.0, center, NICHE_MOUTH * TRACK_WIDTH, TRACK_NICHE)
+
+
+func _track(a: Vector2, b: Vector2, half: float, strength: float) -> void:
+	if tracks.size() >= TRACK_MAX:
+		return
+	tracks.append(Vector4(a.x, a.y, b.x, b.y))
+	track_styles.append(Vector2(half, strength))
+
+
+## `count` tirages entre 0 et 1.
+func _rolls(count: int) -> PackedFloat32Array:
+	var rolls := PackedFloat32Array()
+	for i: int in count:
+		rolls.append(_rnd())
+	return rolls
+
+
+## Le bord de tout ce qui se marche : une rangée serrée (buissons, palmiers et arbres le long de
+## l'arène ; palmiers et arbres le long des sentiers et des recoins), une rangée d'arbres à gros
+## cubes derrière, des lianes ; la clôture invisible juste derrière la première rangée.
+func _trail_border() -> void:
+	var edge: PackedVector2Array = walk.outline(ROOM_TREE_SPACING, ROOM_RING_GAP)
+	var sizes: PackedFloat32Array = walk.outline_sizes.duplicate()
+	for i: int in edge.size():
+		var p: Vector2 = edge[i]
+		var wide: bool = sizes[i] >= WIDE_EDGE
+		# Poussé un peu vers l'extérieur, au hasard (le bord n'est pas tiré au cordeau).
+		var out: Vector2 = _outward(p) * _rnd() * ROOM_RING_JITTER
+		p += out
+		var pick: float = _rnd()
+		if wide and i % 2 == 1:
+			_bush(p.x, p.y)
+		elif wide and pick >= ROOM_PALM_SHARE:
+			_tree(p.x, p.y, 1.0, true, 0)
+		elif wide or pick < TRAIL_PALM_SHARE:
+			_palm(p.x, p.y)
+		else:
+			_tree(p.x, p.y, TRAIL_TREE_SCALE, true, TRAIL_TREE_RADIUS)
+		if i % 5 == 2:
+			var q: Vector2 = p - _outward(p) * ROOM_RING_GAP * 0.5
+			_liana(q.x, q.y, ROOM_LIANA_TOP + _rnd() * 3.0)
+	# Derrière : l'horizon, des arbres à gros cubes (quelques fromagers autour de l'arène), un sur
+	# deux le long des sentiers.
+	var far: PackedVector2Array = walk.outline(FAR_SPACING, ROOM_RING_GAP + ROOM_RING_STEP)
+	var far_sizes: PackedFloat32Array = walk.outline_sizes.duplicate()
+	for i: int in far.size():
+		var wide: bool = far_sizes[i] >= WIDE_EDGE
+		if not wide and i % 2 == 1:
+			continue
+		if wide and _rnd() < FAR_KAPOK_SHARE:
+			_kapok(far[i].x, far[i].y)
+		else:
+			_tree(far[i].x, far[i].y, FAR_TREE_SCALE, true, FAR_TREE_RADIUS)
+	fence = walk.outline(FENCE_SPACING, FENCE_OFFSET)
+
+
+## Direction vers l'extérieur de la zone en `p` (u) : là où elle s'éloigne le plus vite.
+func _outward(p: Vector2) -> Vector2:
+	var step: float = 0.5
+	var grad := Vector2(walk.depth(p + Vector2(step, 0.0)) - walk.depth(p - Vector2(step, 0.0)), walk.depth(p + Vector2(0.0, step)) - walk.depth(p - Vector2(0.0, step)))
+	return -grad.normalized() if not grad.is_zero_approx() else p.normalized()
+
+
+## Le long des sentiers : fougères, fleurs, herbes, un rocher à chaque coude ; les recoins : fleurs
+## vives et champignons lumineux à l'entrée (on les remarque sans lire), rochers qui la bordent ;
+## le repère au-delà des sorties.
+func _trail_dressing(kind: StringName) -> void:
+	var paths: Array[PackedVector2Array] = [entry_path]
+	paths.append_array(exit_paths)
+	for path: PackedVector2Array in paths:
+		for i: int in range(1, path.size()):
+			var a: Vector2 = path[i - 1]
+			var b: Vector2 = path[i]
+			var length: float = a.distance_to(b)
+			for k: int in floori(length / 3.0):
+				var p: Vector2 = a.lerp(b, _rnd())
+				var side := Vector2(-(b - a).y, (b - a).x).normalized() * (_rnd() - 0.5) * TRAIL_HALF * 1.6
+				var q: Vector2 = p + side
+				if q.length() < _arena_r:
+					continue
+				_sv(q.x, 0.25, q.y, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+				if k % 3 == 0:
+					_grass_tuft(q + side * 0.3)
+			# Un rocher au bord de chaque coude.
+			if i < path.size() - 1:
+				var rock: Vector2 = b + (b - a).normalized().orthogonal() * (TRAIL_HALF - 0.5) * (1.0 if i % 2 == 0 else -1.0)
+				if rock.length() > _arena_r + 2.0 and _free_spot(rock, 1.0):
+					_rock(rock.x, rock.y, 1.2 + _rnd() * 0.6, 1.2)
+	for niche: Dictionary in niches:
+		var mouth: Vector2 = niche[&"mouth"]
+		var dir: Vector2 = niche[&"dir"]
+		var side: Vector2 = dir.orthogonal()
+		for r: int in niche[&"rocks"]:
+			var p: Vector2 = mouth + side * (NICHE_MOUTH + NICHE_ROCK_SIDE) * (1.0 if r == 0 else -1.0)
+			_rock(p.x, p.y, 1.8 + _rnd() * 0.6, 1.6 + _rnd() * 1.2)
+		# Fleurs vives et un champignon lumineux devant l'entrée.
+		var front: Vector2 = mouth - dir * 3.0
+		for f: int in 6:
+			var p: Vector2 = front + Vector2(_rnd() - 0.5, _rnd() - 0.5) * 4.0
+			_sv(p.x, 0.3, p.y, 0.55, 1.0 + _rnd() * 0.99, 1.0, 0.62)
+		_glow_cap(front + side * (NICHE_MOUTH + 0.6))
+		if not niche[&"hidden"]:
+			# Un rideau de fougères qu'on traverse.
+			for k: int in 3:
+				var p: Vector2 = mouth + side * (k - 1) * NICHE_MOUTH * 0.8
+				_fern(p.x, p.y)
+		var center: Vector2 = niche[&"center"]
+		for f: int in 10:
+			var p: Vector2 = center + Vector2(_rnd() - 0.5, _rnd() - 0.5) * NICHE_R * 1.6
+			_sv(p.x, 0.25, p.y, 0.5, 1.0 + _rnd() * 0.99, 0.9, 0.6)
+	if kind != &"arena" and not exit_paths.is_empty():
+		var p: Vector2 = gap_point(0.0, _arena_r + LANDMARK_DEPTH)
+		for t: int in 12:
+			if walk.depth(p) < -LANDMARK_CLEAR:
+				break
+			p += Vector2.UP * 3.0
+		landmark = p
+		if kind == &"ruins" or kind == &"flooded":
+			_ruined_tower(p)
+		else:
+			_lantern_tree(p)
+
+
+## Une touffe d'herbe haute.
+func _grass_tuft(p: Vector2) -> void:
+	var hue: float = 0.27 + _rnd() * 0.12
+	for b: int in 3:
+		var bx: float = p.x + (_rnd() - 0.5) * 0.9
+		var bz: float = p.y + (_rnd() - 0.5) * 0.9
+		for y: int in 2:
+			_sv(bx, 0.2 + y * 0.4, bz, 0.35, hue, 0.7, 0.3 + y * 0.06 + _rnd() * 0.05)
+
+
+## Petit champignon lumineux (couleur vive qui pulse) : il signale un recoin.
+func _glow_cap(p: Vector2) -> void:
+	var hue: float = _rnd() * 0.99
+	for y: int in 2:
+		_sv(p.x, 0.3 + y * 0.5, p.y, 0.5, 4.12, 0.2, 0.85)
+	for a: int in range(-1, 2):
+		for b: int in range(-1, 2):
+			_sv(p.x + a * 0.5, 1.3, p.y + b * 0.5, 0.55, 1.0 + hue, 1.0, 0.62)
+
+
+## Repère : l'arbre-lanterne, un géant aux fruits lumineux, plus haut que toute la jungle.
+func _lantern_tree(p: Vector2) -> void:
+	var h: int = 22
+	for y: int in h:
+		for a: int in range(-1, 2):
+			for b: int in range(-1, 2):
+				if absi(a) + absi(b) == 2 and y > 3:
+					continue
+				_sv(p.x + a * 1.3, (y + 0.5) * 1.3, p.y + b * 1.3, 1.3, 4.07, 0.4, 0.26 + (y % 3) * 0.02)
+	var cy: float = h * 1.3 + 3.0
+	var n: int = 5
+	var hue: float = 0.3 + _rnd() * 0.06
+	for x: int in range(-n, n + 1):
+		for y: int in range(-2, 3):
+			for z: int in range(-n, n + 1):
+				var d: float = Vector3(x, y * 1.6, z).length()
+				if d > n + 0.35 or d <= n - 1.3:
+					continue
+				_sv(p.x + x * 1.7, cy + y * 1.7, p.y + z * 1.7, 1.7, fmod(hue + d * 0.02, 1.0), 0.75, 0.36 + _rnd() * 0.1)
+	# Lanternes : des fruits vifs qui pendent sous la couronne.
+	for i: int in 9:
+		var a: float = i / 9.0 * TAU
+		var q: Vector2 = p + Vector2(cos(a), sin(a)) * (4.0 + _rnd() * 4.0)
+		var lantern_hue: float = 1.0 + fmod(0.08 + i * 0.11, 1.0)
+		_sv(q.x, cy - 4.0 - _rnd() * 2.0, q.y, 1.0, lantern_hue, 1.0, 0.62)
+	_add_solid(p.x, p.y, 2.2)
+	_shadow(p.x, p.y, n * 1.9, 0.3)
+
+
+## Repère des ruines : une tour de pierre brisée, un feu doré au sommet.
+func _ruined_tower(p: Vector2) -> void:
+	var h: int = 18
+	for y: int in h:
+		for a: int in range(-2, 3):
+			for b: int in range(-2, 3):
+				if absi(a) < 2 and absi(b) < 2:
+					continue
+				# Le haut s'effrite d'un côté.
+				if y > h - 5 and a + b > y - h + 6:
+					continue
+				_sv(p.x + a * 1.2, (y + 0.5) * 1.2, p.y + b * 1.2, 1.2, 4.74, 0.15, 0.3 + _rnd() * 0.06)
+	for k: int in 5:
+		_sv(p.x + (_rnd() - 0.5) * 2.0, h * 1.2 - 3.0 + k * 0.7, p.y + (_rnd() - 0.5) * 2.0, 0.9, 2.1, 1.0, 0.6)
+	_add_solid(p.x, p.y, 3.4)
+	_shadow(p.x, p.y, 5.0, 0.3)
 
 
 ## Le bord de la clairière : arbres et buissons serrés, en deux rangées (la première s'ouvre aux
@@ -444,6 +802,14 @@ func _liana(lx: float, lz: float, top: float) -> void:
 
 
 func _clear_modules() -> void:
+	walk.clear()
+	fence.clear()
+	entry_path.clear()
+	exit_paths.clear()
+	niches.clear()
+	landmark = Vector2.INF
+	tracks.clear()
+	track_styles.clear()
 	boxes.clear()
 	box_heights.clear()
 	waters.clear()
@@ -561,7 +927,7 @@ func _room_props(radius: float, gaps: PackedFloat32Array, kind: StringName) -> v
 	for i: int in JARS_MIN + floori(_rnd() * (JARS_MAX - JARS_MIN + 1)):
 		var a: float = _rnd() * TAU
 		var p := Vector2(sin(a), -cos(a)) * (radius - 2.0 - _rnd() * 3.0)
-		if not _near_gap(a, gaps) and _free_spot(p, 1.5):
+		if not _near_gap(a, gaps) and not _at_mouth(p, 1.5) and _free_spot(p, 1.5):
 			jars.append(p)
 	if _rnd() < DRUM_CHANCE:
 		var placed: bool = false
@@ -580,7 +946,7 @@ func _room_props(radius: float, gaps: PackedFloat32Array, kind: StringName) -> v
 			if _near_gap(a, gaps):
 				continue
 			var p := Vector2(sin(a), -cos(a)) * (radius - 1.5)
-			if _free_spot(p, 2.5):
+			if _free_spot(p, 2.5) and not _at_mouth(p, 3.0):
 				secret = p
 				break
 	if kind == &"ruins" or kind == &"grove":
@@ -831,6 +1197,9 @@ func _room_place(builder: Callable, count: int, radius: float, gaps: PackedFloat
 		for gap: float in gaps:
 			if segment_distance(p, Vector2.ZERO, gap_point(gap, radius)) < ROOM_LANE + margin:
 				lane = true
+		# (Le chemin qui vient du sentier d'entrée reste libre aussi, comme l'entrée des recoins.)
+		if not walk.is_empty() and (segment_distance(p, Vector2.ZERO, gap_point(PI, radius)) < ROOM_LANE + margin or _at_mouth(p, margin)):
+			lane = true
 		if lane or not _free_spot(p, margin + 1.5):
 			continue
 		builder.call(p.x, p.y)

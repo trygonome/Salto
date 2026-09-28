@@ -367,6 +367,7 @@ const ELITE_NAMES: Dictionary[StringName, String] = {
 	&"golden": "%s doré",
 }
 const ELITE_BOON_TITLE := "Don de l'élite"
+const STELE_TITLE := "Stèle des esprits"
 
 ## Conseils près des boutons (apprentissage par le jeu) : identifiant → texte.
 const HINTS: Dictionary[StringName, String] = {
