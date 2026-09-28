@@ -422,6 +422,20 @@ const TALENTS_AT_VILLAGE := "Talents : au village"
 const TALENTS_BUTTON := "Talents"
 const TALENTS_BUTTON_POINTS := "Talents (%s)"
 
+## Menu (version 3.4, d'après le croquis).
+const MENU_TITLE := "Menu"
+const MENU_INFO_RUN := "Clairière %d/%d · %s"
+const MENU_INFO_HOME := "Niveau %d · %s"
+const MENU_HELP := "Gestes"
+const MENU_DECK := "Équipement"
+const MENU_HELP_TITLE := "Les gestes"
+const MENU_DECK_TITLE := "Ton instrument, tes objets, tes dons"
+const MENU_DECK_HINT := "Touche une carte pour la lire."
+const MENU_INSTRUMENT := "Instrument"
+const MENU_EMPTY := "Vide"
+const MENU_EMPTY_INFO := "Un Grand Muet libéré offre un objet ; on le porte depuis le Sac, au village."
+const MENU_RANK := "Rang %d"
+
 ## Pause.
 const PAUSE_TITLE := "Pause"
 const RESUME := "Reprendre"

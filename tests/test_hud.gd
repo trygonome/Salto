@@ -345,3 +345,29 @@ func test_le_resume_montre_la_sortie() -> void:
 func _frames(count: int) -> void:
 	for i: int in count:
 		await get_tree().process_frame
+
+
+func test_le_menu_montre_l_equipement_en_cartes_et_ses_icones_rapides() -> void:
+	var menu: PauseMenu = PauseScene.instantiate() as PauseMenu
+	world.add_child(menu)
+	Game.start_run(3, 7, Regions.UNDERGROWTH)
+	Game.run.boons[&"ember"] = 2
+	Game.run.boons[&"tide"] = 1
+	menu.open()
+	var cards: Node = menu.get_node("%Cards")
+	assert_eq(cards.get_child_count(), 1 + 3 + 2, "l'instrument, trois emplacements, les dons")
+	(cards.get_child(4) as Button).pressed.emit()
+	var info: String = (menu.get_node("%CardInfo") as Label).text
+	assert_true(info.begins_with(GameTexts.boon_name(&"ember")) or info.begins_with(GameTexts.boon_name(&"tide")), "toucher une carte la lit : %s" % info)
+	(menu.get_node("%Help") as Button).pressed.emit()
+	assert_true((menu.get_node("%HelpText") as Control).visible, "Gestes : le rappel des gestes")
+	assert_false((menu.get_node("%Scroll") as Control).visible)
+	(menu.get_node("%Help") as Button).pressed.emit()
+	assert_true((menu.get_node("%Scroll") as Control).visible, "et retour aux cartes")
+	var muted: bool = Game.profile.muted
+	(menu.get_node("%Sound") as Button).pressed.emit()
+	assert_ne(Game.profile.muted, muted, "le son se coupe d'une touche")
+	(menu.get_node("%Sound") as Button).pressed.emit()
+	menu.close()
+	Game.run = null
+	Game.playing = false

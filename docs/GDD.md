@@ -253,8 +253,12 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 - **Navigation** (version 3.3, paysage) : aucun écran ne défile. Écran titre en deux colonnes (le titre et le
   chapitre à gauche ; Partir, Le village, puis Sac, Talents, Carnet, Réglages en grille à droite). Sac,
   Talents, Carnet et Réglages sont des **onglets** : un rail à icônes voxel à gauche passe de l'un à l'autre,
-  « Retour » en bas ramène toujours d'où l'on vient (titre, pause). Pause en deux colonnes : où l'on est, les
-  gestes et les dons pris (icônes) à gauche ; Reprendre, les onglets et Rentrer à droite. Résumé en une page :
+  « Retour » en bas ramène toujours d'où l'on vient (titre, pause). **Menu** (pause, version 3.4.1, d'après le
+  croquis du joueur) : un bandeau en haut (où l'on est · MENU · clairière et plumes) ; à gauche, les icônes
+  rapides (réglages, son, vibrations) puis six grands boutons (Sac, Talents, Carnet, Gestes, Rentrer,
+  Reprendre) ; à droite, un panneau de cartes à icônes voxel qui défile dans son cadre (l'instrument, les
+  trois emplacements d'objets, les dons de l'expédition à la couleur de leur famille) : toucher une carte la
+  lit en dessous ; « Gestes » y montre le rappel des gestes. Résumé en une page :
   le titre à gauche, les chiffres et les boutons côte à côte à droite.
 
 ## 12. Charte des retours à l'écran (leçon du prototype)

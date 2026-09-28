@@ -279,6 +279,10 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    râtelier et la pierre des pactes (les flèches de l'écran titre ont disparu) ; talents en rangées basses
    (nom et rangs sur une ligne), carnet en grille de pages avec la page lue à droite. Reste pour 3.8 : les
    écrans 4:3 des tablettes (cartes plus étroites).
+   **Fait** (version 3.4.1, d'après le croquis du joueur) : le menu de pause refait — bandeau en haut (où
+   l'on est · MENU · clairière et plumes), icônes rapides (réglages, son, vibrations), six grands boutons à
+   gauche, panneau de cartes à droite qui défile dans son cadre (instrument, objets portés, dons de
+   l'expédition ; toucher une carte la lit), « Gestes » pour le rappel des gestes.
 5. **3.4 — Des sentiers qui serpentent.** Clairières assemblées par blocs sur une grille : un tracé principal
    sinueux de l'entrée à la sortie (les pressés le suivent), des arènes où se jouent les vagues, et des
    recoins facultatifs derrière la végétation à trancher ou un détour (jarres, plumes, pages, stèle de don,

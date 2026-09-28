@@ -65,6 +65,12 @@ const ART: Dictionary[StringName, PackedStringArray] = {
 	&"secret": ["..vvv..", ".v...v.", ".v...v.", "..vvv..", "...v...", "...vv..", "...v..."],
 	&"boss": [".......", "y..y..y", "yy.y.yy", "yyyyyyy", "yrryrry", "yyyyyyy", "......."],
 	&"depart": ["...y...", "..yyy..", "rrrrrrr", "ryyyyyr", "rrrrrrr", "rnnnnnr", ".rrrrr."],
+	# Menu (version 3.4 : réglages, son, son coupé, vibrations, gestes).
+	&"gear": ["s..s..s", ".sssss.", ".sskss.", "ssk.kss", ".sskss.", ".sssss.", "s..s..s"],
+	&"sound": ["....c..", "..s..c.", ".ss.c.c", "sss.c.c", ".ss.c.c", "..s..c.", "....c.."],
+	&"sound_off": [".......", "..s....", ".ss.r.r", "sss..r.", ".ss.r.r", "..s....", "......."],
+	&"vibrate": ["..kkk..", "y.kwk.y", ".yk.ky.", "y.k.k.y", ".yk.ky.", "y.kkk.y", "..kkk.."],
+	&"help": ["..yyy..", ".y...y.", ".....y.", "....y..", "...y...", ".......", "...y..."],
 	# Objets (par emplacement).
 	&"anklets": [".......", "..nnn..", ".n...n.", "n.....n", "yn...ny", ".yn.ny.", "..yyy.."],
 	&"mask": [".nnnnn.", "nyyyyyn", "nykykyn", "nyyyyyn", "nyrrryn", ".nyyyn.", "..nnn.."],
