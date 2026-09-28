@@ -206,3 +206,15 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Une case parle à 1,8 m ; elle reparle une fois qu'on s'en est éloigné de 1,2 m de plus. Répliques du Chef : 4,5 s
   chacune, l'une après l'autre. Gardien « presque libéré » : sous 30 % de ses PV.
 - Danseurs : 2, plus un par case rebâtie ; après une victoire, premiers saltos à 0,6 s d'écart.
+
+## Parties différentes (version 2.8)
+- Maracas : 4 coups de 0,22 s (impact 0,07 s), portée 0,7 m, ×0,55 à ×0,6, équilibre 3 ; le 4e : 0,4 s, tout
+  autour, ×1,1. Tambour-marteau : 0,66 s (portée 1,25 m, 150°, ×2,1, équilibre 17) puis 0,8 s (1,7 m tout
+  autour, ×2,7, équilibre 24, projection 1,2). Sarbacane : fléchettes à 16 m/s jusqu'à 7,5 m, ×0,75 ; la 3e :
+  trois en éventail de 14°, qui traversent.
+- Rareté d'une carte : rare 25 %, épique 6 % (le reste commune) ; un don double possible prend la dernière carte
+  30 % du temps. Valeurs par rang : Brasier 25 %, Cendres 30 %/s (2,2 m), Coup de forge 30 %, Syncope 30 %,
+  Tempo 10 %, Accent 20 %, Contrepoint 40 %, Écorce 8 %, Ancrage 25 %, Repousse 8 PV, Prisme 30 %, Arc-en-ciel
+  30 %, Éclaboussure 0,6 de groove, Halo 12 %, Éblouissement 8 % (0,8 s) ; dons doubles : Feu de joie 40 %/s,
+  Roulement 50 % (1,6 m), Bosquet sacré 6 PV, Floraison 15 % des PV.
+- Tisseuse : 30 plumes d'or. Arbre muet : +50 % des PV.

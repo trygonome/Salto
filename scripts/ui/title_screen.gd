@@ -4,7 +4,7 @@ extends ScreenLayer
 ## en cours), le chapitre en cours et ses tambours déjà au village, Commencer / Continuer, Sac,
 ## Talents, Carnet, Nouvelle partie (touchée deux fois). En expédition (version 2.6) : la région
 ## où partir, choisie entre les flèches (une région fermée dit comment l'ouvrir) ; Le village
-## (version 2.7) : y entrer à pied.
+## (version 2.7) : y entrer à pied ; l'instrument-arme (version 2.8), entre des flèches.
 
 ## Taille d'une pastille de la saga (px).
 @export var saga_dot_size: float
@@ -24,6 +24,7 @@ var _shown_region: StringName = &""
 @onready var _talents: Button = %Talents
 @onready var _notebook: Button = %Notebook
 @onready var _new_game: Button = %NewGame
+@onready var _weapon: HBoxContainer = %Weapon
 @onready var _region: HBoxContainer = %Region
 @onready var _region_name: Label = %RegionName
 
@@ -41,6 +42,8 @@ func _ready() -> void:
 	_new_game.pressed.connect(_on_new_game)
 	(%RegionPrev as Button).pressed.connect(_step_region.bind(-1))
 	(%RegionNext as Button).pressed.connect(_step_region.bind(1))
+	(%WeaponPrev as Button).pressed.connect(_step_weapon.bind(-1))
+	(%WeaponNext as Button).pressed.connect(_step_weapon.bind(1))
 
 
 func _band_anchor() -> Control:
@@ -95,6 +98,10 @@ func refresh() -> void:
 	_saga.visible = not expedition
 	_region.visible = expedition
 	_village.visible = expedition
+	_weapon.visible = expedition
+	(%WeaponInfo as Control).visible = expedition
+	(%WeaponName as Label).text = GameTexts.WEAPON_NAMES.get(profile.weapon, "")
+	(%WeaponInfo as Label).text = GameTexts.WEAPON_TEXTS.get(profile.weapon, "")
 	_village.text = GameTexts.VILLAGE_BUTTON
 	_play.disabled = false
 	if expedition:
@@ -141,6 +148,19 @@ func _step_region(step: int) -> void:
 func _on_village() -> void:
 	close()
 	get_tree().call_group(&"night_level", &"enter_village")
+
+
+## Instrument d'à côté (version 2.8) : c'est avec lui qu'on partira ; le héros du camp le prend.
+func _step_weapon(step: int) -> void:
+	var weapons: Array[WeaponData] = Tuning.data.weapons
+	var index: int = 0
+	for i: int in weapons.size():
+		if weapons[i].id == Game.profile.weapon:
+			index = i
+	Game.profile.weapon = weapons[posmod(index + step, weapons.size())].id
+	Game.save()
+	get_tree().call_group(&"hero", &"equip", Game.profile.weapon)
+	refresh()
 
 
 func _on_play() -> void:

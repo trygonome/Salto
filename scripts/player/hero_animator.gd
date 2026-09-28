@@ -69,6 +69,26 @@ const ATTACK_POSES := {
 	&"grace": [
 		{&"lLx": -1.9, &"lRx": -1.9, &"kL": 2.3, &"kR": 2.3, &"sLx": -1.0, &"sRx": -1.0, &"eL": -1.6, &"eR": -1.6, &"sx": 0.6},
 	],
+	# Instruments (version 2.8) : maracas secouées d'un bras puis de l'autre, tour complet ; le
+	# tambour-marteau levé au-dessus de la tête puis abattu ; la sarbacane portée à la bouche.
+	&"shake_r": [
+		{&"hyaw": 0.35, &"syaw": 0.3, &"sRx": -2.2, &"eR": -1.2, &"sLx": 0.3, &"eL": -0.6, &"kL": 0.3, &"kR": 0.3},
+		{&"hyaw": -0.4, &"syaw": -0.3, &"sRx": -1.2, &"eR": -0.2, &"sRz": 0.3, &"sLx": 0.5, &"eL": -0.8, &"sx": 0.15, &"kL": 0.4, &"kR": 0.2},
+	],
+	&"shake_l": [
+		{&"hyaw": -0.35, &"syaw": -0.3, &"sLx": -2.2, &"eL": -1.2, &"sRx": 0.3, &"eR": -0.6, &"kL": 0.3, &"kR": 0.3},
+		{&"hyaw": 0.4, &"syaw": 0.3, &"sLx": -1.2, &"eL": -0.2, &"sLz": -0.3, &"sRx": 0.5, &"eR": -0.8, &"sx": 0.15, &"kL": 0.2, &"kR": 0.4},
+	],
+	&"shake_spin": [
+		{&"sLz": -1.5, &"sRz": 1.5, &"eL": -0.3, &"eR": -0.3, &"sLx": -0.4, &"sRx": -0.4, &"kL": 0.5, &"kR": 0.5, &"sx": -0.1},
+	],
+	&"slam": [
+		{&"sLx": -2.9, &"sRx": -2.9, &"eL": -0.5, &"eR": -0.5, &"sx": -0.3, &"nx": -0.2, &"kL": 0.2, &"kR": 0.2, &"hyaw": 0.0},
+		{&"sLx": -0.7, &"sRx": -0.7, &"eL": -0.2, &"eR": -0.2, &"sx": 0.6, &"nx": 0.2, &"kL": 0.9, &"kR": 0.9, &"hy": -1.0, &"hyaw": 0.0},
+	],
+	&"blow": [
+		{&"sRx": -1.5, &"eR": -1.9, &"sLx": -1.3, &"eL": -1.6, &"sLz": 0.2, &"sx": -0.05, &"nx": 0.1, &"kL": 0.2, &"kR": 0.35, &"lLx": -0.2},
+	],
 }
 ## Coups portés de la jambe gauche (les autres : jambe droite).
 const LEFT_LEG_ATTACKS: Array[StringName] = [&"meia_lua"]
@@ -169,7 +189,7 @@ func kicks_with_left_leg() -> bool:
 ## Pose d'un coup `id` au temps `t` : armé jusqu'à un peu avant l'impact, puis frappe dont la
 ## rotation des hanches se relâche jusqu'à la fin du coup.
 static func attack_pose(attack: AttackData, t: float, tuning: TuningData) -> Dictionary:
-	var poses: Array = ATTACK_POSES.get(attack.id, ATTACK_POSES[&"martelo"])
+	var poses: Array = ATTACK_POSES.get(attack.pose if attack.pose != &"" else attack.id, ATTACK_POSES[&"martelo"])
 	if poses.size() == 1:
 		return (poses[0] as Dictionary).duplicate()
 	if t < attack.impact * tuning.hero_windup_fraction:

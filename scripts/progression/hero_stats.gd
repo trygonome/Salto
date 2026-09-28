@@ -43,6 +43,24 @@ var burn: float = 0.0
 var finale_damage: float = 1.0
 var roll_damage: float = 0.0
 var perfect_damage: float = 1.0
+## Dons 2.8 : dégâts en plus aux Muets en feu, braises d'un Muet libéré (part de l'attaque par
+## seconde), coup chargé (dégâts en plus, et il brûle), riposte (dégâts en plus), équilibre brisé
+## (en plus), PV rendus par clairière nettoyée, dégâts des critiques (en plus), groove par Muet
+## libéré, chance d'éblouir ; dons doubles : brûlure d'un critique, onde d'un coup parfait (part de
+## l'attaque), PV d'une esquive parfaite, part des PV rendus par le Salto arc-en-ciel.
+var blaze: float = 0.0
+var cinders: float = 0.0
+var forge: float = 0.0
+var counterpoint: float = 0.0
+var anchor: float = 0.0
+var regrowth: float = 0.0
+var prism: float = 0.0
+var splash: float = 0.0
+var dazzle: float = 0.0
+var wildfire: float = 0.0
+var drumroll: float = 0.0
+var sacred_grove: float = 0.0
+var bloom: float = 0.0
 
 
 ## Forces pour le profil `profile` et, en expédition, les dons pris `boons` (don → rang).
@@ -102,3 +120,22 @@ func _apply_boons(boons: Dictionary[StringName, int], tuning: TuningData) -> voi
 	speed += v.call(&"swift")
 	roll += v.call(&"swift")
 	crit_chance += v.call(&"hawk")
+	blaze = v.call(&"blaze")
+	cinders = v.call(&"cinders")
+	forge = v.call(&"forge")
+	perfect_groove += v.call(&"syncopation")
+	attack_speed += v.call(&"tempo")
+	perfect_damage += v.call(&"accent")
+	counterpoint = v.call(&"counterpoint")
+	damage_taken *= 1.0 - v.call(&"bark")
+	anchor = v.call(&"anchor")
+	regrowth = v.call(&"regrowth")
+	prism = v.call(&"prism")
+	rainbow_damage *= 1.0 + v.call(&"rainbow")
+	splash = v.call(&"splash")
+	groove *= 1.0 + v.call(&"halo")
+	dazzle = v.call(&"dazzle")
+	wildfire = v.call(&"wildfire")
+	drumroll = v.call(&"drumroll")
+	sacred_grove = v.call(&"sacred_grove")
+	bloom = v.call(&"bloom")

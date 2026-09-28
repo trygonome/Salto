@@ -6,8 +6,15 @@ extends Node3D
 ## gelée qui s'étire au saut et s'écrase à l'atterrissage, tambour porté qui tourne au-dessus de
 ## sa tête, traînée du pied qui frappe. Les poses sont calculées par HeroAnimator.
 
-## Matériau des assemblages articulés (voxel_rig.tres).
+## Matériau des assemblages articulés (voxel_rig.tres) ; des petits assemblages (instrument,
+## fléchettes : voxel_actor.tres).
 @export var material: Material
+@export var prop_material: Material
+
+## Instrument en main (version 2.8) : taille d'un cube (voxels du personnage), et où il se tient
+## sur l'avant-bras (voxels, depuis le coude).
+const INSTRUMENT_CELL := 1.0
+const HAND := Vector3(0.0, -3.6, 0.6)
 
 var character: VoxelCharacter
 
@@ -20,6 +27,8 @@ var _squash: float = 0.0
 var _squash_speed: float = 0.0
 ## Hanche et pied de chaque jambe (L, R), où s'accroche la traînée.
 var _legs: Dictionary = {}
+## Instrument en main (un par main pour les maracas).
+var _instruments: Array[Node3D] = []
 
 @onready var animator: HeroAnimator = $Animator
 @onready var trail: RibbonTrail = $Trail
@@ -101,6 +110,55 @@ func update_pose(yaw: float, delta: float) -> void:
 	character.update_blink(delta)
 	if _carried_drum.visible:
 		_carried_drum.rotation.y += tuning.carried_drum_spin * delta
+
+
+## Met l'instrument `weapon` dans la main droite (les maracas : une dans chaque main).
+func show_instrument(weapon: WeaponData) -> void:
+	for node: Node3D in _instruments:
+		node.queue_free()
+	_instruments.clear()
+	if character == null or prop_material == null:
+		return
+	var hands: PackedStringArray = ["elR", "elL"] if weapon.shape == &"maracas" else ["elR"]
+	for bone: String in hands:
+		var attachment: BoneAttachment3D = _attach(bone)
+		var mesh: MultiMeshInstance3D = VoxelMesh.create(instrument_cells(weapon), prop_material)
+		mesh.scale = Vector3.ONE * INSTRUMENT_CELL
+		mesh.position = HAND
+		attachment.add_child(mesh)
+		_instruments.append(attachment)
+
+
+## Cubes d'un instrument (cases d'un demi-voxel du personnage), manche vers le bas de la main.
+static func instrument_cells(weapon: WeaponData) -> PackedFloat32Array:
+	var cells := PackedFloat32Array()
+	var main: Vector3 = weapon.main_color
+	var accent: Vector3 = weapon.accent_color
+	match weapon.shape:
+		&"maracas":
+			for y: int in 2:
+				VoxelMesh.add(cells, 0.0, -y, 0.0, Vector3(2.07, 0.5, 0.35), 0.8)
+			for x: int in range(-1, 2):
+				for y: int in range(2, 5):
+					for z: int in range(-1, 2):
+						if absi(x) + absi(z) + absi(y - 3) <= 2:
+							VoxelMesh.add(cells, x, -y, z, accent if (x + y + z) % 3 == 0 else main)
+		&"hammer":
+			for y: int in 6:
+				VoxelMesh.add(cells, 0.0, y - 2.0, 0.0, Vector3(2.07, 0.5, 0.35), 0.8)
+			for x: int in range(-2, 3):
+				for z: int in range(-2, 3):
+					if Vector2(x, z).length() > 2.3:
+						continue
+					for y: int in 3:
+						VoxelMesh.add(cells, x, 4.0 + y, z, accent if y != 1 else main)
+		&"pipe":
+			for y: int in 12:
+				VoxelMesh.add(cells, 0.0, y - 3.0, 0.0, accent if y % 4 == 0 else main, 0.7)
+		_:
+			for y: int in 10:
+				VoxelMesh.add(cells, 0.0, y - 3.0, 0.0, accent if y % 3 == 0 else main, 0.8)
+	return cells
 
 
 func _start_spin(duration: float, rolling: bool) -> void:

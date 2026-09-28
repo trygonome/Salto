@@ -36,6 +36,8 @@ var elapsed: float = 0.0
 var encounters_seen: Array[StringName] = []
 ## L'élite de l'expédition est déjà paru.
 var elite_done: bool = false
+## Instrument-arme de l'expédition (version 2.8).
+var weapon: StringName = &"rainstick"
 ## Rencontres en plus dans le tirage des passages (case du tambourinaire, version 2.7).
 var extra_encounters: int = 0
 ## Pour le Chef, au retour : ce qui a fait tomber le héros (espèce, &"trap" ; vide : rien), PV
@@ -134,9 +136,9 @@ func enter_next(promised: StringName) -> void:
 	reward = promised
 
 
-## Prend le don `id` (ou le monte d'un rang).
-func take_boon(id: StringName) -> void:
-	boons[id] = boons.get(id, 0) + 1
+## Prend le don `id` (ou le monte de `ranks` rangs : sa rareté).
+func take_boon(id: StringName, ranks: int = 1) -> void:
+	boons[id] = boons.get(id, 0) + ranks
 
 
 ## Nombre de rangs de dons pris.

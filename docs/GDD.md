@@ -30,9 +30,28 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   - *Le vieux tambourinaire* (Kamba) : apprendre son rythme (Métronome, un rang) ou écouter son histoire
     (une page du carnet, un peu de soin) ;
   - *Un villageois perdu* : le soigner (−20 PV, il offre un objet) ou lui montrer le chemin (+15 plumes d'or).
-- **Dons des esprits** (rang 1 à 3 en les reprenant) : Pied de braise (les coups brûlent), Écho du tambour
-  (onde du 3e coup), Roulade épineuse, Plongeon météore, Cœur de la jungle (PV), Métronome (coups parfaits),
-  Sève (soin par Muet), Furie, Pieds légers, Œil du faucon (critique).
+- **Dons des esprits** (rang 1 à 3 en les reprenant). Version 2.8 : 25 dons en quatre familles —
+  *Braise* (Pied de braise, Plongeon météore, Furie, Brasier : plus de dégâts aux Muets en feu, Cendres : un Muet
+  libéré enflamme ses voisins, Coup de forge : le coup chargé frappe plus fort et brûle), *Rythme* (Métronome, Écho
+  du tambour : onde du dernier coup de l'enchaînement, Pieds légers, Syncope : groove des coups parfaits, Tempo :
+  vitesse des coups, Accent : dégâts des coups parfaits, Contrepoint : riposte), *Racines* (Cœur de la jungle,
+  Roulade épineuse, Sève, Écorce : moins de dégâts reçus, Ancrage : équilibre brisé, Repousse : PV à chaque
+  clairière nettoyée), *Couleur* (Œil du faucon, Prisme : dégâts des critiques, Arc-en-ciel : Salto arc-en-ciel,
+  Éclaboussure : groove des Muets libérés, Halo : groove gagné, Éblouissement : étourdit parfois).
+  Chaque carte a une **rareté** : commune (un rang), *rare* (deux, encre bleue), *épique* (trois, encre violette),
+  sans dépasser le rang 3. **Dons doubles** (encre dorée, un seul rang) : il faut un don de chacune de leurs deux
+  familles — Feu de joie (braise + couleur : un critique enflamme), Roulement (rythme + braise : un coup parfait
+  fait trembler le sol autour), Bosquet sacré (racines + rythme : une esquive parfaite soigne), Floraison
+  (racines + couleur : le Salto arc-en-ciel soigne). Le **don de l'élite** est au moins rare.
+- **Instruments-armes** (version 2.8), choisis avant de partir (écran titre, ou le râtelier du village) et tenus
+  en main : *bâton de pluie* (martelo, meia-lua, armada), *maracas jumelles* (quatre secousses très rapides, la
+  dernière en tournoyant : le combo monte vite), *tambour-marteau* (deux frappes lentes qui écrasent tout
+  autour, la seconde en bondissant), *sarbacane* (fléchettes à 7,5 m ; la troisième en éventail de trois, qui
+  traversent). Coup chargé, riposte, coup de grâce et plongeon restent les mêmes.
+- **Rencontres de la version 2.8** : *la Tisseuse de couleurs* (30 plumes d'or : un don rare ou mieux ; ou une
+  couleur : la jauge de groove se remplit), *l'Écho solitaire* (lui répondre : un don double, s'il y en a un de
+  possible ; ou l'écouter : Tempo, un rang), *l'Arbre muet* (frapper ses racines en rythme : un don des racines,
+  rare ; ou dormir à son ombre : +50 % des PV).
 - La jungle reprend ses couleurs et la musique ses couches de clairière en clairière.
 - **Régions** (version 2.6) : on choisit à l'écran titre où partir (flèches autour du nom) ; libérer le gardien
   d'une région ouvre la suivante (le résumé l'annonce). Chacune ses formes de clairière, son herbe, sa terre, son

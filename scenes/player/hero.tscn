@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/player/states/charge_state.gd" id="10_charge"]
 [ext_resource type="Script" path="res://scripts/player/hero_animator.gd" id="11_animator"]
 [ext_resource type="Material" path="res://scenes/world/voxel_rig.tres" id="12_rig"]
+[ext_resource type="Material" path="res://scenes/world/voxel_actor.tres" id="13_actor"]
 [ext_resource type="Script" path="res://scripts/components/hitbox.gd" id="16_hitbox"]
 [ext_resource type="Script" path="res://scripts/fx/ribbon_trail.gd" id="17_trail"]
 [ext_resource type="Script" path="res://scripts/fx/beat_ring.gd" id="20_ring"]
@@ -65,6 +66,7 @@ shape = SubResource("CapsuleShape_body")
 [node name="Visual" type="Node3D" parent="."]
 script = ExtResource("2_visual")
 material = ExtResource("12_rig")
+prop_material = ExtResource("13_actor")
 
 [node name="Animator" type="Node" parent="Visual"]
 script = ExtResource("11_animator")

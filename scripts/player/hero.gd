@@ -133,7 +133,7 @@ func _ready() -> void:
 	visual.trail.inner_reach = tuning.trail_inner_reach
 	visual.trail.outer_reach = tuning.trail_outer_reach
 	level = tuning.hero_start_level
-	stats = HeroStats.compute(Game.profile, tuning)
+	stats = HeroStats.compute(Game.profile, tuning, _run_boons())
 	combo = ComboCounter.new(tuning.combo_timeout)
 	groove = GrooveGauge.new(tuning.groove_max)
 	rng.randomize()
@@ -149,6 +149,7 @@ func _ready() -> void:
 	hurtbox.radius = tuning.hero_radius
 	health.setup(stats.max_health)
 	hurtbox.damage_taken_multiplier = stats.damage_taken
+	equip(Game.run.weapon if Game.run else (Game.profile.weapon if Game.profile else &""))
 	Game.stats_changed.connect(_on_stats_changed)
 	Game.level_up.connect(_on_level_up)
 	hurtbox.hurt.connect(_on_hurt)
@@ -227,6 +228,29 @@ func intended_direction() -> Vector3:
 
 
 var _level: Level
+## Instrument-arme en main (version 2.8 ; voir WeaponData).
+var weapon: WeaponData
+
+
+## Prend l'instrument `id` en main : son enchaînement remplace le précédent.
+func equip(weapon_id: StringName) -> void:
+	weapon = tuning.weapon(weapon_id)
+	_combo_step = 0
+	if weapon:
+		visual.show_instrument(weapon)
+
+
+## Dons de l'expédition en cours (aucun hors expédition).
+func _run_boons() -> Dictionary[StringName, int]:
+	var boons: Dictionary[StringName, int] = {}
+	if Game.run:
+		boons = Game.run.boons
+	return boons
+
+
+## Enchaînement de l'instrument en main.
+func combo_attacks() -> Array[AttackData]:
+	return weapon.combo if weapon and not weapon.combo.is_empty() else tuning.combo_attacks
 
 
 ## Part de la vitesse de course permise par le sol sous le héros (l'eau ralentit, version 2.6).
@@ -388,8 +412,10 @@ func next_attack(previous_state: StringName) -> AttackData:
 		return tuning.rolling_kick
 	if previous_state != &"Attack" and _clock - _last_attack_end > tuning.combo_chain_window:
 		_combo_step = 0
-	var attack: AttackData = tuning.combo_attacks[_combo_step]
-	_combo_step = (_combo_step + 1) % tuning.combo_attacks.size()
+	var combo_list: Array[AttackData] = combo_attacks()
+	_combo_step = _combo_step % combo_list.size()
+	var attack: AttackData = combo_list[_combo_step]
+	_combo_step = (_combo_step + 1) % combo_list.size()
 	return attack
 
 
@@ -479,8 +505,46 @@ func aim_direction() -> Vector3:
 func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0, power: float = 1.0) -> void:
 	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
 	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier * power, attack.id, judgement, 0.0, attack.poise * power, attack.launch * power)
+	# Roulement (don double) : un coup parfait fait trembler le sol autour.
+	if judgement == RhythmMath.Judgement.PERFECT and stats.drumroll > 0.0:
+		_drumroll()
+	if attack.projectiles > 0:
+		_shoot(attack, direction, make_hit)
+		return
 	var duration: float = active_time if active_time >= 0.0 else tuning.attack_active_time
 	hitbox.activate(attack.reach, attack.arc_deg, direction, duration, make_hit)
+
+
+## Roulement : les Muets autour du héros (Tuning.drumroll_radius) sont touchés d'un coup, sans
+## passer par la zone de coup (elle sert au coup lui-même).
+func _drumroll() -> void:
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if muet.is_freed() or muet.flat_distance_to(global_position) > tuning.drumroll_radius + muet.hurtbox.radius:
+			continue
+		var hit: HitData = _make_hit(muet.hurtbox, stats.drumroll, &"drumroll", RhythmMath.Judgement.MISS, 0.0, tuning.quake_poise, tuning.quake_launch)
+		if muet.hurtbox.receive(hit):
+			hitbox.landed.emit(hit, muet.hurtbox)
+	var fx: Effects = Effects.of(self)
+	if fx:
+		fx.ring(global_position, tuning.drumroll_radius, fx.gold, tuning.fx_quake_ring_time)
+
+
+## Sarbacane : les fléchettes du coup `attack` partent en éventail autour de `direction`.
+func _shoot(attack: AttackData, direction: Vector3, make_hit: Callable) -> void:
+	var parent: Node = get_parent()
+	for i: int in attack.projectiles:
+		var offset: float = (i - (attack.projectiles - 1) / 2.0) * deg_to_rad(tuning.dart_spread_deg)
+		var dart := Dart.new()
+		dart.direction = direction.rotated(Vector3.UP, offset)
+		dart.speed = tuning.dart_speed
+		dart.reach = tuning.dart_range
+		dart.pierce = attack.pierce
+		dart.make_hit = make_hit
+		dart.shooter = self
+		dart.material = visual.prop_material
+		parent.add_child(dart)
+		dart.global_position = global_position + Vector3.UP * tuning.dart_height + dart.direction * tuning.hero_radius
 
 
 ## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
@@ -500,6 +564,9 @@ func shockwave(radius: float, multiplier: float, move: StringName, judgement: Rh
 	if move == &"rainbow":
 		get_tree().call_group(&"world_mood", &"burst")
 		Feedback.vibrate(tuning.vibration_rainbow)
+		# Floraison (don double) : le Salto arc-en-ciel soigne.
+		if stats.bloom > 0.0:
+			health.heal(health.maximum * stats.bloom)
 	var fx: Effects = Effects.of(self)
 	if fx == null:
 		return
@@ -539,6 +606,7 @@ func respawn() -> void:
 
 ## Une sortie commence : forces recalculées, tous les PV, second souffle de nouveau disponible.
 func begin_sortie() -> void:
+	equip(Game.run.weapon if Game.run else Game.profile.weapon)
 	_on_stats_changed()
 	health.restore()
 	second_wind_used = false
@@ -555,10 +623,17 @@ func on_answer(species: StringName) -> void:
 
 
 ## Un Muet vient d'être libéré (appelé par le Muet sur le groupe « hero »).
-func on_enemy_freed(_muet: Node) -> void:
-	groove.add(tuning.groove_enemy_freed * stats.groove)
+func on_enemy_freed(muet: Node) -> void:
+	groove.add(tuning.groove_enemy_freed * stats.groove + stats.splash)
 	if stats.heal_per_muet > 0.0 and not health.is_depleted():
 		health.heal(stats.heal_per_muet)
+	# Cendres : le Muet libéré enflamme ceux qui l'entourent.
+	var freed: Node3D = muet as Node3D
+	if stats.cinders > 0.0 and freed:
+		for node: Node in get_tree().get_nodes_in_group(&"muets"):
+			var other: Muet = node as Muet
+			if other != freed and not other.is_freed() and other.flat_distance_to(freed.global_position) <= tuning.cinders_radius:
+				other.burn(stats.attack * stats.cinders, tuning.burn_time)
 
 
 ## Une onde de choc est passée sous le héros en l'air.
@@ -604,11 +679,23 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 	if judgement == RhythmMath.Judgement.PERFECT:
 		move_multiplier *= stats.perfect_damage
 	hit.damage = CombatMath.damage(attack, move_multiplier, CombatMath.combo_multiplier(combo.hits, tuning), hit.critical, tuning)
-	hit.poise = poise * (tuning.poise_perfect_multiplier if judgement == RhythmMath.Judgement.PERFECT else 1.0)
+	hit.poise = poise * (tuning.poise_perfect_multiplier if judgement == RhythmMath.Judgement.PERFECT else 1.0) * (1.0 + stats.anchor)
 	hit.launch = launch
 	hit.power = attack
-	# Coup de grâce : il libère le Muet qui chancelle ; le Grand Muet, lui, encaisse un grand coup.
 	var muet: Muet = hurtbox.get_parent() as Muet
+	# Dons 2.8 : Brasier (Muet en feu), Coup de forge, Contrepoint (riposte), Prisme (critique),
+	# Éblouissement (étourdit parfois).
+	if muet and muet.is_burning():
+		hit.damage *= 1.0 + stats.blaze
+	if move == &"charged":
+		hit.damage *= 1.0 + stats.forge
+	elif move == &"riposte":
+		hit.damage *= 1.0 + stats.counterpoint
+	if hit.critical:
+		hit.damage *= 1.0 + stats.prism
+	if stats.dazzle > 0.0 and rng.randf() < stats.dazzle:
+		hit.stun_time = maxf(hit.stun_time, tuning.dazzle_stun)
+	# Coup de grâce : il libère le Muet qui chancelle ; le Grand Muet, lui, encaisse un grand coup.
 	if move == &"grace" and muet and muet.can_receive_grace():
 		hit.damage = attack * tuning.grace_boss_damage if muet.is_boss() else muet.health.current / hurtbox.damage_taken_multiplier
 	var to_target: Vector3 = hurtbox.global_position - global_position
@@ -621,10 +708,16 @@ func _make_hit(hurtbox: Hurtbox, multiplier: float, move: StringName, judgement:
 func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	combo.register_hit(_clock)
 	last_hit = hit
-	if stats.burn > 0.0 and hit.target:
+	if hit.target:
 		var muet: Muet = hit.target.get_parent() as Muet
-		if muet:
-			muet.burn(stats.attack * stats.burn, tuning.burn_time)
+		# Braise : Pied de braise, Coup de forge (le coup chargé), Feu de joie (un critique).
+		var burn: float = stats.burn
+		if hit.move == &"charged":
+			burn = maxf(burn, stats.forge)
+		if hit.critical:
+			burn = maxf(burn, stats.wildfire)
+		if muet and burn > 0.0:
+			muet.burn(stats.attack * burn, tuning.burn_time)
 	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
 	if _pending_groove > 0.0:
@@ -694,6 +787,9 @@ func _on_dodged(hit: HitData) -> void:
 		fx.word(GameTexts.WORD_PERFECT_DODGE, global_position + Vector3.UP * tuning.hero_height, fx.cyan, true)
 	_next_hit_critical = true
 	groove.add(tuning.groove_perfect_dodge * stats.groove)
+	# Bosquet sacré (don double) : l'esquive parfaite soigne.
+	if stats.sacred_grove > 0.0:
+		health.heal(stats.sacred_grove)
 	if stats.shadow:
 		quake(tuning.shadow_quake_radius, tuning.shadow_quake_damage, &"shadow")
 	beat_ring.flash(RhythmMath.Judgement.PERFECT)
@@ -786,7 +882,9 @@ func _faint() -> void:
 ## Niveau, talents ou objets ont changé : nouvelles forces, les PV suivent le nouveau maximum.
 func _on_stats_changed() -> void:
 	var before: float = health.maximum
-	stats = HeroStats.compute(Game.profile, tuning)
+	# Les dons de l'expédition en cours comptent aussi (ils changeaient les forces calculées par
+	# Game, pas celles du héros : corrigé en 2.8).
+	stats = HeroStats.compute(Game.profile, tuning, _run_boons())
 	hurtbox.damage_taken_multiplier = stats.damage_taken
 	health.set_maximum(stats.max_health)
 	if stats.max_health > before:

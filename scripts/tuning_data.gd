@@ -1581,3 +1581,39 @@ extends Resource
 ## après une victoire.
 @export var village_dancers: int
 @export var village_party_flip: float
+
+@export_group("Instruments-armes")
+## Instruments du héros (le premier : celui par défaut).
+@export var weapons: Array[WeaponData]
+## Fléchettes de la sarbacane : vitesse (m/s), portée (m), rayon de touche (m), écart de l'éventail
+## (degrés), hauteur de tir (m).
+@export var dart_speed: float
+@export var dart_range: float
+@export var dart_radius: float
+@export var dart_spread_deg: float
+@export var dart_height: float
+
+
+@export_group("Dons 2.8")
+## Rareté d'une carte de don : chances d'une rare, d'une épique (le reste : commune) ; chance qu'un
+## don double possible prenne la dernière carte.
+@export var boon_rare_chance: float
+@export var boon_epic_chance: float
+@export var boon_duo_chance: float
+## Cendres : rayon où un Muet libéré enflamme les autres (m). Éblouissement : étourdissement (s).
+## Roulement : rayon de l'onde d'un coup parfait (m).
+@export var cinders_radius: float
+@export var dazzle_stun: float
+@export var drumroll_radius: float
+## Rencontres 2.8 : prix du don rare de la Tisseuse (plumes d'or), soin à l'ombre de l'Arbre muet
+## (part des PV).
+@export var encounter_weaver_price: int
+@export var encounter_tree_heal: float
+
+
+## Instrument `id` (le premier s'il n'existe pas).
+func weapon(weapon_id: StringName) -> WeaponData:
+	for item: WeaponData in weapons:
+		if item.id == weapon_id:
+			return item
+	return weapons[0] if not weapons.is_empty() else null

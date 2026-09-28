@@ -70,9 +70,10 @@ func physics_update(delta: float) -> void:
 	if not _struck and _elapsed >= attack.impact:
 		_struck = true
 		hero.strike(attack, _direction, _judgement, -1.0, _power)
-		if hero.stats.finale and attack == tuning.combo_attacks[tuning.combo_attacks.size() - 1]:
+		var combo_list: Array[AttackData] = hero.combo_attacks()
+		if hero.stats.finale and attack == combo_list[combo_list.size() - 1]:
 			hero.quake(tuning.finale_quake_radius, tuning.finale_quake_damage * hero.stats.finale_damage, &"finale")
-	if tuning.combo_attacks.has(attack) and hero.input_attack_held and _elapsed >= tuning.charge_hold_delay and hero.is_on_floor():
+	if hero.combo_attacks().has(attack) and hero.input_attack_held and _elapsed >= tuning.charge_hold_delay and hero.is_on_floor():
 		machine.transition_to(&"Charge")
 	elif _elapsed >= attack.chain_from and hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")

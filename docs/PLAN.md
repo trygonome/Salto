@@ -197,6 +197,11 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
      **dons doubles** (deux familles) ; nouvelles rencontres (la Tisseuse de couleurs, l'Écho solitaire,
      l'Arbre muet…).
    *Test : deux parties se jouent-elles différemment ?*
+   **Fait** (version 2.8) : quatre instruments-armes (bâton de pluie, maracas jumelles, tambour-marteau,
+   sarbacane et ses fléchettes), tenus en main, choisis à l'écran titre ou au râtelier du village ; 25 dons en
+   quatre familles, raretés (un, deux ou trois rangs), quatre dons doubles, don de l'élite au moins rare ;
+   la Tisseuse de couleurs, l'Écho solitaire, l'Arbre muet. Corrigé au passage : les dons de l'expédition ne
+   changeaient pas les forces du héros lui-même (seulement celles calculées à part).
 7. **2.9 — Confort mobile.**
    - **Reprendre une expédition interrompue** (appel, fermeture de l'application).
    - Première expédition qui **apprend sans texte** (un seul sautillant, puis un porte-bouclier…).

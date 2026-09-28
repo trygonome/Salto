@@ -124,7 +124,8 @@ const ROOM_ENCOUNTER := "Rencontre · approche-toi"
 const ENCOUNTER_NAMES: Dictionary[StringName, String] = {
 	&"spring": "La source des anciens", &"merchant": "Le marchand muet",
 	&"drummer": "Le vieux tambourinaire", &"wounded": "Un villageois perdu",
-	&"rest": "Le feu de camp",
+	&"rest": "Le feu de camp", &"weaver_lady": "La Tisseuse de couleurs",
+	&"echo_spirit": "L'Écho solitaire", &"mute_tree": "L'Arbre muet",
 }
 const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
 	&"spring": "Une eau claire chante entre les pierres. On dit qu'elle se souvient de la musique.",
@@ -132,6 +133,9 @@ const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
 	&"drummer": "« Le rythme est en toi, petit. Assieds-toi, écoute le vieux Kamba. »",
 	&"wounded": "« Je cherchais les tambours… les Muets m'ont surpris. Je ne retrouve plus le village. »",
 	&"rest": "Un feu crépite entre les racines. Ici, les Muets ne viennent pas.",
+	&"weaver_lady": "Elle tisse des fils volés aux Muets. « Un fil pour une plume, petit ? »",
+	&"echo_spirit": "Une voix répète chacun de tes pas, un temps plus tard. Elle attend ta réponse.",
+	&"mute_tree": "Un fromager immense, gris comme les Muets. Ses racines battent encore, tout doucement.",
 }
 const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
 	&"spring": ["Boire : tous tes PV reviennent", "Y plonger la main : un don, contre %d % de tes PV"],
@@ -139,6 +143,9 @@ const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
 	&"drummer": ["Apprendre son rythme : Métronome, un rang", "Écouter son histoire : une page du carnet, un peu de soin"],
 	&"wounded": ["Le soigner (−%d PV) : il t'offre un objet", "Lui montrer le chemin : +%d plumes d'or"],
 	&"rest": ["Te reposer : +%d % de PV", "Affûter un don : un rang de plus"],
+	&"weaver_lady": ["Donner %d plumes d'or : un don rare ou mieux", "Lui offrir une couleur : ta jauge de groove se remplit"],
+	&"echo_spirit": ["Lui répondre : un don double", "L'écouter : Tempo, un rang"],
+	&"mute_tree": ["Frapper ses racines en rythme : un don des racines, rare", "Dormir à son ombre : +%d % de PV"],
 }
 const FEATHERS_FOUND := "+%d plumes d'or"
 const HEALED := "Soin : +%d PV"
@@ -148,25 +155,59 @@ const BOON_SUB := "Choisis un don pour cette expédition"
 const BOON_RANK := "Rang %d"
 const BOON_NEW := "Nouveau"
 const BOON_NAMES: Dictionary[StringName, String] = {
-	&"ember": "Pied de braise", &"echo": "Écho du tambour", &"thorns": "Roulade épineuse",
-	&"meteor": "Plongeon météore", &"heart": "Cœur de la jungle", &"metronome": "Métronome",
-	&"sap": "Sève", &"fury": "Furie", &"swift": "Pieds légers", &"hawk": "Œil du faucon",
+	&"ember": "Pied de braise", &"meteor": "Plongeon météore", &"fury": "Furie", &"blaze": "Brasier",
+	&"cinders": "Cendres", &"forge": "Coup de forge",
+	&"metronome": "Métronome", &"echo": "Écho du tambour", &"swift": "Pieds légers", &"syncopation": "Syncope",
+	&"tempo": "Tempo", &"accent": "Accent", &"counterpoint": "Contrepoint",
+	&"heart": "Cœur de la jungle", &"thorns": "Roulade épineuse", &"sap": "Sève", &"bark": "Écorce",
+	&"anchor": "Ancrage", &"regrowth": "Repousse",
+	&"hawk": "Œil du faucon", &"prism": "Prisme", &"rainbow": "Arc-en-ciel", &"splash": "Éclaboussure",
+	&"halo": "Halo", &"dazzle": "Éblouissement",
+	&"wildfire": "Feu de joie", &"drumroll": "Roulement", &"sacred_grove": "Bosquet sacré", &"bloom": "Floraison",
 }
 ## Effet d'un don au rang offert (%d : sa valeur).
 const BOON_TEXTS: Dictionary[StringName, String] = {
 	&"ember": "Tes coups brûlent : %d % de ton attaque par seconde, 3 s.",
-	&"echo": "Ton 3e coup libère une onde (+%d % de dégâts).",
-	&"thorns": "Ta roulade blesse les Muets traversés (%d % de ton attaque).",
 	&"meteor": "Plongeon : +%d % de dégâts, onde plus large.",
-	&"heart": "+%d PV max.",
-	&"metronome": "Coups parfaits : +%d % de dégâts, fenêtre plus large.",
-	&"sap": "+%d PV par Muet libéré.",
 	&"fury": "+%d % de dégâts et de vitesse des coups.",
+	&"blaze": "+%d % de dégâts aux Muets en feu.",
+	&"cinders": "Un Muet libéré enflamme ses voisins (%d % de ton attaque par seconde).",
+	&"forge": "Coup chargé : +%d % de dégâts, et il brûle.",
+	&"metronome": "Coups parfaits : +%d % de dégâts, fenêtre plus large.",
+	&"echo": "Ton dernier coup de l'enchaînement libère une onde (+%d % de dégâts).",
 	&"swift": "+%d % de vitesse de course et de roulade.",
+	&"syncopation": "Coups parfaits : +%d % de groove.",
+	&"tempo": "+%d % de vitesse des coups.",
+	&"accent": "Coups parfaits : +%d % de dégâts.",
+	&"counterpoint": "Riposte : +%d % de dégâts.",
+	&"heart": "+%d PV max.",
+	&"thorns": "Ta roulade blesse les Muets traversés (%d % de ton attaque).",
+	&"sap": "+%d PV par Muet libéré.",
+	&"bark": "−%d % de dégâts reçus.",
+	&"anchor": "+%d % d'équilibre brisé par tes coups.",
+	&"regrowth": "+%d PV à chaque clairière nettoyée.",
 	&"hawk": "+%d % de chances de critique.",
+	&"prism": "Critiques : +%d % de dégâts.",
+	&"rainbow": "Salto arc-en-ciel : +%d % de dégâts.",
+	&"splash": "Chaque Muet libéré : +%d % de groove en plus.",
+	&"halo": "+%d % de groove gagné.",
+	&"dazzle": "%d % de chances d'éblouir : le Muet est étourdi.",
+	&"wildfire": "Un critique enflamme le Muet (%d % de ton attaque par seconde).",
+	&"drumroll": "Un coup parfait fait trembler le sol autour de toi (%d % de ton attaque).",
+	&"sacred_grove": "Chaque esquive parfaite rend %d PV.",
+	&"bloom": "Le Salto arc-en-ciel rend %d % de tes PV.",
 }
+## Familles et raretés, sur les cartes.
+const BOON_FAMILY_NAMES: Dictionary[StringName, String] = {
+	&"braise": "Braise", &"rythme": "Rythme", &"racines": "Racines", &"couleur": "Couleur",
+}
+const BOON_RARITY_NAMES: Dictionary[StringName, String] = {
+	&"common": "", &"rare": "Rare", &"epic": "Épique", &"duo": "Don double",
+}
+const BOON_TAG := "%s · %s"
+const BOON_DUO_TAG := "%s + %s"
 ## Dons qui se comptent en nombre (PV) ; les autres en pour cent.
-const BOON_FLAT: Array[StringName] = [&"heart", &"sap"]
+const BOON_FLAT: Array[StringName] = [&"heart", &"sap", &"regrowth", &"sacred_grove"]
 const RUN_WON := "Jungle libérée !"
 const RUN_LOST := "L'expédition s'arrête"
 const RUN_QUIT := "Retour au camp"
@@ -220,6 +261,19 @@ const REGION_UNLOCKED := "Nouvelle région : %s"
 
 ## Village vivant (version 2.7) : les cases à rebâtir, ce qu'elles font, ce qu'on y entend ; le
 ## Chef qui commente l'expédition.
+## Instruments-armes (version 2.8).
+const WEAPON_NAMES: Dictionary[StringName, String] = {
+	&"rainstick": "Bâton de pluie", &"maracas": "Maracas jumelles", &"hammer": "Tambour-marteau", &"blowpipe": "Sarbacane",
+}
+const WEAPON_TEXTS: Dictionary[StringName, String] = {
+	&"rainstick": "Trois coups de pied, le dernier en tournoyant.",
+	&"maracas": "Quatre secousses très rapides : le combo monte vite.",
+	&"hammer": "Deux frappes lentes qui écrasent tout autour.",
+	&"blowpipe": "Des fléchettes à distance ; la troisième en éventail, qui traverse.",
+}
+const RACK_TITLE := "Le râtelier des instruments"
+const RACK_TEXT := "Choisis ton instrument pour la prochaine expédition."
+const WEAPON_TAKEN := "%s en main !"
 const VILLAGE_TITLE := "Le village"
 const VILLAGE_SUB := "%s · départ au nord"
 const VILLAGE_BUTTON := "Le village"

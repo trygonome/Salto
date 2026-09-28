@@ -597,6 +597,8 @@ const VILLAGE_PLOTS: Dictionary[StringName, Vector2] = {
 	&"spring": Vector2(-13.0, 9.0), &"stage": Vector2(13.0, 9.0),
 }
 const VILLAGE_CHIEF := Vector2(0.0, -6.0)
+## Râtelier des instruments (version 2.8), près du passage du nord.
+const VILLAGE_RACK := Vector2(-7.0, -18.0)
 const VILLAGE_FIRE_CLEAR := 3.0
 ## Couleurs codées du village rebâti (mode 2 : fixes, vives) et des chantiers (mode 4 : bues par le
 ## silence).
@@ -629,8 +631,25 @@ func _room_village(radius: float, gaps: PackedFloat32Array) -> void:
 				_village_spring(p, level)
 			&"stage":
 				_village_stage(p)
+	_village_rack(VILLAGE_RACK)
 	_room_place(_palm, ROOM_PALMS, radius, gaps, 3.0)
 	_room_place(_fern, ROOM_FERNS, radius, gaps, 2.0)
+
+
+## Râtelier : deux montants, une traverse, quatre instruments suspendus aux couleurs vives.
+func _village_rack(p: Vector2) -> void:
+	for side: int in [-3, 3]:
+		for y: int in 5:
+			_sv(p.x + side, y + 0.5, p.y, 0.8, V_WOOD.x, V_WOOD.y, V_WOOD.z)
+	for x: int in range(-3, 4):
+		_sv(p.x + x, 5.3, p.y, 0.7, V_WOOD.x, V_WOOD.y, V_WOOD.z + 0.05)
+	var colors: Array[Vector3] = [Vector3(2.5, 0.8, 0.55), Vector3(2.04, 0.85, 0.55), Vector3(2.98, 0.75, 0.45), Vector3(2.28, 0.6, 0.42)]
+	for i: int in 4:
+		var x: float = p.x - 1.5 + i
+		for y: int in 3:
+			_sv(x, 4.2 - y * 0.8, p.y + 0.2, 0.6, colors[i].x, colors[i].y, colors[i].z + (0.1 if y == 2 else 0.0))
+	_add_solid(p.x, p.y, 1.2, 2.0)
+	_shadow(p.x, p.y, 3.5, 0.2)
 
 
 ## Chantier : quatre piquets, une pile de planches, des pierres renversées.

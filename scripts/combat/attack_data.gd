@@ -29,6 +29,12 @@ extends Resource
 ## Projection : 0 = simple recul ; plus c'est haut, plus le Muet part loin, et à partir de
 ## Tuning.launch_impact_min il se blesse contre ce qu'il heurte (arbre, pilier, autre Muet).
 @export var launch: float
+## Pose du corps (voir HeroAnimator.ATTACK_POSES ; vide : celle de `id`).
+@export var pose: StringName
+## Coup à distance (sarbacane, version 2.8) : fléchettes tirées en éventail (0 : coup au corps),
+## qui traversent les Muets ou s'arrêtent au premier.
+@export var projectiles: int
+@export var pierce: bool
 
 
 ## Lacet visuel (degrés) au temps `t` du coup ; 0 s'il n'y a pas de clés.

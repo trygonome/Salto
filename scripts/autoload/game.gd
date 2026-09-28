@@ -187,6 +187,7 @@ func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 	profile.begin_sortie()
 	run = RunState.new(seed_number, rooms, region if region != &"" else profile.region)
 	run.extra_encounters = Village.extra_encounters(profile)
+	run.weapon = Tuning.data.weapon(profile.weapon).id
 	playing = true
 	at_village = false
 	refresh_stats()
@@ -195,8 +196,8 @@ func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 
 
 ## Prend le don des esprits `id` (ou le monte d'un rang) : les forces du héros changent.
-func take_boon(id: StringName) -> void:
-	run.take_boon(id)
+func take_boon(id: StringName, ranks: int = 1) -> void:
+	run.take_boon(id, ranks)
 	refresh_stats()
 	stats_changed.emit()
 

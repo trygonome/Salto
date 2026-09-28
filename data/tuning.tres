@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="TuningData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="TuningData" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/tuning_data.gd" id="1_tuning"]
 [ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="2_attack"]
+[ext_resource type="Script" path="res://scripts/combat/weapon_data.gd" id="3_weapon"]
 
 [sub_resource type="Resource" id="Attack_martelo"]
 script = ExtResource("2_attack")
@@ -122,6 +123,200 @@ hop_speed = 5.0
 spin_keys = PackedVector2Array()
 poise = 0.0
 launch = 0.0
+
+[sub_resource type="Resource" id="Attack_maracas_1"]
+script = ExtResource("2_attack")
+id = &"maracas_1"
+duration = 0.22
+impact = 0.07
+chain_from = 0.11
+reach = 0.7
+arc_deg = 110.0
+damage_multiplier = 0.55
+lunge = 0.22
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 3.0
+launch = 0.1
+pose = &"shake_r"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_maracas_2"]
+script = ExtResource("2_attack")
+id = &"maracas_2"
+duration = 0.22
+impact = 0.07
+chain_from = 0.11
+reach = 0.7
+arc_deg = 110.0
+damage_multiplier = 0.55
+lunge = 0.22
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 3.0
+launch = 0.1
+pose = &"shake_l"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_maracas_3"]
+script = ExtResource("2_attack")
+id = &"maracas_3"
+duration = 0.22
+impact = 0.07
+chain_from = 0.11
+reach = 0.75
+arc_deg = 120.0
+damage_multiplier = 0.6
+lunge = 0.22
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 3.5
+launch = 0.15
+pose = &"shake_r"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_maracas_4"]
+script = ExtResource("2_attack")
+id = &"maracas_4"
+duration = 0.4
+impact = 0.16
+chain_from = 0.3
+reach = 0.95
+arc_deg = 360.0
+damage_multiplier = 1.1
+lunge = 0.1
+hop_speed = 1.8
+spin_keys = PackedVector2Array(0, 0, 0.1, 180, 0.28, 360)
+poise = 8.0
+launch = 0.5
+pose = &"shake_spin"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_hammer_1"]
+script = ExtResource("2_attack")
+id = &"hammer_1"
+duration = 0.66
+impact = 0.32
+chain_from = 0.46
+reach = 1.25
+arc_deg = 150.0
+damage_multiplier = 2.1
+lunge = 0.3
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 17.0
+launch = 0.8
+pose = &"slam"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_hammer_2"]
+script = ExtResource("2_attack")
+id = &"hammer_2"
+duration = 0.8
+impact = 0.4
+chain_from = 0.6
+reach = 1.7
+arc_deg = 360.0
+damage_multiplier = 2.7
+lunge = 0.1
+hop_speed = 2.6
+spin_keys = PackedVector2Array()
+poise = 24.0
+launch = 1.2
+pose = &"slam"
+projectiles = 0
+pierce = false
+
+[sub_resource type="Resource" id="Attack_dart_1"]
+script = ExtResource("2_attack")
+id = &"dart_1"
+duration = 0.3
+impact = 0.1
+chain_from = 0.16
+reach = 0.6
+arc_deg = 40.0
+damage_multiplier = 0.75
+lunge = -0.15
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 3.0
+launch = 0.0
+pose = &"blow"
+projectiles = 1
+pierce = false
+
+[sub_resource type="Resource" id="Attack_dart_2"]
+script = ExtResource("2_attack")
+id = &"dart_2"
+duration = 0.3
+impact = 0.1
+chain_from = 0.16
+reach = 0.6
+arc_deg = 40.0
+damage_multiplier = 0.75
+lunge = -0.15
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 3.0
+launch = 0.0
+pose = &"blow"
+projectiles = 1
+pierce = false
+
+[sub_resource type="Resource" id="Attack_dart_3"]
+script = ExtResource("2_attack")
+id = &"dart_3"
+duration = 0.46
+impact = 0.18
+chain_from = 0.3
+reach = 0.6
+arc_deg = 40.0
+damage_multiplier = 0.8
+lunge = -0.3
+hop_speed = 0.0
+spin_keys = PackedVector2Array()
+poise = 5.0
+launch = 0.2
+pose = &"blow"
+projectiles = 3
+pierce = true
+
+[sub_resource type="Resource" id="Weapon_rainstick"]
+script = ExtResource("3_weapon")
+id = &"rainstick"
+combo = Array[ExtResource("2_attack")]([SubResource("Attack_martelo"), SubResource("Attack_meia_lua"), SubResource("Attack_armada")])
+shape = &"stick"
+main_color = Vector3(2.07, 0.55, 0.36)
+accent_color = Vector3(2.5, 0.8, 0.55)
+
+[sub_resource type="Resource" id="Weapon_maracas"]
+script = ExtResource("3_weapon")
+id = &"maracas"
+combo = Array[ExtResource("2_attack")]([SubResource("Attack_maracas_1"), SubResource("Attack_maracas_2"), SubResource("Attack_maracas_3"), SubResource("Attack_maracas_4")])
+shape = &"maracas"
+main_color = Vector3(2.04, 0.85, 0.55)
+accent_color = Vector3(2.14, 0.9, 0.6)
+
+[sub_resource type="Resource" id="Weapon_hammer"]
+script = ExtResource("3_weapon")
+id = &"hammer"
+combo = Array[ExtResource("2_attack")]([SubResource("Attack_hammer_1"), SubResource("Attack_hammer_2")])
+shape = &"hammer"
+main_color = Vector3(2.98, 0.75, 0.45)
+accent_color = Vector3(2.12, 0.9, 0.55)
+
+[sub_resource type="Resource" id="Weapon_blowpipe"]
+script = ExtResource("3_weapon")
+id = &"blowpipe"
+combo = Array[ExtResource("2_attack")]([SubResource("Attack_dart_1"), SubResource("Attack_dart_2"), SubResource("Attack_dart_3")])
+shape = &"pipe"
+main_color = Vector3(2.28, 0.6, 0.42)
+accent_color = Vector3(2.13, 0.7, 0.3)
 
 [resource]
 script = ExtResource("1_tuning")
@@ -477,16 +672,35 @@ fx_spawn_ring = 0.8
 fx_spawn_ring_time = 0.5
 fx_heal_hue = 0.93
 boon_values = Dictionary[StringName, float]({
+&"accent": 0.2,
+&"anchor": 0.25,
+&"bark": 0.08,
+&"blaze": 0.25,
+&"bloom": 0.15,
+&"cinders": 0.3,
+&"counterpoint": 0.4,
+&"dazzle": 0.08,
+&"drumroll": 0.5,
 &"echo": 0.5,
 &"ember": 0.35,
+&"forge": 0.3,
 &"fury": 0.12,
+&"halo": 0.12,
 &"hawk": 0.1,
 &"heart": 25.0,
 &"meteor": 0.35,
 &"metronome": 0.3,
+&"prism": 0.3,
+&"rainbow": 0.3,
+&"regrowth": 8.0,
+&"sacred_grove": 6.0,
 &"sap": 4.0,
+&"splash": 0.6,
 &"swift": 0.12,
-&"thorns": 0.8
+&"syncopation": 0.3,
+&"tempo": 0.1,
+&"thorns": 0.8,
+&"wildfire": 0.4
 })
 boon_max_rank = 3
 boon_offer = 3
@@ -1159,3 +1373,17 @@ village_close_boss = 0.3
 village_line_time = 4.5
 village_dancers = 2
 village_party_flip = 0.6
+weapons = Array[ExtResource("3_weapon")]([SubResource("Weapon_rainstick"), SubResource("Weapon_maracas"), SubResource("Weapon_hammer"), SubResource("Weapon_blowpipe")])
+dart_speed = 16.0
+dart_range = 7.5
+dart_radius = 0.35
+dart_spread_deg = 14.0
+dart_height = 1.1
+boon_rare_chance = 0.25
+boon_epic_chance = 0.06
+boon_duo_chance = 0.3
+cinders_radius = 2.2
+dazzle_stun = 0.8
+drumroll_radius = 1.6
+encounter_weaver_price = 30
+encounter_tree_heal = 0.5

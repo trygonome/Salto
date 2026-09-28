@@ -229,7 +229,7 @@ func test_une_clairiere_nettoyee_donne_son_don_puis_ouvre_ses_passages() -> void
 	var before: float = hero.health.maximum
 	(cards[0] as Button).pressed.emit()
 	assert_false(get_tree().paused)
-	assert_eq(Game.run.boon_ranks(), 1)
+	assert_between(Game.run.boon_ranks(), 1, 3, "un don (selon sa rareté : un à trois rangs)")
 	assert_true(before <= hero.health.maximum)
 	await get_tree().process_frame
 	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
@@ -281,7 +281,7 @@ func test_une_rencontre_se_parle_puis_ouvre_les_passages() -> void:
 	level.start_sortie()
 	hero.reads_player_input = false
 	Game.run.reward = RunState.ENCOUNTER
-	Game.run.encounters_seen.assign([&"merchant", &"drummer", &"wounded"])
+	Game.run.encounters_seen.assign(Encounters.IDS.filter(func(id: StringName) -> bool: return id != &"spring"))
 	level.call(&"_enter_room")
 	for i: int in 30:
 		await get_tree().physics_frame
@@ -337,8 +337,9 @@ func test_un_elite_libere_offre_son_don_apres_la_recompense() -> void:
 	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
 	assert_true(screen.is_open(), "puis celui de l'élite")
 	assert_eq((screen.get_node("%Title") as Label).text, GameTexts.ELITE_BOON_TITLE)
+	var before_elite: int = Game.run.boon_ranks()
 	(screen.get_node("%Cards").get_child(0) as Button).pressed.emit()
-	assert_eq(Game.run.boon_ranks(), 2)
+	assert_gte(Game.run.boon_ranks() - before_elite, 1, "le don de l'élite")
 	await get_tree().process_frame
 	var gates: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate)
 	assert_eq(gates.size(), tuning.room_exits, "puis les passages")

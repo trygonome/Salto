@@ -68,8 +68,14 @@ const CAMPFIRE_FLAME_BASE := 0.6
 const CAMPFIRE_FLAME_CUBE := 0.5
 const CAMPFIRE_FLAME_HOT := Color(1.0, 0.85, 0.3)
 const CAMPFIRE_FLAME_COOL := Color(0.95, 0.25, 0.1, 0.0)
+## L'Arbre muet : hauteur du tronc (cases), écorce grise, feuilles qui ont gardé leur couleur.
+const MUTE_TREE_HEIGHT := 9
+const MUTE_TREE_BARK := Vector3(4.6, 0.05, 0.45)
+const MUTE_TREE_LEAF := Vector3(2.3, 0.8, 0.5)
 ## Village : cercle des danseurs autour du feu (u, au-delà du feu).
 const VILLAGE_DANCE_RING := 3.0
+## Le râtelier des instruments, parmi les endroits du village qui parlent.
+const RACK := &"rack"
 
 var gen := WorldGen.new()
 ## Graine de la prochaine expédition (tirée au hasard).
@@ -173,9 +179,10 @@ func _process(delta: float) -> void:
 		var choices: PackedStringArray = []
 		var enabled: Array[bool] = []
 		var sharpenable: bool = Boons.sharpen_pick(RandomNumberGenerator.new(), Game.run.boons, tuning) != &""
+		var duo_ready: bool = not Boons.eligible_duos(Game.run.boons).is_empty()
 		for i: int in 2:
 			choices.append(GameTexts.encounter_choice(_encounter, i, _encounter_value(i)))
-			enabled.append(Encounters.can_choose(_encounter, i, Game.run.feathers, tuning, sharpenable))
+			enabled.append(Encounters.can_choose(_encounter, i, Game.run.feathers, tuning, sharpenable, duo_ready))
 		boon_screen.open_choices(GameTexts.ENCOUNTER_NAMES[_encounter], GameTexts.ENCOUNTER_TEXTS[_encounter], choices, enabled)
 
 
@@ -459,7 +466,7 @@ func _on_chest_opened() -> void:
 	var gained: int = tuning.secret_feathers if run.reward == RunState.SECRET else tuning.treasure_feathers
 	run.feathers += gained
 	hud.show_toast(GameTexts.FEATHERS_FOUND % gained)
-	boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
+	boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning))
 
 
 ## Vitesse de marche : l'eau (rivière, mare) ralentit, sauf sur les ponts.
@@ -629,9 +636,12 @@ func _room_cleared() -> void:
 	var run: RunState = Game.run
 	_cleared = true
 	var fx: Effects = Effects.of(self)
+	# Repousse (don) : chaque clairière nettoyée soigne un peu.
+	if hero.stats.regrowth > 0.0:
+		hero.health.heal(hero.stats.regrowth)
 	match run.reward:
 		RunState.BOON:
-			boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
+			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning))
 			return
 		RunState.HEAL:
 			var amount: float = hero.health.maximum * tuning.room_heal
@@ -651,8 +661,8 @@ func _room_cleared() -> void:
 	_after_reward()
 
 
-func _on_boon_chosen(id: StringName) -> void:
-	Game.take_boon(id)
+func _on_boon_chosen(id: StringName, ranks: int) -> void:
+	Game.take_boon(id, ranks)
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.burst(hero.global_position + Vector3.UP * Tuning.data.hero_height, Tuning.data.fx_plume_cubes, Tuning.data.fx_plume_speed)
@@ -664,7 +674,7 @@ func _after_reward() -> void:
 	var tuning: TuningData = Tuning.data
 	if _elite_boon and Game.run:
 		_elite_boon = false
-		boon_screen.open(Boons.offer(Game.run.rng, Game.run.boons, _boon_offer(), tuning), GameTexts.ELITE_BOON_TITLE)
+		boon_screen.open(Boons.deal(Game.run.rng, Game.run.boons, _boon_offer(), tuning, Boons.RARE), GameTexts.ELITE_BOON_TITLE)
 		return
 	_open_exits()
 
@@ -719,6 +729,19 @@ func _place_npc() -> void:
 			npc = _spring()
 		&"rest":
 			npc = _campfire()
+		&"mute_tree":
+			npc = _mute_tree()
+		&"echo_spirit":
+			var echo := MuetBody.new()
+			echo.kind = &"dance"
+			echo.material = character_material
+			echo.shadow_material = character_shadow_material
+			pickups.add_child(echo)
+			echo.setup(tuning.dancer_scale * tuning.voxel_unit, tuning.dancer_radius)
+			echo.show_healed()
+			echo.target_yaw = yaw
+			echo.rotation.y = yaw
+			return
 		&"merchant":
 			var body := MuetBody.new()
 			body.kind = &"hop"
@@ -800,6 +823,29 @@ func _campfire() -> Node3D:
 	return mesh
 
 
+## L'Arbre muet : un fromager gris, ses racines, quelques feuilles qui ont gardé leur couleur.
+func _mute_tree() -> Node3D:
+	var cells := PackedFloat32Array()
+	for y: int in MUTE_TREE_HEIGHT:
+		var r: int = 2 if y < 3 else 1
+		for x: int in range(-r, r + 1):
+			for z: int in range(-r, r + 1):
+				if Vector2(x, z).length() <= r + 0.3:
+					VoxelMesh.add(cells, x, y + 0.5, z, MUTE_TREE_BARK)
+	for i: int in 6:
+		var a: float = TAU * i / 6.0
+		for k: int in 3:
+			VoxelMesh.add(cells, cos(a) * (2.5 + k), 0.4, sin(a) * (2.5 + k), MUTE_TREE_BARK, 0.8)
+	for x: int in range(-4, 5):
+		for z: int in range(-4, 5):
+			if Vector2(x, z).length() <= 4.2:
+				var colored: bool = posmod(x * 7 + z * 3, 11) == 0
+				VoxelMesh.add(cells, x, MUTE_TREE_HEIGHT + 0.5 + posmod(x + z, 2), z, MUTE_TREE_LEAF if colored else MUTE_TREE_BARK)
+	var mesh: MultiMeshInstance3D = VoxelMesh.create(cells, prop_material)
+	mesh.scale = Vector3.ONE * Tuning.data.voxel_unit
+	return mesh
+
+
 ## Valeur affichée du choix `choice` de la rencontre en cours.
 func _encounter_value(choice: int) -> int:
 	var tuning: TuningData = Tuning.data
@@ -814,6 +860,10 @@ func _encounter_value(choice: int) -> int:
 			return tuning.encounter_wounded_feathers
 		[&"rest", 0]:
 			return roundi(tuning.rest_heal * 100.0)
+		[&"weaver_lady", 0]:
+			return tuning.encounter_weaver_price
+		[&"mute_tree", 1]:
+			return roundi(tuning.encounter_tree_heal * 100.0)
 	return 0
 
 
@@ -861,8 +911,24 @@ func _on_choice_made(index: int) -> void:
 			if sharpened != &"":
 				Game.take_boon(sharpened)
 				hud.show_toast(GameTexts.BOON_SHARPENED % GameTexts.boon_name(sharpened))
+		[&"weaver_lady", 0]:
+			run.feathers -= tuning.encounter_weaver_price
+			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.RARE), GameTexts.ENCOUNTER_NAMES[_encounter])
+			return
+		[&"weaver_lady", 1]:
+			hero.groove.add(hero.groove.maximum)
+		[&"echo_spirit", 0]:
+			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.COMMON, &"", true), GameTexts.ENCOUNTER_NAMES[_encounter])
+			return
+		[&"echo_spirit", 1]:
+			Game.take_boon(&"tempo")
+		[&"mute_tree", 0]:
+			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.RARE, Boons.RACINES), GameTexts.ENCOUNTER_NAMES[_encounter])
+			return
+		[&"mute_tree", 1]:
+			hero.health.heal(hero.health.maximum * tuning.encounter_tree_heal)
 	if boon:
-		boon_screen.open(Boons.offer(run.rng, run.boons, _boon_offer(), tuning))
+		boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning))
 	else:
 		_open_exits()
 
@@ -961,8 +1027,10 @@ func _populate_village() -> void:
 		dancer.position = Vector3(p.x, 0.0, p.y) * _unit
 		pickups.add_child(dancer)
 		dancer.setup(VoxelStyles.dancer(i), "village_dancer_%d" % i, 1.0, EnemyMath.yaw_of(Vector3(-p.x, 0.0, -p.y)), float(i) / count, tuning.village_party_flip * (1 + i) if won else INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
-	for id: StringName in WorldGen.VILLAGE_PLOTS:
-		var p: Vector2 = WorldGen.VILLAGE_PLOTS[id]
+	var places: Dictionary[StringName, Vector2] = WorldGen.VILLAGE_PLOTS.duplicate()
+	places[RACK] = WorldGen.VILLAGE_RACK
+	for id: StringName in places:
+		var p: Vector2 = places[id]
 		var mark := Node3D.new()
 		mark.name = "Plot_%s" % id
 		mark.position = Vector3(p.x, 0.0, p.y) * _unit
@@ -998,6 +1066,14 @@ func _process_village(delta: float) -> void:
 ## Une case : rebâtie et au rang maximal, elle dit ce qu'elle fait ; sinon, on peut la rebâtir.
 func _talk_to_plot(id: StringName) -> void:
 	var tuning: TuningData = Tuning.data
+	if id == RACK:
+		var names := PackedStringArray()
+		var enabled: Array[bool] = []
+		for weapon: WeaponData in tuning.weapons:
+			names.append("%s : %s" % [GameTexts.WEAPON_NAMES.get(weapon.id, ""), GameTexts.WEAPON_TEXTS.get(weapon.id, "")])
+			enabled.append(weapon.id != Game.profile.weapon)
+		boon_screen.open_choices(GameTexts.RACK_TITLE, GameTexts.RACK_TEXT, names, enabled)
+		return
 	var profile: Profile = Game.profile
 	var price: int = Village.cost(profile, id, tuning)
 	var level: int = Village.rank(profile, id)
@@ -1018,6 +1094,15 @@ func _talk_to_plot(id: StringName) -> void:
 func _on_build_choice(index: int) -> void:
 	var tuning: TuningData = Tuning.data
 	var id: StringName = _plot_near
+	if id == RACK:
+		Game.profile.weapon = tuning.weapons[index].id
+		Game.save()
+		hero.equip(Game.profile.weapon)
+		hud.show_toast(GameTexts.WEAPON_TAKEN % GameTexts.WEAPON_NAMES.get(Game.profile.weapon, ""))
+		var fx: Effects = Effects.of(self)
+		if fx:
+			fx.burst(hero.global_position + Vector3.UP * tuning.hero_height, tuning.fx_plume_cubes, tuning.fx_plume_speed)
+		return
 	if index != 0 or id == &"" or not Village.build(Game.profile, id, tuning):
 		return
 	Game.refresh_stats()

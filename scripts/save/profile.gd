@@ -36,6 +36,8 @@ var regions_won: Array[StringName] = []
 var region: StringName = Regions.UNDERGROWTH
 ## Cases du village rebâties (version 2.7) : rang de chacune.
 var village: Dictionary[StringName, int] = {}
+## Instrument-arme choisi pour partir (version 2.8).
+var weapon: StringName = &"rainstick"
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -221,7 +223,7 @@ func to_dict() -> Dictionary:
 		"finished": finished, "banked": banked.duplicate(), "band": saved_band,
 		"feathers": feathers, "best_room": best_room, "runs_won": runs_won,
 		"regions_won": Array(regions_won).map(func(r: StringName) -> String: return String(r)), "region": String(region),
-		"village": _saved_village(),
+		"village": _saved_village(), "weapon": String(weapon),
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
@@ -268,6 +270,7 @@ static func from_dict(data: Dictionary) -> Profile:
 		for id: Variant in saved_village:
 			if Village.IDS.has(StringName(str(id))):
 				profile.village[StringName(str(id))] = maxi(0, int(saved_village[id]))
+	profile.weapon = StringName(str(data.get("weapon", "rainstick")))
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))
