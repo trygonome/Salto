@@ -381,6 +381,43 @@ Retours sur la version 2.9 intégrés à ces jalons :
   pièges par clairière), ce qui brouille aussi cette alerte. À revoir : un son propre aux pièges, discret,
   calé sur la musique, porté seulement près du héros (ou seulement à l'écran), sans l'alerte des Muets.
 
+## Phase 8 : danser, jouer de la flûte, soigner la forêt (versions 4.0 à 4.4)
+Demandes du joueur après la 3.8 (validées) : des attaques à distance dansées dans l'arbre de talents, avec
+une visée qui demande de l'adresse ; des niveaux en hauteur avec la jungle et un fleuve en contrebas ; de
+vrais sons (ambiances, musique de jungle : tambours, flûtes, voix) ; une flûte à débloquer ; un nouveau
+récit des ennemis ; un entretien de la forêt au village (pas de plantations : on réveille la jungle).
+1. **4.0 — Les Sourdines, vampires de son ; vrais sons.** Tout est vibration : le son, la couleur (la
+   lumière vibre), la vie. Les ennemis ne sont plus des musiciens devenus muets mais des **Sourdines** :
+   elles boivent les vibrations, et là où elles se nourrissent la jungle se tait et perd ses couleurs.
+   Frappée assez fort, une Sourdine éclate et rend ce qu'elle avait avalé (un chant, une note, une
+   couleur). Le héros est un danseur : sa danse fait naître la vibration. Textes, carnet, Chef et GDD
+   réécrits (les noms du code ne changent pas). Sons libres (CC0), licences notées : ambiances réelles de
+   forêt tropicale, de fleuve, de nuit ; échantillons d'instruments (tambours, hochets, flûte de bambou,
+   voix) joués par le générateur en couches, pour garder la musique qui s'étoffe ; inspirée des
+   polyphonies en relais et des tambours d'eau des peuples de la forêt, sans enregistrement de ces
+   peuples sans licence claire. *Test : la jungle sonne vraie, on comprend qui sont les ennemis.*
+2. **4.1 — La voie de l'Onde : danses à distance.** Une 4e voie de talents. L'énergie est la jauge de
+   groove : le contact la remplit, la danse la dépense. Bouton « Danse » : appuyer, glisser le pouce pour
+   viser (une ligne au sol), relâcher ; un toucher bref vise tout seul la Sourdine la plus proche. Pendant
+   la danse (pas tribaux, bras levés, tour sur soi) on est lent ; l'énergie remonte les bras et part du
+   bout des doigts. Onde de paume (une onde droite qui traverse), Spirale (trois orbes), Pluie de pas (on
+   vise un point, l'onde y éclate un instant après), Fil d'écho (on tient : un rayon qu'on balaie). Les
+   ondes ont un temps de vol : il faut anticiper. *Test : viser juste fait la différence.*
+3. **4.2 — La flûte.** Un 5e instrument, offert par la Reine des Cimes une fois libérée : des notes qui
+   rebondissent d'une Sourdine à l'autre, un accord à la 3e note, chaque note dans la gamme de la musique.
+   *Test : on joue de loin, et ça chante.*
+4. **4.3 — En hauteur.** Des clairières au bord d'une falaise (ou sur des terrasses, des branches
+   géantes) ; en contrebas, la canopée vue d'en haut, un grand fleuve qui serpente entre des bancs de
+   sable, des cascades, la brume de la vallée. Le bord est un rebord de pierres et de racines. *Test : on
+   s'arrête au bord pour regarder.*
+5. **4.4 — La Lisière : soigner la forêt.** Autour du village, six zones sourdes (grises, muettes).
+   Les **échos** (petites notes rapportées d'expédition : Sourdines éclatées, recoins, gardiens) les
+   réveillent ; on choisit ce qui revient : figuier (un fruit de soin au départ), abeilles sans dard (du
+   groove au départ), aras (ils signalent les recoins et les passages secrets), grenouilles des fleurs
+   (poison sur les fléchettes et les notes), lucioles (plus de plumes d'or). Chaque expédition est une
+   saison ; une zone pousse en quelques saisons, on peut la soigner une fois par retour ; mûre, elle chante
+   (son ambiance s'ajoute au village). Rien ne dépérit. *Test : on revient voir ce qui a poussé.*
+
 ## Phase 4 : finitions pour le téléphone (versions 1.2 et 1.3)
 - **1.2** — couleurs calmes (les teintes ondulent sans dériver), jauge qui retombe sans rythme,
   vibrations (réglage), d'après les vidéos du téléphone.
