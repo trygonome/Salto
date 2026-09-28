@@ -215,6 +215,26 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
 pas) ; couche audio native Oboe/AAudio (chantier moteur ; la calibration suffit) ; masque qui cache les
 annonces d'attaque (lisibilité d'abord).
 
+## Phase 7 : la refonte jusqu'aux racines (en préparation)
+Le plan détaillé attend le rapport de recherche (prompt Gemini Deep Research : accroche, cohérence
+d'ensemble, monde fourni, agencement du jeu entier, langage visuel, rythme, finition indé, paysage sur
+téléphone). Retours sur la version 2.9, à y intégrer :
+- **Bug** : le bouton jaune « Partir en expédition » de l'écran titre ne répondait pas (il a fallu passer
+  par le village). Pistes : une région fermée affichée entre les flèches désactive le bouton ; un toucher
+  pris pour un défilement dans le menu.
+- **Navigation** : les menus demandent de défiler, ce qui n'est pas pensé pour le mobile. Toute la
+  navigation doit devenir celle d'une application, sans défilement.
+- **Paysage exclusif** : le jeu passe en mode horizontal seulement (cadrage, interface, contrôles).
+- **Passages** : les arches pour changer de zone sont peu engageantes.
+- **Clairières** : trop fermées, pas assez sinueuses, sans surprises. Il faut récompenser les curieux
+  (détours, secrets, découvertes) sans que ce soit une obligation.
+- **Objets et cartes de dons** : de petites icônes voxel animées qui les représentent (le nom compte
+  moins), et des effets en couleur pour comprendre d'un coup d'œil ce qu'ils font.
+- **Son des pièges** : le son des épines est vraiment envahissant à la longue. Cause : chaque piège
+  annonce sa frappe tous les 2 temps avec le même son d'alerte que les attaques des Muets (plusieurs
+  pièges par clairière), ce qui brouille aussi cette alerte. À revoir : un son propre aux pièges, discret,
+  calé sur la musique, porté seulement près du héros (ou seulement à l'écran), sans l'alerte des Muets.
+
 ## Phase 4 : finitions pour le téléphone (versions 1.2 et 1.3)
 - **1.2** — couleurs calmes (les teintes ondulent sans dériver), jauge qui retombe sans rythme,
   vibrations (réglage), d'après les vidéos du téléphone.
