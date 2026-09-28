@@ -77,6 +77,8 @@ func physics_update(delta: float) -> void:
 		machine.transition_to(&"Charge")
 	elif _elapsed >= attack.chain_from and hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")
+	elif _elapsed >= attack.chain_from and hero.wants_dance():
+		machine.transition_to(&"Dance")
 	elif _elapsed >= attack.chain_from + tuning.move_cancel_delay and hero.input_move.length() > tuning.move_cancel_threshold:
 		machine.transition_to(&"Ground")
 	elif _elapsed >= attack.duration:

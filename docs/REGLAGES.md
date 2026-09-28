@@ -251,3 +251,10 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   couches synthétisées, pour que les sept couches ensemble ne saturent pas) ; ambiance de la forêt à −4 dB,
   fondu de 2 s d'un lieu à l'autre ; boucles d'ambiance de 30 s (fondu de raccord de 3 s), mixées à −24 dB
   efficaces.
+- Danses (4.1, jauge de groove de 10) : paume 1,5, spirale 2, pluie 2,5 ; fil d'écho à partir de 1, puis
+  2,5 par seconde. Danse de 0,55 s, la vibration part à 0,28 s, enchaînement ouvert 0,9 s, on avance à
+  30 % de la course. Paume 110 % de l'attaque (+25 % par rang), 15 m/s sur 16 m, rayon 0,6 m ; spirale
+  3 orbes de 60 % (+20 %), 11 m/s, rayon 1,1 m ; pluie 180 % (+50 %), éclate 0,45 s après, rayon 2,2 m,
+  de 3 à 9 m ; fil d'écho 120 % de l'attaque par seconde (un coup toutes les 0,2 s), 9 m de long, 0,6 m
+  de demi-largeur, lancé après 0,3 s tenu sans glisser. Le pouce vise à fond à 70 px ; en deçà du quart,
+  c'est un toucher (visée automatique jusqu'à 16 m).

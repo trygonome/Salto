@@ -16,6 +16,8 @@ const HIP_Y := 7.0
 const MID_Y := 10.0
 ## Taille, du dessous des pieds au sommet de la tête (voxels).
 const HEIGHT := 20.6
+## Du coude au bout des doigts (voxels).
+const HAND_REACH := 3.4
 
 ## Matériau des assemblages articulés (voxel_rig.tres).
 @export var material: Material
@@ -102,6 +104,11 @@ func apply_pose() -> void:
 	body.set_part_rotation(_joints[&"kneeR"], Vector3(p[&"kR"], 0.0, 0.0))
 	body.set_part_rotation(_joints[&"ankleL"], Vector3(p[&"aL"], 0.0, 0.0))
 	body.set_part_rotation(_joints[&"ankleR"], Vector3(p[&"aR"], 0.0, 0.0))
+
+
+## Bout des doigts de la main droite (ou gauche), dans le monde : au bout de l'avant-bras.
+func hand_point(right: bool = true) -> Vector3:
+	return body.part_point(_joints[&"elR" if right else &"elL"], Vector3(0.0, -HAND_REACH, 0.0))
 
 
 ## Clignement des yeux, de temps en temps.

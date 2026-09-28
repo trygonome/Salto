@@ -11,6 +11,8 @@ reviennent au début) : la reprise est sans couture, et toutes les couches reste
 Les couches s'additionnent : la base joue toujours, chaque tambour rapporté en ajoute une ; la
 troupe du village et les régions ont chacune la leur.
 
+Il fait aussi les sons des danses de l'Onde (version 4.1), avec les mêmes instruments.
+
 Usage : python3 tools/audio/make_music.py   (demande numpy)
 """
 import pathlib
@@ -216,6 +218,64 @@ def layer_canopy():
     return buf
 
 
+def place(buf, at, signal, gain):
+    """Pose `signal` à `at` secondes dans `buf` (coupé à la fin)."""
+    i = int(at * RATE)
+    n = min(len(signal), len(buf) - i)
+    buf[i:i + n] += signal[:n] * gain
+
+
+def sfx_dance_palm():
+    """Onde de paume : un claqué de djembé, la kalimba qui sonne haut, les graines qui frémissent."""
+    buf = np.zeros(int(0.9 * RATE))
+    place(buf, 0.0, hit("seeds"), 0.35)
+    place(buf, 0.05, sample("djembe_slap"), 0.8)
+    place(buf, 0.06, tuned("kalimba", degree_midi(7)), 0.5)
+    return buf
+
+
+def sfx_dance_spiral():
+    """Spirale : trois coups de hochet et la kalimba qui monte en arpège."""
+    buf = np.zeros(int(1.1 * RATE))
+    for k, d in enumerate([5, 7, 9]):
+        place(buf, k * 0.09, hit("shaker"), 0.4)
+        place(buf, k * 0.09 + 0.02, tuned("kalimba", degree_midi(d)), 0.45)
+    return buf
+
+
+def sfx_dance_rain():
+    """Pluie de pas : les graines qui roulent, puis le pied frappe (djembé grave et udu)."""
+    buf = np.zeros(int(1.2 * RATE))
+    for k in range(4):
+        place(buf, k * 0.05, hit("seeds", 0.2), 0.2 + 0.08 * k)
+    place(buf, 0.22, sample("djembe_bass"), 0.9)
+    place(buf, 0.23, tuned("udu_low", degree_midi(0, -1)), 0.6)
+    return buf
+
+
+def sfx_dance_thread(length=2.4):
+    """Fil d'écho : une flûte tenue qui tremble, en boucle sans couture (deux souffles qui se relaient)."""
+    n = int(length * RATE)
+    buf = np.zeros(n)
+    note = tuned("flute", degree_midi(4), length * 0.75, release=0.3)
+    t = np.arange(len(note)) / RATE
+    note = note * (1.0 + 0.25 * np.sin(2 * np.pi * 7.0 * t))
+    for k in range(2):
+        idx = (int(k * n / 2) + np.arange(len(note))) % n
+        np.add.at(buf, idx, note * 0.5)
+    for k in range(8):
+        idx = (int(k * n / 8) + np.arange(len(sample("shaker")))) % n
+        np.add.at(buf, idx, sample("shaker") * 0.08)
+    return buf
+
+
+def sfx_dance_fizzle():
+    """Pas manqué : un ton de djembé étouffé, plus grave, qui retombe tout de suite."""
+    x = pitched(sample("djembe_tone"), -5.0)[: int(0.25 * RATE)].copy()
+    x *= np.linspace(1.0, 0.0, len(x)) ** 2
+    return x * 0.6
+
+
 def write(path, signal):
     data = (np.clip(signal, -1.0, 1.0) * 32767).astype("<i2")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -240,6 +300,10 @@ def main():
     gain = 0.9 / loudest
     for name, buf in {**layers, **extra}.items():
         write(MUSIC / f"{name}.wav", buf * gain)
+    sfx = ROOT / "assets/audio/sfx"
+    for name, buf in (("dance_palm", sfx_dance_palm()), ("dance_spiral", sfx_dance_spiral()), ("dance_rain", sfx_dance_rain()),
+                      ("dance_thread", sfx_dance_thread()), ("dance_fizzle", sfx_dance_fizzle())):
+        write(sfx / f"{name}.wav", buf / max(np.max(np.abs(buf)), 1e-9) * 0.7)
 
 
 if __name__ == "__main__":

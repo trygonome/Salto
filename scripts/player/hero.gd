@@ -20,12 +20,22 @@ signal second_wind
 signal action_pressed(action: StringName)
 ## Un Muet de l'espèce `species` a reçu la réponse qu'il attendait (docs/GDD.md §7).
 signal answered(species: StringName)
+## Une danse demandée n'a pas assez de groove : rien ne part (le bouton Danse le montre).
+signal dance_fizzled
 
 const BUTTON_ACTIONS: Array[StringName] = [&"jump", &"dodge", &"attack"]
 ## Sons du coup chargé (qui monte), du coup de grâce et de la riposte.
 const CHARGE_SOUND: AudioStream = preload("res://assets/audio/sfx/charge.wav")
 const GRACE_SOUND: AudioStream = preload("res://assets/audio/sfx/grace.wav")
 const RIPOSTE_SOUND: AudioStream = preload("res://assets/audio/sfx/riposte.wav")
+## Sons des danses de l'Onde (version 4.1) : un par figure, et le pas manqué (pas assez de groove).
+const DANCE_SOUNDS: Dictionary[StringName, AudioStream] = {
+	&"palm": preload("res://assets/audio/sfx/dance_palm.wav"),
+	&"spiral": preload("res://assets/audio/sfx/dance_spiral.wav"),
+	&"rain": preload("res://assets/audio/sfx/dance_rain.wav"),
+	&"thread": preload("res://assets/audio/sfx/dance_thread.wav"),
+	&"fizzle": preload("res://assets/audio/sfx/dance_fizzle.wav"),
+}
 
 ## Groupe des Hurtbox que le héros peut frapper (orientation automatique).
 const TARGET_GROUP := &"enemy_hurtbox"
@@ -90,6 +100,17 @@ var _next_hit_critical: bool = false
 var _last_attack_end: float = -INF
 var _roll_end: float = -INF
 
+## Danse (version 4.1) : visée du pouce pour la prochaine danse (longueur 0 à 1 ; `dance_manual`
+## faux : visée automatique), fil d'écho tenu, visée montrée au sol pendant qu'on glisse.
+var dance_stick: Vector2 = Vector2.ZERO
+var dance_manual: bool = false
+var thread_held: bool = false
+var dance_aiming: bool = false
+## Figure qui va être dansée (choisie quand la danse est acceptée).
+var pending_figure: StringName = &""
+var _dance_step: int = 0
+var _dance_aim: DanceAim
+var _last_dance_end: float = -INF
 var _riposte_target: Muet
 var _riposte_until: float = -INF
 var _move_sound: AudioStreamPlayer
@@ -166,6 +187,9 @@ func _ready() -> void:
 	_move_sound = AudioStreamPlayer.new()
 	_move_sound.name = "MoveSound"
 	add_child(_move_sound)
+	_dance_aim = DanceAim.new()
+	_dance_aim.name = "DanceAim"
+	add_child(_dance_aim)
 	state_machine.start()
 
 
@@ -186,6 +210,7 @@ func _physics_process(delta: float) -> void:
 	hurtbox.can_be_hit = not invulnerable and _hurt_invuln_left <= 0.0
 	hitbox.update(delta)
 	visual.update_pose(facing_yaw, delta)
+	_update_dance_aim()
 	visual.visible = _hurt_invuln_left <= 0.0 or fposmod(_hurt_invuln_left, tuning.hurt_blink_period) < tuning.hurt_blink_period / 2.0
 	if global_position.y < _spawn.origin.y - tuning.respawn_fall_depth or not global_position.is_finite():
 		respawn()
@@ -364,7 +389,8 @@ func move(delta: float) -> void:
 
 
 ## Son d'un mouvement : « roll » (roulade), « swing » (coup dans le vide), « charge » (le coup
-## chargé monte), « grace » (coup de grâce), « riposte » ; « stop » coupe la charge.
+## chargé monte), « grace » (coup de grâce), « riposte », une figure de danse ou « fizzle » (pas
+## manqué) ; « stop » coupe la charge et le fil d'écho.
 func play_move_sound(sound: StringName) -> void:
 	match sound:
 		&"roll":
@@ -375,8 +401,11 @@ func play_move_sound(sound: StringName) -> void:
 		&"charge", &"grace", &"riposte":
 			_move_sound.stream = {&"charge": CHARGE_SOUND, &"grace": GRACE_SOUND, &"riposte": RIPOSTE_SOUND}[sound]
 			_move_sound.play()
+		&"palm", &"spiral", &"rain", &"thread", &"fizzle":
+			_move_sound.stream = DANCE_SOUNDS[sound]
+			_move_sound.play()
 		&"stop":
-			if _move_sound.stream == CHARGE_SOUND:
+			if _move_sound.stream == CHARGE_SOUND or _move_sound.stream == DANCE_SOUNDS[&"thread"]:
 				_move_sound.stop()
 
 
@@ -544,6 +573,150 @@ func _geyser() -> void:
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.ring(global_position, tuning.drumroll_radius, fx.gold, tuning.fx_quake_ring_time)
+
+
+## Danses de l'Onde (version 4.1) : demande une danse, visée par le pouce (`stick`, longueur 0 à 1)
+## si `manual`, sinon vers la Sourdine la plus proche.
+func request_dance(stick: Vector2, manual: bool) -> void:
+	dance_stick = stick
+	dance_manual = manual and not stick.is_zero_approx()
+	press(&"dance")
+
+
+## Vrai si le héros a appris à danser (voie de l'Onde).
+func can_dance() -> bool:
+	return DanceMath.can_dance(stats.dance)
+
+
+## Figure qui viendrait à la prochaine danse (l'enchaînement retombe à la première après un temps).
+func next_dance_figure() -> StringName:
+	return DanceMath.figure(_chain_step(), stats.dance)
+
+
+## Pas de l'enchaînement des danses : on continue si la dernière vibration est partie il y a peu.
+func _chain_step() -> int:
+	return _dance_step if _clock - _last_dance_end <= tuning.dance_chain_window else 0
+
+
+## Vrai si une danse part maintenant : le fil d'écho tenu, ou un appui sur Danse ; `pending_figure`
+## dit laquelle. Sans assez de groove, rien ne part : un pas manqué, que le bouton montre.
+func wants_dance() -> bool:
+	if not can_dance():
+		_buffer.consume(&"dance", _clock)
+		return false
+	if thread_held and stats.dance.has(DanceMath.THREAD):
+		return _accept_dance(DanceMath.THREAD)
+	if consume_press(&"dance"):
+		return _accept_dance(next_dance_figure())
+	return false
+
+
+func _accept_dance(figure: StringName) -> bool:
+	if figure == &"":
+		return false
+	if groove.value < DanceMath.cost(figure, tuning):
+		thread_held = false
+		play_move_sound(&"fizzle")
+		var fx: Effects = Effects.of(self)
+		if fx:
+			fx.dust(hand_point(), tuning.fx_step_dust, tuning.fx_step_dust_speed)
+		dance_fizzled.emit()
+		return false
+	pending_figure = figure
+	if figure != DanceMath.THREAD:
+		groove.add(-DanceMath.cost(figure, tuning))
+		_dance_step = _chain_step() + 1
+	return true
+
+
+## Note le départ de la vibration (l'enchaînement vers la figure suivante reste ouvert un moment).
+func end_dance() -> void:
+	_last_dance_end = _clock
+
+
+## Visée de la danse `figure` : direction (horizontale, normalisée) et point visé (pour la pluie
+## de pas). Glisser-relâcher : là où pointe le pouce ; sinon la Sourdine la plus proche à portée,
+## sinon droit devant.
+func dance_aim(figure: StringName) -> Dictionary:
+	var direction: Vector3 = DanceMath.aim_direction(dance_stick) if dance_manual else Vector3.ZERO
+	var distance: float = DanceMath.rain_distance(dance_stick, tuning)
+	if direction.is_zero_approx():
+		var positions := PackedVector3Array()
+		for node: Node in get_tree().get_nodes_in_group(&"muets"):
+			var muet: Muet = node as Muet
+			if muet and not muet.is_freed():
+				positions.append(muet.global_position)
+		var index: int = DanceMath.auto_target(global_position, positions, tuning.dance_range)
+		if index >= 0:
+			var flat := Vector3(positions[index].x - global_position.x, 0.0, positions[index].z - global_position.z)
+			direction = flat.normalized() if not flat.is_zero_approx() else facing_direction()
+			distance = clampf(flat.length(), tuning.dance_rain_min, tuning.dance_rain_max) if figure == DanceMath.RAIN else flat.length()
+		else:
+			direction = facing_direction()
+	return {&"direction": direction, &"point": global_position + direction * distance}
+
+
+## Visée montrée au sol tant qu'on tient le bouton Danse (pas pendant la danse elle-même).
+func _update_dance_aim() -> void:
+	if not dance_aiming or not can_dance() or state_machine.current.name == &"Dance":
+		_dance_aim.visible = false
+		return
+	var figure: StringName = DanceMath.THREAD if thread_held else next_dance_figure()
+	var aim: Dictionary = dance_aim(figure)
+	_dance_aim.show_aim(figure, global_position, aim[&"direction"], aim[&"point"])
+
+
+## Bout des doigts de la main qui danse (monde), d'où part la vibration.
+func hand_point(right: bool = true) -> Vector3:
+	if visual and visual.character:
+		return visual.character.hand_point(right)
+	return global_position + Vector3.UP * tuning.dance_wave_height
+
+
+## Fabrique d'un coup de la figure `figure` (dégâts selon son rang ; pas de groove gagné).
+func dance_hit(figure: StringName) -> Callable:
+	var multiplier: float = DanceMath.damage(figure, int(stats.dance.get(figure, 1)), tuning)
+	if figure == DanceMath.THREAD:
+		multiplier *= tuning.dance_thread_tick
+	return _make_hit.bind(multiplier, figure, RhythmMath.Judgement.MISS, 0.0, tuning.dance_poise, 0.0)
+
+
+## La vibration part : l'onde de paume droit devant, les orbes de la spirale, ou la pluie de pas au
+## point visé.
+func cast_dance(figure: StringName, direction: Vector3, point: Vector3) -> void:
+	var parent: Node = get_parent()
+	var start: Vector3 = hand_point()
+	start.y = global_position.y + tuning.dance_wave_height
+	match figure:
+		DanceMath.PALM, DanceMath.SPIRAL:
+			var count: int = 1 if figure == DanceMath.PALM else tuning.dance_spiral_orbs
+			for i: int in count:
+				var wave := DanceWave.new()
+				wave.figure = figure
+				wave.direction = direction
+				wave.reach = tuning.dance_range
+				wave.phase = TAU * i / count
+				wave.make_hit = dance_hit(figure)
+				wave.shooter = self
+				wave.material = visual.prop_material
+				parent.add_child(wave)
+				wave.global_position = start
+		DanceMath.RAIN:
+			var rain := DanceRain.new()
+			rain.make_hit = dance_hit(figure)
+			rain.shooter = self
+			parent.add_child(rain)
+			rain.global_position = Vector3(point.x, global_position.y, point.z)
+	Feedback.vibrate(tuning.vibration_hit)
+
+
+## Le fil d'écho commence : le rayon est créé (le DanceState le place et le fait frapper).
+func start_thread() -> DanceThread:
+	var thread := DanceThread.new()
+	thread.make_hit = dance_hit(DanceMath.THREAD)
+	thread.shooter = self
+	get_parent().add_child(thread)
+	return thread
 
 
 ## Sarbacane : les fléchettes du coup `attack` partent en éventail autour de `direction`.
@@ -736,10 +909,12 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 			muet.burn(stats.attack * burn, tuning.burn_time)
 	# Le groove d'un coup en rythme n'est gagné qu'une fois, au premier contact.
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
-	if _pending_groove > 0.0:
+	var danced: bool = DanceMath.FIGURES.has(hit.move)
+	if _pending_groove > 0.0 and not danced:
 		groove.add(_pending_groove * stats.groove * (stats.perfect_groove if perfect else 1.0))
 		_play_combo_note()
-	_pending_groove = 0.0
+	if not danced:
+		_pending_groove = 0.0
 	# Cœur Battant (légendaire, version 3.1) : un coup critique soigne.
 	if hit.critical and stats.perfect_heal > 0.0:
 		health.heal(stats.perfect_heal)
@@ -748,9 +923,11 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 		var chilled: Muet = hit.target.get_parent() as Muet
 		if chilled:
 			chilled.chill(stats.frost, tuning.frost_time)
-	Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
-	Feedback.vibrate(tuning.vibration_strong if perfect or hit.critical or hit.answer else tuning.vibration_hit)
-	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
+	# Le fil d'écho frappe à petits coups : ni arrêt sur image ni secousse à chacun.
+	if hit.move != DanceMath.THREAD:
+		Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
+		Feedback.vibrate(tuning.vibration_strong if perfect or hit.critical or hit.answer else tuning.vibration_hit)
+		Feedback.shake(tuning.shake_trauma_hit, hit.direction)
 	_hit_sound.pitch_scale = 1.0 + rng.randf_range(-tuning.hit_pitch_variation, tuning.hit_pitch_variation)
 	_hit_sound.play()
 	var fx: Effects = Effects.of(self)
@@ -844,6 +1021,9 @@ func _read_player_input() -> void:
 	for action: StringName in BUTTON_ACTIONS:
 		if Input.is_action_just_pressed(action):
 			press(action)
+	# Danse au clavier : visée automatique.
+	if Input.is_action_just_pressed(&"dance"):
+		request_dance(Vector2.ZERO, false)
 
 
 ## Monte une marche d'au plus step_height si un obstacle bas bloque la course :

@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/hero.gd" id="1_hero"]
 [ext_resource type="Script" path="res://scripts/player/hero_visual.gd" id="2_visual"]
@@ -22,6 +22,7 @@
 [ext_resource type="Script" path="res://scripts/components/hurtbox.gd" id="23_hurtbox"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="24_health"]
 [ext_resource type="Script" path="res://scripts/player/states/hurt_state.gd" id="25_hurt"]
+[ext_resource type="Script" path="res://scripts/player/states/dance_state.gd" id="26_dance"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/hurt.wav" id="26_hurt_sound"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/dodge.wav" id="27_dodge_sound"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="28_drum"]
@@ -171,3 +172,6 @@ script = ExtResource("10_charge")
 
 [node name="Hurt" type="Node" parent="StateMachine"]
 script = ExtResource("25_hurt")
+
+[node name="Dance" type="Node" parent="StateMachine"]
+script = ExtResource("26_dance")

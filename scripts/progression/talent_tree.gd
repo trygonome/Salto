@@ -1,9 +1,10 @@
 class_name TalentTree
-## Talents du prototype : trois voies de quatre talents (Acrobate, Percussion, Chamane). Chaque
-## niveau gagné donne un point ; un talent n'est ouvert qu'après avoir mis assez de points dans sa
-## voie (deux par rang). Les effets chiffrés vivent dans Tuning (talent_*).
+## Talents du prototype : quatre voies de quatre talents (Acrobate, Percussion, Chamane et, depuis la
+## version 4.1, l'Onde : les danses à distance). Chaque niveau gagné donne un point ; un talent n'est
+## ouvert qu'après avoir mis assez de points dans sa voie (deux par rang). Les effets chiffrés vivent
+## dans Tuning (talent_*, dance_*).
 
-enum Branch { ACROBAT, PERCUSSION, SHAMAN }
+enum Branch { ACROBAT, PERCUSSION, SHAMAN, ONDE }
 
 ## Talents dans l'ordre de chaque voie : identifiant, voie, rangs.
 const TALENTS: Array[Dictionary] = [
@@ -19,6 +20,10 @@ const TALENTS: Array[Dictionary] = [
 	{&"id": &"sap", &"branch": Branch.SHAMAN, &"max": 2},
 	{&"id": &"bark", &"branch": Branch.SHAMAN, &"max": 2},
 	{&"id": &"second", &"branch": Branch.SHAMAN, &"max": 1},
+	{&"id": &"palm", &"branch": Branch.ONDE, &"max": 3},
+	{&"id": &"spiral", &"branch": Branch.ONDE, &"max": 2},
+	{&"id": &"rain", &"branch": Branch.ONDE, &"max": 2},
+	{&"id": &"thread", &"branch": Branch.ONDE, &"max": 1},
 ]
 ## Points à mettre dans une voie avant d'ouvrir chaque rang suivant.
 const POINTS_PER_TIER := 2

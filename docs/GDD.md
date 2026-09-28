@@ -178,6 +178,17 @@ Relief à exploiter : rochers, souches, perchoirs en escalier.
 - **Riposte** : après une esquive parfaite, Frappe bondit sur le Muet esquivé : coup critique qui ébranle et projette.
 - **La troupe chante** : quand le combo tient, la couche de la troupe du village monte dans la musique.
 
+### Danses de l'Onde (version 4.1)
+La quatrième voie de talents fait du héros un danseur : sa danse fait naître une vibration qui part du
+bout de ses doigts. Le **groove** est l'énergie : les coups au contact le remplissent, les danses le
+dépensent (et il reste la clé du Salto arc-en-ciel : il faut choisir). Bouton **Danse** : glisser pour
+viser, relâcher pour lancer ; un toucher bref vise tout seul ; tenir sans glisser fait le fil d'écho.
+- **Onde de paume** : un arc doré qui file droit et traverse toutes les Sourdines sur son passage.
+- **Spirale** (2e danse enchaînée) : trois orbes qui tournent autour de la ligne visée.
+- **Pluie de pas** (3e danse) : un anneau se resserre là où l'on vise, puis la vibration y éclate.
+- **Fil d'écho** : un rayon tenu, qu'on balaie ; il boit le groove tant qu'on le tient.
+Les ondes ont un temps de vol : viser juste, c'est anticiper.
+
 ## 7. Les Sourdines (appelées « Muets » dans le code)
 Vampires de son (version 4.0, voir §10) : bouche cousue, grands yeux, antennes aux couleurs qu'elles ont
 bues. Frappées assez fort, elles éclatent et rendent ce qu'elles avaient avalé.

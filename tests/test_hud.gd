@@ -316,7 +316,7 @@ func test_les_talents_se_prennent_dans_l_ordre() -> void:
 	Game.profile.talent_points = 3
 	screen.open()
 	var tree: Control = screen.get_node("%Tree") as Control
-	assert_eq(tree.get_child_count(), 3, "trois voies")
+	assert_eq(tree.get_child_count(), 4, "quatre voies (avec l'Onde)")
 	var first: TileButton = tree.get_child(0).get_child(1) as TileButton
 	first.pressed.emit()
 	assert_eq(Game.profile.talent_rank(&"feet"), 1)

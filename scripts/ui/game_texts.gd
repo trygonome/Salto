@@ -576,16 +576,19 @@ const COMPARE_UP := "+%s"
 const COMPARE_DOWN := "−%s"
 
 ## Talents.
+## Bouton Danse (voie de l'Onde, version 4.1).
+const DANCE_BUTTON := "Danse"
 const TALENTS_TITLE := "Talents"
 const TALENTS_SUB_POINTS := "Niveau %d : %s à dépenser"
 const TALENTS_SUB := "Niveau %d : chaque niveau gagné donne un point."
 const TALENTS_RESET := "Réinitialiser les talents"
 const TALENT_LOCKED := "Il faut %d points en %s"
-const BRANCH_NAMES: PackedStringArray = ["Acrobate", "Percussion", "Chamane"]
+const BRANCH_NAMES: PackedStringArray = ["Acrobate", "Percussion", "Chamane", "Onde"]
 const TALENT_NAMES: Dictionary[StringName, String] = {
 	&"feet": "Pieds légers", &"triple": "Triple saut", &"dash2": "Double élan", &"comet": "Chute de comète",
 	&"metro": "Métronome", &"drum": "Grosse caisse", &"roll": "Roulement", &"finale": "Final fracassant",
 	&"breath": "Souffle", &"sap": "Sève", &"bark": "Écorce", &"second": "Second souffle",
+	&"palm": "Onde de paume", &"spiral": "Spirale", &"rain": "Pluie de pas", &"thread": "Fil d'écho",
 }
 ## Effet d'un talent au rang r (%d : valeur au rang r).
 const TALENT_EFFECTS: Dictionary[StringName, String] = {
@@ -601,6 +604,10 @@ const TALENT_EFFECTS: Dictionary[StringName, String] = {
 	&"sap": "+%d PV par Sourdine éclatée",
 	&"bark": "+%d % de résistance",
 	&"second": "Une fois par sortie, relève-toi à 40 % PV.",
+	&"palm": "Onde qui traverse : %d %",
+	&"spiral": "3 orbes en spirale : %d %",
+	&"rain": "Éclate où tu vises : %d %",
+	&"thread": "Tiens Danse : rayon à balayer",
 }
 
 ## Pluriels simples : « 1 tambour », « 3 tambours ».
@@ -697,6 +704,8 @@ static func talent_effect(id: StringName, rank: int, tuning: TuningData) -> Stri
 			value = tuning.talent_sap_heal * r
 		&"bark":
 			value = tuning.talent_bark_resistance * 100.0 * r
+		&"palm", &"spiral", &"rain":
+			value = DanceMath.damage(id, r, tuning) * 100.0
 	return text.replace("%d", str(roundi(value)))
 
 

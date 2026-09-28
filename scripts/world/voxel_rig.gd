@@ -73,6 +73,11 @@ func set_part_position(part: int, at: Vector3) -> void:
 	skeleton.set_bone_pose_position(part, at)
 
 
+## Point `local` (en cases, dans le repère de la partie `part`), dans le monde.
+func part_point(part: int, local: Vector3) -> Vector3:
+	return skeleton.global_transform * (skeleton.get_bone_global_pose(part) * local)
+
+
 func set_part_scale(part: int, size: Vector3) -> void:
 	skeleton.set_bone_pose_scale(part, size)
 

@@ -411,6 +411,15 @@ récit des ennemis ; un entretien de la forêt au village (pas de plantations : 
    bout des doigts. Onde de paume (une onde droite qui traverse), Spirale (trois orbes), Pluie de pas (on
    vise un point, l'onde y éclate un instant après), Fil d'écho (on tient : un rayon qu'on balaie). Les
    ondes ont un temps de vol : il faut anticiper. *Test : viser juste fait la différence.*
+   **Fait** (version 4.1) : 4e voie de talents, l'Onde (onde de paume 3 rangs, spirale 2, pluie de pas 2,
+   fil d'écho 1). Bouton Danse (doré, entre Saut et Esquive) dès le premier talent, avec un halo les
+   premières secondes ; son anneau se remplit avec le groove et il pâlit quand la prochaine figure n'est
+   pas payée (un appui ne fait alors qu'un pas manqué : le bouton tremble, un tambour étouffé). Glisser
+   le pouce vise (ligne dorée au sol, anneau pour la pluie), relâcher lance ; un toucher sans glisser
+   vise la Sourdine la plus proche, où qu'elle soit ; tenir sans glisser lance le fil d'écho, qu'on
+   balaie ensuite. Les danses s'enchaînent comme les coups (paume → spirale → pluie) ; poses de danse
+   (genou levé, bras au ciel, tour sur soi, bras tendus), étincelles au bout des doigts ; sons faits
+   avec les vrais instruments. Les coups dansés ne rendent pas de groove. Touche L au clavier.
 3. **4.2 — La flûte.** Un 5e instrument, offert par la Reine des Cimes une fois libérée : des notes qui
    rebondissent d'une Sourdine à l'autre, un accord à la 3e note, chaque note dans la gamme de la musique.
    *Test : on joue de loin, et ça chante.*

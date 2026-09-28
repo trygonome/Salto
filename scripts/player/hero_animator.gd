@@ -3,11 +3,11 @@ extends Node
 ## Animations du héros voxel, calculées comme dans le prototype (animPlayer) : au repos il se
 ## balance sur le temps, il court en balançant bras et jambes, se ramasse en roulade et en salto,
 ## s'étire en montant et écarte les bras en retombant, arme puis détend chaque coup de pied,
-## lève les bras en plongeant ; il se tasse à l'atterrissage et recule le buste quand il est
-## touché. Sa plume suit ses mouvements. La pose rejoint la pose visée plus ou moins vite
-## selon le mouvement.
+## lève les bras en plongeant, danse (version 4.1) ; il se tasse à l'atterrissage et recule le
+## buste quand il est touché. Sa plume suit ses mouvements. La pose rejoint la pose visée plus ou
+## moins vite selon le mouvement.
 
-enum Mode { GROUND, AIR, ROLL, DASH, ATTACK, PLUNGE, HURT, CHARGE }
+enum Mode { GROUND, AIR, ROLL, DASH, ATTACK, PLUNGE, HURT, CHARGE, DANCE }
 
 ## Poses fixes (angles en radians, voir VoxelCharacter.POSE_KEYS).
 const ROLL_POSE := {
@@ -90,6 +90,29 @@ const ATTACK_POSES := {
 		{&"sRx": -1.5, &"eR": -1.9, &"sLx": -1.3, &"eL": -1.6, &"sLz": 0.2, &"sx": -0.05, &"nx": 0.1, &"kL": 0.2, &"kR": 0.35, &"lLx": -0.2},
 	],
 }
+## Danses de l'Onde (version 4.1) : pose d'élan (pas tribal, l'énergie remonte les bras) puis pose
+## où la vibration part du bout des doigts. Paume : la main droite ramenée au cœur, genou levé,
+## puis poussée droit devant ; spirale : bras en croix, on tourne sur soi ; pluie de pas : bras au
+## ciel et genou haut, puis le pied frappe le sol ; fil d'écho : les deux bras tendus, bien campé.
+const DANCE_POSES := {
+	&"palm": [
+		{&"hyaw": 0.6, &"syaw": 0.5, &"sRx": 0.6, &"eR": -1.9, &"sLx": -1.2, &"eL": -1.2, &"sLz": -0.3, &"kL": 0.6, &"kR": 0.4, &"lLx": -0.5, &"lRx": 0.4, &"sx": 0.1, &"hy": -0.6},
+		{&"hyaw": -0.5, &"syaw": -0.4, &"sRx": -1.55, &"eR": 0.0, &"sRz": 0.1, &"sLx": 0.7, &"eL": -0.6, &"sLz": -0.5, &"lLx": -0.9, &"kL": 0.9, &"lRx": 0.5, &"kR": 0.3, &"sx": 0.15, &"hy": -1.0, &"nx": -0.1},
+	],
+	&"spiral": [
+		{&"sLz": -1.5, &"sRz": 1.5, &"sLx": -0.5, &"sRx": 0.5, &"eL": -0.2, &"eR": -0.2, &"kL": 0.5, &"kR": 0.5, &"hy": -0.8},
+		{&"sLz": -1.3, &"sRz": 1.7, &"sLx": 0.4, &"sRx": -0.6, &"eL": -0.1, &"eR": -0.1, &"kL": 0.3, &"kR": 0.8, &"lRx": -0.6, &"sx": -0.1},
+	],
+	&"rain": [
+		{&"sLx": -2.9, &"sRx": -2.9, &"eL": -0.4, &"eR": -0.4, &"sLz": -0.3, &"sRz": 0.3, &"lRx": -1.4, &"kR": 1.9, &"kL": 0.2, &"sx": -0.15, &"nx": -0.2},
+		{&"sLx": -0.4, &"sRx": -0.4, &"sLz": -0.9, &"sRz": 0.9, &"eL": -0.2, &"eR": -0.2, &"kL": 1.1, &"kR": 1.1, &"lLx": -0.4, &"lRx": -0.4, &"hy": -1.6, &"sx": 0.35, &"nx": 0.2},
+	],
+	&"thread": [
+		{&"sLx": -1.5, &"sRx": -1.5, &"eL": 0.0, &"eR": 0.0, &"sLz": 0.15, &"sRz": -0.15, &"lLz": -0.3, &"lRz": 0.3, &"kL": 0.5, &"kR": 0.5, &"hy": -0.9, &"sx": 0.05},
+	],
+}
+## Pas tribal pendant l'élan (genoux qui alternent) et balancement du fil d'écho : amplitude, vitesse.
+const DANCE_STEP := {&"knee": 0.45, &"speed": 16.0, &"sway": 0.18, &"sway_speed": 5.0}
 ## Coups portés de la jambe gauche (les autres : jambe droite).
 const LEFT_LEG_ATTACKS: Array[StringName] = [&"meia_lua"]
 ## Course : amplitude des jambes, genoux (repos, levée), chevilles, bras, coudes (repos, en
@@ -120,6 +143,7 @@ var mode: Mode = Mode.GROUND
 
 var _speed: float = 0.0
 var _attack: AttackData
+var _figure: StringName = &""
 var _attack_time: float = 0.0
 var _walk: float = 0.0
 var _step_side: int = 0
@@ -152,6 +176,13 @@ func show_dash(_duration: float) -> void:
 ## Coup chargé qui monte : il se ramasse, la jambe armée.
 func show_charge() -> void:
 	mode = Mode.CHARGE
+
+
+## Danse de la figure `figure` : la pose suit ensuite le temps donné par set_attack_time().
+func show_dance(figure: StringName) -> void:
+	mode = Mode.DANCE
+	_figure = figure
+	_attack_time = 0.0
 
 
 ## Coup reçu : le buste recule, puis revient.
@@ -197,6 +228,21 @@ static func attack_pose(attack: AttackData, t: float, tuning: TuningData) -> Dic
 	var pose: Dictionary = (poses[1] as Dictionary).duplicate()
 	var recovery: float = clampf((t - attack.impact) / (attack.duration - attack.impact), 0.0, 1.0)
 	pose[&"hyaw"] = float(pose[&"hyaw"]) * (1.0 - recovery * tuning.hero_hip_unwind)
+	return pose
+
+
+## Pose de la danse `figure` au temps `t` : l'élan jusqu'au départ de la vibration, puis la pose où
+## elle part ; le fil d'écho se balance tant qu'on le tient.
+static func dance_pose(figure: StringName, t: float, tuning: TuningData) -> Dictionary:
+	var poses: Array = DANCE_POSES.get(figure, DANCE_POSES[&"palm"])
+	var released: bool = t >= tuning.dance_release_time and poses.size() > 1
+	var pose: Dictionary = (poses[1 if released else 0] as Dictionary).duplicate()
+	if figure == &"thread":
+		_add(pose, &"hyaw", sin(t * DANCE_STEP[&"sway_speed"]) * DANCE_STEP[&"sway"])
+	elif not released:
+		var step: float = sin(t * DANCE_STEP[&"speed"]) * DANCE_STEP[&"knee"]
+		_add(pose, &"kL", maxf(0.0, step))
+		_add(pose, &"kR", maxf(0.0, -step))
 	return pose
 
 
@@ -260,6 +306,9 @@ func update(delta: float, flipping: bool) -> void:
 		Mode.CHARGE:
 			target = CHARGE_POSE.duplicate()
 			rate = tuning.hero_pose_rate_attack
+		Mode.DANCE:
+			target = dance_pose(_figure, _attack_time, tuning)
+			rate = tuning.hero_pose_rate_attack
 		_:
 			if flipping:
 				target = FLIP_POSE.duplicate()
@@ -270,7 +319,7 @@ func update(delta: float, flipping: bool) -> void:
 				target = _running(delta, run_amount, hero)
 			else:
 				target = idle_pose(exp(-_beat_phase() * tuning.hero_idle_bounce_decay))
-	if _land > 0.0 and grounded and mode != Mode.ATTACK and mode != Mode.ROLL and mode != Mode.CHARGE:
+	if _land > 0.0 and grounded and mode != Mode.ATTACK and mode != Mode.ROLL and mode != Mode.CHARGE and mode != Mode.DANCE:
 		_add(target, &"kL", LAND[&"knee"] * _land)
 		_add(target, &"kR", LAND[&"knee"] * _land)
 		_add(target, &"lLx", LAND[&"leg"] * _land)

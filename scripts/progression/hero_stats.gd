@@ -66,6 +66,9 @@ var tide: float = 0.0
 var frost: float = 0.0
 var sacred_grove: float = 0.0
 var bloom: float = 0.0
+## Voie de l'Onde (version 4.1) : rang de chaque figure de danse apprise (paume, spirale, pluie de
+## pas, fil d'écho).
+var dance: Dictionary[StringName, int] = {}
 
 
 ## Forces pour le profil `profile` et, en expédition, les dons pris `boons` (don → rang).
@@ -104,6 +107,9 @@ static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[Stri
 	stats.shadow = legendaries.has(&"shadow")
 	stats.perfect_heal = tuning.legendary_heart_heal if legendaries.has(&"heart") else 0.0
 	stats.rainbow_damage = tuning.legendary_storm_damage if legendaries.has(&"storm") else 1.0
+	for figure: StringName in DanceMath.FIGURES:
+		if profile.talent_rank(figure) > 0:
+			stats.dance[figure] = profile.talent_rank(figure)
 	stats._apply_boons(boons, tuning)
 	# Pactes (version 2.9) : cœur fragile, coups rudes.
 	if pacts.has(Pacts.FRAGILE):

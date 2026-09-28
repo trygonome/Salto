@@ -1704,3 +1704,60 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var village_stop_speed: float
 @export var village_plot_dwell: float
 @export var gate_rearm_distance: float
+
+@export_group("Phase 8, 4.1 : voie de l'Onde (danses à distance)")
+## Groove que coûte chaque figure (la jauge en compte 10) ; le fil d'écho en demande au moins
+## tant pour commencer, puis en boit tant par seconde.
+@export var dance_cost_palm: float
+@export var dance_cost_spiral: float
+@export var dance_cost_rain: float
+@export var dance_thread_min: float
+@export var dance_thread_drain: float
+## Une danse dure tant (s) ; la vibration part des doigts à tant (s) ; la figure suivante
+## s'enchaîne si l'on redanse dans tant (s) ; on avance à cette part de la course en dansant.
+@export var dance_duration: float
+@export var dance_release_time: float
+@export var dance_chain_window: float
+@export var dance_move_factor: float
+## Onde de paume : dégâts (part de l'attaque) au rang 1, en plus par rang ; vitesse (m/s), portée
+## (m), rayon (m), hauteur (m) des ondes.
+@export var dance_palm_damage: float
+@export var dance_palm_step: float
+@export var dance_wave_speed: float
+@export var dance_range: float
+@export var dance_wave_radius: float
+@export var dance_wave_height: float
+## Spirale : orbes, dégâts de chacun, en plus par rang ; vitesse d'avance (m/s), rayon de la
+## spirale (m) atteint en tant (s), vitesse de rotation (rad/s), part verticale de la spirale.
+@export var dance_spiral_orbs: int
+@export var dance_spiral_damage: float
+@export var dance_spiral_step: float
+@export var dance_spiral_speed: float
+@export var dance_spiral_radius: float
+@export var dance_spiral_open_time: float
+@export var dance_spiral_turn_speed: float
+@export var dance_spiral_lift: float
+## Pluie de pas : dégâts, en plus par rang ; éclate tant (s) après, dans ce rayon (m) ; le point
+## visé est entre ces distances (m).
+@export var dance_rain_damage: float
+@export var dance_rain_step: float
+@export var dance_rain_delay: float
+@export var dance_rain_radius: float
+@export var dance_rain_min: float
+@export var dance_rain_max: float
+## Fil d'écho : dégâts par seconde (part de l'attaque), un coup toutes les tant (s) ; longueur et
+## demi-largeur du rayon (m) ; il faut tenir le bouton sans glisser tant (s) pour le lancer.
+@export var dance_thread_damage: float
+@export var dance_thread_tick: float
+@export var dance_thread_length: float
+@export var dance_thread_width: float
+@export var dance_hold_time: float
+## Coups des danses : atteinte à l'équilibre (ils ne projettent pas).
+@export var dance_poise: float
+## Bouton Danse : un toucher sans glisser plus que cette part de la portée du pouce vise tout seul ;
+## le pouce vise à fond à tant de pixels du bouton.
+@export var dance_tap_drag: float
+@export var dance_pad_reach_px: float
+## Étincelles au bout des doigts pendant la danse : une gerbe toutes les tant (s), de tant de cubes.
+@export var dance_spark_period: float
+@export var dance_spark_cubes: int

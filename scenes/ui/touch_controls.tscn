@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/floating_joystick.gd" id="1_joystick"]
 [ext_resource type="Texture2D" path="res://assets/ui/icons/attack.svg" id="2_attack"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/ui/icons/dodge_pressed.svg" id="7_dodge_pressed"]
 [ext_resource type="Script" path="res://scripts/ui/pad_rings.gd" id="8_rings"]
 [ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="11_controls"]
+[ext_resource type="Script" path="res://scripts/ui/dance_pad.gd" id="12_dance"]
 
 [sub_resource type="CircleShape2D" id="CircleShape_attack"]
 radius = 165.0
@@ -86,6 +87,28 @@ texture_pressed = ExtResource("7_dodge_pressed")
 shape = SubResource("CircleShape_dodge")
 action = "dodge"
 visibility_mode = 1
+
+[node name="Dance" type="Control" parent="Buttons"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -202.0
+offset_top = -184.0
+offset_right = -134.0
+offset_bottom = -116.0
+mouse_filter = 2
+script = ExtResource("12_dance")
+
+[node name="Label" type="Label" parent="Buttons/Dance"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"PadSmall"
+text = "Danse"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Rings" type="Node2D" parent="Buttons"]
 position = Vector2(-65, -69)

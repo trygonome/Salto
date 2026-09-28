@@ -1,6 +1,6 @@
 class_name TalentsScreen
 extends ScreenLayer
-## Talents du prototype : trois voies (Acrobate, Percussion, Chamane) de quatre talents. Chaque
+## Talents du prototype : quatre voies (Acrobate, Percussion, Chamane, Onde) de quatre talents. Chaque
 ## niveau donne un point ; un talent s'ouvre quand sa voie a reçu assez de points. Les rangs pris
 ## se voient en ronds pleins ; les talents qu'on peut prendre ont un bord vert. Tout peut être
 ## réinitialisé (les points reviennent).
