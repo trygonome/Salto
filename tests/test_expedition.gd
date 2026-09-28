@@ -252,7 +252,11 @@ func test_le_grand_muet_libere_termine_l_expedition() -> void:
 	var bosses: Array[Muet] = _muets().filter(func(m: Muet) -> bool: return m.is_boss())
 	assert_eq(bosses.size(), 1, "le Grand Muet garde la dernière clairière")
 	await _free_all()
-	await get_tree().create_timer(tuning.night_summary_delay + 0.3).timeout
+	# Version 4.2 : deux portes s'ouvrent ; rentrer au village termine l'expédition.
+	await get_tree().create_timer(tuning.beyond_gates_delay + 0.3).timeout
+	var home: Array[Node] = level.get_node("Pickups").get_children().filter(func(n: Node) -> bool: return n is ExitGate and (n as ExitGate).reward == RunState.HOME)
+	assert_eq(home.size(), 1, "la porte du village")
+	(home[0] as ExitGate).chosen.emit(RunState.HOME)
 	assert_false(level.in_sortie)
 	var summary: SummaryScreen = level.get_node("SummaryScreen") as SummaryScreen
 	assert_true(summary.is_open())

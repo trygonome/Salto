@@ -65,6 +65,9 @@ const ART: Dictionary[StringName, PackedStringArray] = {
 	&"secret": ["..vvv..", ".v...v.", ".v...v.", "..vvv..", "...v...", "...vv..", "...v..."],
 	&"boss": [".......", "y..y..y", "yy.y.yy", "yyyyyyy", "yrryrry", "yyyyyyy", "......."],
 	&"depart": ["...y...", "..yyy..", "rrrrrrr", "ryyyyyr", "rrrrrrr", "rnnnnnr", ".rrrrr."],
+	# Au-delà (version 4.2) : la case du village (rentrer), la spirale de l'au-delà.
+	&"home": ["...o...", "..ooo..", ".ooooo.", "ooooooo", ".nn.nn.", ".nn.nn.", ".nn.nn."],
+	&"beyond": [".ccccc.", "c.....c", "c.ccc.c", "c.cyc.c", "c.c...c", "c.ccccc", "c......"],
 	# Menu (version 3.4 : réglages, son, son coupé, vibrations, gestes).
 	&"gear": ["s..s..s", ".sssss.", ".sskss.", "ssk.kss", ".sskss.", ".sssss.", "s..s..s"],
 	&"sound": ["....c..", "..s..c.", ".ss.c.c", "sss.c.c", ".ss.c.c", "..s..c.", "....c.."],

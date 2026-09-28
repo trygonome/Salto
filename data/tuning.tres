@@ -1473,3 +1473,6 @@ dance_tap_drag = 0.25
 dance_pad_reach_px = 70.0
 dance_spark_period = 0.06
 dance_spark_cubes = 2
+beyond_gates_delay = 2.5
+beyond_leg_rooms = 6
+room_wave_max = 10

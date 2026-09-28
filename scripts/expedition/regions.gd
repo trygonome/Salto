@@ -45,6 +45,11 @@ static func next(region: StringName) -> StringName:
 	return IDS[i + 1] if i >= 0 and i + 1 < IDS.size() else &""
 
 
+## Région qui vient au-delà de `region` (version 4.2) : les régions tournent, sans fin.
+static func beyond(region: StringName) -> StringName:
+	return IDS[posmod(IDS.find(region) + 1, IDS.size())]
+
+
 ## Régions ouvertes quand `won` sont déjà libérées : la première, et la suivante de chacune.
 static func unlocked(won: Array[StringName]) -> Array[StringName]:
 	var open: Array[StringName] = [IDS[0]]

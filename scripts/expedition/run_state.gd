@@ -1,6 +1,7 @@
 class_name RunState
 extends RefCounted
-## Une expédition : suite de clairières générées, la dernière gardée par un Grand Muet. Garde la
+## Une expédition : suite de clairières générées, la dernière gardée par un Grand Muet (et, au-delà,
+## une étape de plus par gardien libéré, sans fin). Garde la
 ## graine, la clairière en cours, la récompense promise par le passage choisi, les dons pris, les
 ## plumes gagnées et ce qui compte pour le résumé. Tirages reproductibles depuis la graine.
 
@@ -18,6 +19,10 @@ const REST := &"rest"
 const TREASURE := &"treasure"
 const SECRET := &"secret"
 const REWARDS: Array[StringName] = [BOON, HEAL, FEATHERS, ENCOUNTER, REST, TREASURE]
+## Au-delà (version 4.2) : le gardien libéré, deux portes — rentrer au village (l'expédition est
+## gagnée), ou continuer au-delà, dans la région suivante, sans fin.
+const HOME := &"home"
+const BEYOND := &"beyond"
 
 var seed_value: int = 0
 ## Région de l'expédition (voir Regions).
@@ -50,6 +55,10 @@ var pacts: Array[StringName] = []
 var tutorial: bool = false
 ## Ce qui s'est passé pendant l'expédition (version 3.7 : stèle, Muet caché…), pour le village.
 var events: Array[StringName] = []
+## Au-delà (version 4.2) : régions dont le gardien est déjà libéré pendant l'expédition ; première
+## clairière de l'étape en cours.
+var guardians: Array[StringName] = []
+var leg_first: int = 0
 var rng := RandomNumberGenerator.new()
 
 
@@ -113,14 +122,19 @@ func pick_encounter(ids: Array[StringName]) -> StringName:
 	return id
 
 
-## Nombre de passages de sortie de la clairière en cours (un seul vers le Grand Muet).
+## Nombre de passages de sortie de la clairière en cours (un seul vers le Grand Muet ; deux chez le
+## gardien : rentrer, ou aller au-delà).
 func exit_count(count: int) -> int:
+	if is_boss_room():
+		return 2
 	return 1 if room + 1 >= room_count - 1 else count
 
 
 ## Récompenses proposées par les passages de sortie (`count` différentes ; vers la dernière
 ## clairière, le Grand Muet).
 func exit_rewards(count: int) -> Array[StringName]:
+	if is_boss_room():
+		return [HOME, BEYOND] as Array[StringName]
 	if room + 1 >= room_count - 1:
 		return [BOSS] as Array[StringName]
 	var pool: Array[StringName] = REWARDS.duplicate()
@@ -144,6 +158,26 @@ func exit_rewards(count: int) -> Array[StringName]:
 func enter_next(promised: StringName) -> void:
 	room += 1
 	reward = promised
+
+
+## Vrai quand l'expédition est allée au-delà de son premier gardien.
+func is_beyond() -> bool:
+	return not guardians.is_empty()
+
+
+## Le gardien libéré, on va au-delà : la région suivante, une nouvelle étape de `leg_rooms`
+## clairières (la dernière : son gardien), et un nouvel élite.
+func go_beyond(leg_rooms: int) -> void:
+	guardians.append(region)
+	region = Regions.beyond(region)
+	leg_first = room + 1
+	room_count = room + 1 + leg_rooms
+	elite_done = false
+
+
+## Part de l'étape en cours déjà faite (0 à 1) : chaque étape rend ses couleurs à sa région.
+func leg_progress() -> float:
+	return float(room - leg_first) / maxf(1.0, room_count - 1 - leg_first)
 
 
 ## Prend le don `id` (ou le monte de `ranks` rangs : sa rareté).
@@ -171,6 +205,7 @@ func to_dict() -> Dictionary:
 		"elite_done": elite_done, "weapon": String(weapon), "extra_encounters": extra_encounters,
 		"pacts": Array(pacts).map(func(id: StringName) -> String: return String(id)), "tutorial": tutorial,
 		"events": Array(events).map(func(e: StringName) -> String: return String(e)),
+		"guardians": Array(guardians).map(func(r: StringName) -> String: return String(r)), "leg_first": leg_first,
 		"rng_state": rng.state,
 	}
 
@@ -200,6 +235,9 @@ static func from_dict(data: Dictionary) -> RunState:
 	run.tutorial = bool(data.get("tutorial", false))
 	for event: Variant in data.get("events", []):
 		run.events.append(StringName(str(event)))
+	for guardian: Variant in data.get("guardians", []):
+		run.guardians.append(StringName(str(guardian)))
+	run.leg_first = int(data.get("leg_first", 0))
 	if data.has("rng_state"):
 		run.rng.state = int(data["rng_state"])
 	return run

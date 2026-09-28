@@ -106,6 +106,7 @@ const ROOM_CHOOSE := "Choisis ton passage"
 const REWARD_NAMES: Dictionary[StringName, String] = {
 	&"boon": "don des esprits", &"heal": "soin", &"feathers": "plumes d'or", &"boss": "le gardien",
 	&"encounter": "rencontre", &"rest": "repos", &"treasure": "trésor", &"secret": "secret",
+	&"home": "le village", &"beyond": "l'au-delà",
 }
 ## Noms des clairières, par forme (tirés de la graine).
 const ROOM_NAMES: Dictionary[StringName, PackedStringArray] = {
@@ -215,6 +216,10 @@ const RUN_WON_SUB := "Le gardien a éclaté : la jungle retrouve ses voix. Tu ra
 const RUN_LOST_SUB := "Tu es tombé à la clairière %d. Tu rapportes %s."
 const RUN_QUIT_SUB := "Tu rentres de la clairière %d. Tu rapportes %s."
 const RUN_ROOMS := "Clairières"
+## Au-delà (version 4.2).
+const RUN_GUARDIANS := "Gardiens libérés"
+const RUN_BEYOND_SUB := "Tu reviens de l'au-delà, %s libérés. Tu rapportes %s."
+const BEYOND_TITLE := "Au-delà"
 const RUN_BOONS := "Dons"
 const RUN_AGAIN := "Nouvelle expédition"
 const FEATHER_ONE := "%d plume d'or"
@@ -347,6 +352,7 @@ const CHIEF_FIRSTS: Dictionary[StringName, String] = {
 	&"stele": "Une stèle t'a parlé ? Elles ne parlent qu'aux curieux.",
 	&"duo": "Deux esprits dans un seul don ! Ça, c'est rare.",
 	&"pact": "Un pacte… Les esprits aiment ceux qui cherchent la difficulté.",
+	&"beyond": "Au-delà du gardien ? Personne n'en revenait… jusqu'à toi.",
 }
 const CHIEF_FIRST_WEAPON := "%s te va bien. Chaque instrument a sa manière."
 const CHIEF_WEAPON: Dictionary[StringName, String] = {
@@ -613,6 +619,7 @@ const TALENT_EFFECTS: Dictionary[StringName, String] = {
 ## Pluriels simples : « 1 tambour », « 3 tambours ».
 const DRUM := "tambour"
 const POINT := "point"
+const GUARDIAN := "gardien"
 const SORTIE := "sortie"
 
 

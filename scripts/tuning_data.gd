@@ -1761,3 +1761,11 @@ func weapon(weapon_id: StringName) -> WeaponData:
 ## Étincelles au bout des doigts pendant la danse : une gerbe toutes les tant (s), de tant de cubes.
 @export var dance_spark_period: float
 @export var dance_spark_cubes: int
+
+@export_group("Phase 8, 4.2 : au-delà (expéditions sans fin)")
+## Le gardien libéré, les portes « rentrer » et « au-delà » s'ouvrent après tant (s) ; une étape
+## au-delà compte tant de clairières (la dernière : son gardien) ; une vague compte au plus tant de
+## Sourdines (au-delà, elles deviennent plus fortes plutôt que plus nombreuses).
+@export var beyond_gates_delay: float
+@export var beyond_leg_rooms: int
+@export var room_wave_max: int

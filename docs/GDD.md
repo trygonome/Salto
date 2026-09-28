@@ -132,6 +132,11 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
 Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le
 combat, les Muets et le monde.
 
+- **Au-delà** (version 4.2) : le gardien libéré, deux portes — rentrer au village (l'expédition est gagnée)
+  ou aller au-delà. La jungle continue alors dans la région suivante, étape après étape (des clairières
+  puis leur gardien), sans fin ; les Sourdines deviennent plus fortes à chaque clairière, les plumes
+  aussi. À chaque gardien, la même question : rentrer avec son butin, ou tenter une étape de plus.
+
 ## 3. Boucle de jeu
 Une nuit = partir du village → atteindre un sanctuaire → vaincre le **Grand Muet** qui garde le tambour → rapporter le tambour.
 Trois tambours = nuit accomplie. Tomber = retour au village : on garde niveau, objets et tambours déjà rapportés.

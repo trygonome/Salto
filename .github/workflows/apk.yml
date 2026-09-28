@@ -1,6 +1,6 @@
 # APK de test construite par GitHub : à chaque nouvelle version (project.godot change) ou quand ce fichier
-# change, l'APK optimisée
-# est exportée et publiée dans les Releases du dépôt, sans limite de taille. Lien fixe vers la dernière :
+# change, l'APK optimisée est exportée et publiée dans les Releases du dépôt, sans limite de taille.
+# Lien fixe vers la dernière :
 # https://github.com/trygonome/Salto/releases/latest/download/salto.apk
 # (On peut aussi la lancer à la main : onglet Actions > APK > Run workflow.)
 name: APK

@@ -98,7 +98,7 @@ static func band_floor(profile: Profile, tuning: TuningData) -> float:
 
 
 ## Premières fois dont le Chef parle, de la plus marquante à la moins marquante (version 3.7).
-const FIRSTS_ORDER: Array[StringName] = [&"hidden", &"stele", &"duo", &"pact"]
+const FIRSTS_ORDER: Array[StringName] = [&"beyond", &"hidden", &"stele", &"duo", &"pact"]
 ## Le Chef parle des chutes à la 3e, puis toutes les CHIEF_FALLS_EVERY.
 const CHIEF_FALLS_FIRST := 3
 const CHIEF_FALLS_EVERY := 5

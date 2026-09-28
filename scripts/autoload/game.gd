@@ -219,11 +219,16 @@ func end_run(kind: StringName) -> Dictionary:
 	profile.feathers += brought
 	profile.saved_run = {}
 	var unlocked: StringName = &""
+	# Au-delà (version 4.2) : chaque gardien libéré compte, même si l'on tombe plus loin.
+	var freed: Array[StringName] = run.guardians.duplicate()
 	if kind == &"won":
 		profile.runs_won += 1
-		if not profile.regions_won.has(run.region):
-			profile.regions_won.append(run.region)
-			unlocked = Regions.next(run.region)
+		freed.append(run.region)
+	for region: StringName in freed:
+		if not profile.regions_won.has(region):
+			profile.regions_won.append(region)
+			if unlocked == &"":
+				unlocked = Regions.next(region)
 	# Premières fois (version 3.7) : ce que le village n'a encore jamais vu faire au héros.
 	var candidates: Array[StringName] = run.events.duplicate()
 	candidates.append(StringName("weapon_%s" % run.weapon))
@@ -244,6 +249,7 @@ func end_run(kind: StringName) -> Dictionary:
 		&"record": record, &"region": run.region, &"unlocked": unlocked,
 		&"fallen_to": run.fallen_to, &"boss_left": run.boss_left,
 		&"firsts": firsts, &"weapon": run.weapon, &"family": Boons.dominant_family(run.boons), &"faints": profile.faints,
+		&"guardians": freed.size(), &"beyond": run.is_beyond(),
 	}
 	last_summary = summary
 	run = null

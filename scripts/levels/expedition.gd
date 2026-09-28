@@ -369,14 +369,19 @@ static func summary_of(s: Dictionary) -> Dictionary:
 	var kind: StringName = s[&"kind"]
 	var brought: String = GameTexts.feathers(s[&"feathers"])
 	var sub: String = GameTexts.RUN_WON_SUB % brought if kind == &"won" else (GameTexts.RUN_LOST_SUB if kind == &"faint" else GameTexts.RUN_QUIT_SUB) % [s[&"room"], brought]
+	var beyond: bool = s.get(&"beyond", false)
+	if beyond and kind == &"won":
+		sub = GameTexts.RUN_BEYOND_SUB % [GameTexts.plural(int(s[&"guardians"]), GameTexts.GUARDIAN), brought]
 	var rows: Array = [
 		[GameTexts.RUN_REGION, GameTexts.REGION_NAMES.get(s.get(&"region", Regions.UNDERGROWTH), "")],
-		[GameTexts.RUN_ROOMS, "%d / %d" % [s[&"room"], s[&"rooms"]]],
+		[GameTexts.RUN_ROOMS, str(s[&"room"]) if beyond else "%d / %d" % [s[&"room"], s[&"rooms"]]],
 		[GameTexts.SUMMARY_MUETS, str(s[&"muets"])],
 		[GameTexts.RUN_BOONS, str(s[&"boons"])],
 		[GameTexts.SUMMARY_LEVEL, str(s[&"level"])],
 		[GameTexts.SUMMARY_TIME, GameTexts.duration(s[&"time"])],
 	]
+	if beyond:
+		rows.append([GameTexts.RUN_GUARDIANS, str(s[&"guardians"])])
 	if int(s.get(&"pacts", 0)) > 0:
 		rows.append([GameTexts.RUN_PACTS, str(s[&"pacts"])])
 	var unlocked: StringName = s.get(&"unlocked", &"")
@@ -486,7 +491,7 @@ func _enter_room() -> void:
 	if not run.is_boss_room() and fight:
 		_place_room_props()
 	_place_niches()
-	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
+	mood.set_progress(run.leg_progress(), false)
 	_music_layers = mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size())
 	_fighting = false
 	# Première minute de la toute première expédition : une clairière sombre et muette, une pierre à
@@ -507,6 +512,8 @@ func _enter_room() -> void:
 	else:
 		Rhythm.set_layers(_music_layers)
 	_place_hero()
+	if run.is_beyond() and run.room == run.leg_first:
+		hud.show_banner(GameTexts.BEYOND_TITLE, GameTexts.REGION_NAMES.get(run.region, ""), "")
 	if run.is_boss_room():
 		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), "")
 	if run.reward == RunState.ENCOUNTER:
@@ -735,7 +742,8 @@ func _start_wave() -> void:
 			_spawn(_scene_of(guards[i % guards.size()]), _spawn_point())
 		_wave += 1
 		return
-	var count: int = tuning.room_wave_base + roundi(tuning.room_wave_per_room * run.room)
+	# (Au-delà, la vague ne grossit plus : ce sont les Sourdines qui deviennent plus fortes.)
+	var count: int = mini(tuning.room_wave_base + roundi(tuning.room_wave_per_room * run.room), tuning.room_wave_max)
 	var wave: Dictionary = WaveComposer.compose(run.room, count, _rng, _last_template, Regions.FAVORITE_WAVES.get(run.region, []))
 	_last_template = wave[&"id"]
 	# Première expédition : des vagues qui apprennent, une espèce à la fois, sans élite.
@@ -963,6 +971,11 @@ func _on_gate_chosen(reward: StringName) -> void:
 	if not in_sortie or _ending:
 		return
 	var tuning: TuningData = Tuning.data
+	# Au-delà (version 4.2) : rentrer, c'est gagner l'expédition.
+	if reward == RunState.HOME:
+		_ending = true
+		end_sortie(&"won")
+		return
 	hero.reads_player_input = false
 	hero.input_move = Vector2.ZERO
 	# Passage rituel (version 3.5) : un voile aux couleurs de la récompense, la musique revient à sa
@@ -977,7 +990,14 @@ func _on_gate_chosen(reward: StringName) -> void:
 	var tween: Tween = create_tween()
 	tween.tween_property(_fade, "color:a", tuning.passage_veil_alpha, tuning.room_fade_time)
 	tween.tween_callback(func() -> void:
-		Game.run.enter_next(reward)
+		if reward == RunState.BEYOND:
+			# La jungle continue dans la région suivante ; la première clairière offre un don.
+			Game.run.go_beyond(tuning.beyond_leg_rooms)
+			if not Game.run.events.has(&"beyond"):
+				Game.run.events.append(&"beyond")
+			Game.run.enter_next(RunState.BOON)
+		else:
+			Game.run.enter_next(reward)
 		_enter_room()
 		hero.reads_player_input = true)
 	tween.tween_property(_fade, "color:a", 0.0, tuning.room_fade_time * 2.0)
@@ -1215,15 +1235,28 @@ func _next_page() -> int:
 	return 0
 
 
-## Le Grand Muet libéré : la jungle éclate de couleurs, l'expédition est gagnée.
+## Le Grand Muet libéré : la jungle éclate de couleurs, l'expédition est gagnée. Version 4.2 : deux
+## portes s'ouvrent au bout des sentiers de l'arène — rentrer au village, ou aller au-delà.
 func _on_boss_freed(_muet: Muet) -> void:
 	var tuning: TuningData = Tuning.data
-	_ending = true
 	mood.set_progress(1.0, false)
 	get_tree().call_group(&"world_mood", &"burst")
 	Feedback.vibrate(tuning.vibration_guardian)
 	hud.show_banner(GameTexts.GUARDIAN_NAMES.get(Game.run.region, GameTexts.ROOM_BOSS_TITLE) if Game.run else GameTexts.ROOM_BOSS_TITLE, GameTexts.RUN_WON, "")
-	get_tree().create_timer(tuning.night_summary_delay, false).timeout.connect(end_sortie.bind(&"won"))
+	_burst_guards()
+	get_tree().create_timer(tuning.beyond_gates_delay, false).timeout.connect(func() -> void:
+		if in_sortie and not _ending and not _cleared:
+			_cleared = true
+			_open_exits())
+
+
+## Ses gardes éclatent avec leur gardien : la clairière est libre, on choisit sa porte en paix.
+func _burst_guards() -> void:
+	for node: Node in get_tree().get_nodes_in_group(&"muets"):
+		var muet: Muet = node as Muet
+		if muet == null or muet.is_freed():
+			continue
+		muet.health.take(muet.health.current)
 
 
 func _on_hero_fainted() -> void:

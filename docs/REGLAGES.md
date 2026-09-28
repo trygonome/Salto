@@ -258,3 +258,6 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   de 3 à 9 m ; fil d'écho 120 % de l'attaque par seconde (un coup toutes les 0,2 s), 9 m de long, 0,6 m
   de demi-largeur, lancé après 0,3 s tenu sans glisser. Le pouce vise à fond à 70 px ; en deçà du quart,
   c'est un toucher (visée automatique jusqu'à 16 m).
+- Au-delà (4.2) : portes 2,5 s après le gardien ; étapes de 6 clairières (5 puis le gardien) ; vagues d'au
+  plus 10 Sourdines (une expédition ordinaire en compte au plus 8) ; la puissance suit toujours le rang de la
+  clairière (0,5 rang par clairière), les plumes aussi (20 + 5 par clairière).

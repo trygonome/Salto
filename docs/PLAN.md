@@ -381,7 +381,7 @@ Retours sur la version 2.9 intégrés à ces jalons :
   pièges par clairière), ce qui brouille aussi cette alerte. À revoir : un son propre aux pièges, discret,
   calé sur la musique, porté seulement près du héros (ou seulement à l'écran), sans l'alerte des Muets.
 
-## Phase 8 : danser, jouer de la flûte, soigner la forêt (versions 4.0 à 4.4)
+## Phase 8 : danser, jouer à deux sans fin, jouer de la flûte, soigner la forêt (versions 4.0 à 4.6)
 Demandes du joueur après la 3.8 (validées) : des attaques à distance dansées dans l'arbre de talents, avec
 une visée qui demande de l'adresse ; des niveaux en hauteur avec la jungle et un fleuve en contrebas ; de
 vrais sons (ambiances, musique de jungle : tambours, flûtes, voix) ; une flûte à débloquer ; un nouveau
@@ -420,14 +420,37 @@ récit des ennemis ; un entretien de la forêt au village (pas de plantations : 
    balaie ensuite. Les danses s'enchaînent comme les coups (paume → spirale → pluie) ; poses de danse
    (genou levé, bras au ciel, tour sur soi, bras tendus), étincelles au bout des doigts ; sons faits
    avec les vrais instruments. Les coups dansés ne rendent pas de groove. Touche L au clavier.
-3. **4.2 — La flûte.** Un 5e instrument, offert par la Reine des Cimes une fois libérée : des notes qui
+3. **4.2 — Au-delà : des expéditions sans fin.** (Demande du joueur après la 4.1, placée avant la flûte.)
+   Le gardien libéré, deux portes : rentrer au village (l'expédition est gagnée, comme avant) ou aller
+   **au-delà**. Au-delà, la jungle continue dans la région suivante (Sous-bois → Ruines → Canopée → …),
+   une étape de clairières puis son gardien, à l'infini ; les Sourdines deviennent plus fortes à chaque
+   clairière, les plumes aussi. Chaque gardien libéré compte (régions gagnées) et propose encore de rentrer.
+   Tomber au-delà garde ce qu'on a gagné comme une chute ordinaire. Le record de profondeur est gardé et
+   le Chef le salue. *Test : on se demande à chaque gardien si l'on tente encore une étape.*
+   **Fait** (version 4.2) : le gardien libéré, ses gardes éclatent avec lui et deux portes s'ouvrent
+   2,5 s après au bout des sentiers de l'arène : la case (rentrer : l'expédition est gagnée) et la
+   spirale bleue (au-delà). Au-delà : bannière « Au-delà » et nom de la région, étapes de 6 clairières
+   (la dernière : son gardien), la première offre un don ; un élite par étape ; les vagues plafonnent à
+   10 Sourdines, la puissance continue de monter avec la clairière ; les couleurs repartent du gris à
+   chaque étape. Chaque gardien libéré ouvre sa région même si l'on tombe plus loin ; le résumé compte
+   les gardiens ; le Chef salue la première fois (« Personne n'en revenait… »). APK construite par GitHub
+   à chaque version (Releases du dépôt).
+4. **4.3 — À deux : la coop en ligne.** (Demande du joueur.) Deux héros dans la même expédition, contre
+   les Sourdines. Un téléphone héberge la partie (il décide de tout : Sourdines, dons, clairières), l'autre
+   la rejoint avec un code de quatre lettres ; il envoie ses commandes et reçoit l'état du monde. Entre
+   les deux, un petit **serveur relais** (WebSocket) sur un VPS : il ne fait que transmettre les messages
+   d'une salle à l'autre, marche en 4G, en Wi-Fi et depuis la version web, sans réglage de box. Script
+   d'installation à copier-coller sur le VPS. Chacun garde sa progression (niveau, talents, plumes) ; un
+   héros à terre se relève si l'autre le rejoint. *Test : on finit une expédition à deux, chacun sur son
+   téléphone.*
+5. **4.4 — La flûte.** Un 5e instrument, offert par la Reine des Cimes une fois libérée : des notes qui
    rebondissent d'une Sourdine à l'autre, un accord à la 3e note, chaque note dans la gamme de la musique.
    *Test : on joue de loin, et ça chante.*
-4. **4.3 — En hauteur.** Des clairières au bord d'une falaise (ou sur des terrasses, des branches
+6. **4.5 — En hauteur.** Des clairières au bord d'une falaise (ou sur des terrasses, des branches
    géantes) ; en contrebas, la canopée vue d'en haut, un grand fleuve qui serpente entre des bancs de
    sable, des cascades, la brume de la vallée. Le bord est un rebord de pierres et de racines. *Test : on
    s'arrête au bord pour regarder.*
-5. **4.4 — La Lisière : soigner la forêt.** Autour du village, six zones sourdes (grises, muettes).
+7. **4.6 — La Lisière : soigner la forêt.** Autour du village, six zones sourdes (grises, muettes).
    Les **échos** (petites notes rapportées d'expédition : Sourdines éclatées, recoins, gardiens) les
    réveillent ; on choisit ce qui revient : figuier (un fruit de soin au départ), abeilles sans dard (du
    groove au départ), aras (ils signalent les recoins et les passages secrets), grenouilles des fleurs
