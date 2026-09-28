@@ -274,6 +274,31 @@ const WEAPON_TEXTS: Dictionary[StringName, String] = {
 const RACK_TITLE := "Le râtelier des instruments"
 const RACK_TEXT := "Choisis ton instrument pour la prochaine expédition."
 const WEAPON_TAKEN := "%s en main !"
+## Confort mobile (version 2.9) : reprise, pactes, calibration du son.
+const EXPEDITION_RESUME := "Reprendre · clairière %d/%d"
+const PAUSE_EXPEDITION := "Expédition · %s"
+const PACTS_TITLE := "La pierre des pactes"
+const PACTS_TEXT := "Rends l'expédition plus rude : tu rapporteras plus de plumes d'or."
+const PACTS_DONE := "C'est décidé : partir ainsi"
+const PACT_NAMES: Dictionary[StringName, String] = {
+	&"thick_skin": "Peaux épaisses", &"hard_hits": "Coups rudes", &"fragile": "Cœur fragile", &"stingy": "Jungle avare",
+}
+const PACT_TEXTS: Dictionary[StringName, String] = {
+	&"thick_skin": "+%d % de PV pour les Muets", &"hard_hits": "Les Muets frappent %d % plus fort",
+	&"fragile": "Tu pars avec %d % de PV en moins", &"stingy": "Ni soin ni repos en chemin",
+}
+const PACT_CHOICE := "%s%s : %s · +%d %% de plumes"
+const PACT_ON := " (actif)"
+const PACTS_SUB := " · pactes : +%d %% de plumes"
+const RUN_PACTS := "Pactes"
+const CALIBRATE_BUTTON := "Calibrer le son"
+const CALIBRATE_TITLE := "Calibrer le son"
+const CALIBRATE_HELP := "Touche le tambour sur chaque temps de la musique."
+const CALIBRATE_TAP := "Tambour"
+const CALIBRATE_COUNT := "%d / %d"
+const CALIBRATE_RESULT := "Décalage : %+d ms"
+const CALIBRATE_RESET := "Remettre à zéro"
+const CALIBRATE_DONE := "Terminé"
 const VILLAGE_TITLE := "Le village"
 const VILLAGE_SUB := "%s · départ au nord"
 const VILLAGE_BUTTON := "Le village"
@@ -358,6 +383,13 @@ const HINTS: Dictionary[StringName, String] = {
 	&"answer_shielder": "Saute, plonge dessus !",
 	&"answer_charger": "Esquive, puis frappe !",
 	&"answer_spitter": "Roule, puis frappe !",
+	&"answer_hopper": "Enchaîne : le dernier coup le projette !",
+	&"answer_weaver": "Sors des ronces, plonge sur lui !",
+	&"answer_totem": "Le totem d'abord : maintiens Frappe !",
+	&"answer_dancer": "Esquive sa vrille, puis riposte !",
+	&"answer_brute": "Esquive son bond, frappe quand elle souffle !",
+	&"grace": "Il chancelle : frappe !",
+	&"charge": "Maintiens Frappe : coup chargé",
 	&"gongs": "Rejoue la mélodie !",
 }
 

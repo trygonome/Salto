@@ -76,6 +76,7 @@ const MUTE_TREE_LEAF := Vector3(2.3, 0.8, 0.5)
 const VILLAGE_DANCE_RING := 3.0
 ## Le râtelier des instruments, parmi les endroits du village qui parlent.
 const RACK := &"rack"
+const PACT_STONE := &"pacts"
 
 var gen := WorldGen.new()
 ## Graine de la prochaine expédition (tirée au hasard).
@@ -110,6 +111,8 @@ var _chief_lines := PackedStringArray()
 var _line_left: float = 0.0
 var _plot_near: StringName = &""
 var _plot_marks: Dictionary[StringName, Node3D] = {}
+## Conseils près des boutons (version 2.9).
+var _coach: ExpeditionCoach
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -144,6 +147,7 @@ func _ready() -> void:
 	boon_screen.chosen.connect(_on_boon_chosen)
 	boon_screen.choice_made.connect(_on_choice_made)
 	hero.hurtbox.hurt.connect(_on_hero_hurt)
+	_coach = ExpeditionCoach.new(hud, hero)
 	Rhythm.play(Village.music_layers(Game.profile))
 	Rhythm.set_band(0.0)
 	_build_camp()
@@ -169,6 +173,7 @@ func _process(delta: float) -> void:
 	# La troupe du village chante quand le combo tient (toujours un peu, avec la scène rebâtie).
 	if in_sortie:
 		var tuning: TuningData = Tuning.data
+		_coach.update(delta)
 		Rhythm.set_band(maxf(minf(float(hero.combo.hits) / tuning.combo_band_full, 1.0) * tuning.combo_band_max, Village.band_floor(Game.profile, tuning)))
 	# Une rencontre s'ouvre quand le héros s'approche du personnage.
 	if _encounter == &"" or _encounter_open or not in_sortie or _cleared:
@@ -199,7 +204,11 @@ func shows_drums() -> bool:
 func current_goal() -> Dictionary:
 	if in_village:
 		var gate: Vector2 = WorldGen.gap_point(0.0, _radius) * _unit
-		return {&"title": GameTexts.VILLAGE_TITLE, &"sub": GameTexts.VILLAGE_SUB % GameTexts.feathers(Game.profile.feathers), &"icon": &"home", &"point": Vector3(gate.x, 0.0, gate.y)}
+		var sub: String = GameTexts.VILLAGE_SUB % GameTexts.feathers(Game.profile.feathers)
+		var bonus: int = roundi((Pacts.feather_multiplier(Game.profile.pacts, Tuning.data) - 1.0) * 100.0)
+		if bonus > 0:
+			sub += GameTexts.PACTS_SUB % bonus
+		return {&"title": GameTexts.VILLAGE_TITLE, &"sub": sub, &"icon": &"home", &"point": Vector3(gate.x, 0.0, gate.y)}
 	var run: RunState = Game.run
 	if run == null or not in_sortie:
 		return {}
@@ -236,6 +245,26 @@ func start_sortie() -> void:
 	in_sortie = true
 	_ending = false
 	hero.begin_sortie()
+	hero.reads_player_input = true
+	hud.visible = true
+	touch_controls.visible = true
+	get_tree().call_group(&"title_screen", &"close")
+	_enter_room()
+
+
+## Reprend l'expédition interrompue, au début de la clairière où elle s'est arrêtée (version 2.9).
+func resume_sortie() -> void:
+	var health: float = Game.resume_run()
+	if health < 0.0:
+		start_sortie()
+		return
+	in_village = false
+	_chief = null
+	_plot_marks.clear()
+	in_sortie = true
+	_ending = false
+	hero.begin_sortie()
+	hero.health.current = clampf(health, 1.0, hero.health.maximum)
 	hero.reads_player_input = true
 	hud.visible = true
 	touch_controls.visible = true
@@ -285,6 +314,8 @@ static func summary_of(s: Dictionary) -> Dictionary:
 		[GameTexts.SUMMARY_LEVEL, str(s[&"level"])],
 		[GameTexts.SUMMARY_TIME, GameTexts.duration(s[&"time"])],
 	]
+	if int(s.get(&"pacts", 0)) > 0:
+		rows.append([GameTexts.RUN_PACTS, str(s[&"pacts"])])
 	var unlocked: StringName = s.get(&"unlocked", &"")
 	if unlocked != &"":
 		rows.append([GameTexts.RUN_UNLOCKED, GameTexts.REGION_NAMES.get(unlocked, "")])
@@ -337,7 +368,9 @@ func _build_camp(region: StringName = &"") -> void:
 		region = Game.profile.region if Game.profile else Regions.UNDERGROWTH
 	_apply_region(region)
 	_kind = &"village"
-	gen.village_built = Game.profile.village.duplicate() if Game.profile else {} as Dictionary[StringName, int]
+	gen.village_built.clear()
+	if Game.profile:
+		gen.village_built = Game.profile.village.duplicate()
 	gen.generate_room(next_seed, _radius, PackedFloat32Array([0.0]), _kind)
 	world.build(gen)
 	_ambient.setup(_radius * _unit)
@@ -359,6 +392,8 @@ func _enter_room() -> void:
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	_apply_region(run.region)
+	# Sauvegarde pour reprendre ici si l'application se ferme (version 2.9).
+	Game.snapshot_run(hero.health.current)
 	for node: Node in foes.get_children() + pickups.get_children():
 		node.queue_free()
 	var exits: int = run.exit_count(tuning.room_exits)
@@ -504,8 +539,14 @@ func _start_wave() -> void:
 	var count: int = tuning.room_wave_base + roundi(tuning.room_wave_per_room * run.room)
 	var wave: Dictionary = WaveComposer.compose(run.room, count, _rng, _last_template, Regions.FAVORITE_WAVES.get(run.region, []))
 	_last_template = wave[&"id"]
+	# Première expédition : des vagues qui apprennent, une espèce à la fois, sans élite.
+	var lesson: Array[StringName] = []
+	if run.tutorial:
+		lesson = WaveComposer.tutorial(run.room, _wave)
+	if not lesson.is_empty():
+		wave[&"foes"] = lesson
 	var elite: StringName = &""
-	if not run.elite_done and run.room >= run.elite_room(tuning.elite_first_room):
+	if lesson.is_empty() and not (run.tutorial and run.room < WaveComposer.TUTORIAL.size()) and not run.elite_done and run.room >= run.elite_room(tuning.elite_first_room):
 		elite = run.elite_affix(Muet.ELITES)
 		run.elite_done = true
 	for species: StringName in wave[&"foes"]:
@@ -1029,6 +1070,7 @@ func _populate_village() -> void:
 		dancer.setup(VoxelStyles.dancer(i), "village_dancer_%d" % i, 1.0, EnemyMath.yaw_of(Vector3(-p.x, 0.0, -p.y)), float(i) / count, tuning.village_party_flip * (1 + i) if won else INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
 	var places: Dictionary[StringName, Vector2] = WorldGen.VILLAGE_PLOTS.duplicate()
 	places[RACK] = WorldGen.VILLAGE_RACK
+	places[PACT_STONE] = WorldGen.VILLAGE_PACTS
 	for id: StringName in places:
 		var p: Vector2 = places[id]
 		var mark := Node3D.new()
@@ -1066,6 +1108,18 @@ func _process_village(delta: float) -> void:
 ## Une case : rebâtie et au rang maximal, elle dit ce qu'elle fait ; sinon, on peut la rebâtir.
 func _talk_to_plot(id: StringName) -> void:
 	var tuning: TuningData = Tuning.data
+	if id == PACT_STONE:
+		var lines := PackedStringArray()
+		for pact: StringName in Pacts.IDS:
+			var amount: int = roundi({Pacts.THICK_SKIN: tuning.pact_muet_health, Pacts.HARD_HITS: tuning.pact_hard_hits, Pacts.FRAGILE: tuning.pact_fragile}.get(pact, 0.0) * 100.0)
+			var effect: String = GameTexts.PACT_TEXTS[pact].replace("%d", str(amount))
+			lines.append(GameTexts.PACT_CHOICE % [GameTexts.PACT_NAMES[pact], GameTexts.PACT_ON if Game.profile.pacts.has(pact) else "", effect, roundi(tuning.pact_bonus.get(pact, 0.0) * 100.0)])
+		lines.append(GameTexts.PACTS_DONE)
+		var all: Array[bool] = []
+		for i: int in lines.size():
+			all.append(true)
+		boon_screen.open_choices(GameTexts.PACTS_TITLE, GameTexts.PACTS_TEXT, lines, all)
+		return
 	if id == RACK:
 		var names := PackedStringArray()
 		var enabled: Array[bool] = []
@@ -1094,6 +1148,13 @@ func _talk_to_plot(id: StringName) -> void:
 func _on_build_choice(index: int) -> void:
 	var tuning: TuningData = Tuning.data
 	var id: StringName = _plot_near
+	if id == PACT_STONE:
+		if index < Pacts.IDS.size():
+			Game.profile.pacts = Pacts.toggle(Game.profile.pacts, Pacts.IDS[index])
+			Game.save()
+			# La pierre reste ouverte jusqu'à « C'est décidé ».
+			_talk_to_plot.call_deferred(PACT_STONE)
+		return
 	if id == RACK:
 		Game.profile.weapon = tuning.weapons[index].id
 		Game.save()

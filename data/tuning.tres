@@ -719,7 +719,7 @@ muet_answers = Dictionary[StringName, PackedStringArray]({
 &"boss": PackedStringArray("rainbow"),
 &"charger": PackedStringArray("stunned"),
 &"flyer": PackedStringArray("air_kick", "stunned"),
-&"hopper": PackedStringArray("armada"),
+&"hopper": PackedStringArray("armada", "maracas_4", "hammer_2", "dart_3"),
 &"shielder": PackedStringArray("dive", "rainbow", "behind"),
 &"spitter": PackedStringArray("rolling_kick"),
 &"weaver": PackedStringArray("dive", "rainbow"),
@@ -1387,3 +1387,14 @@ dazzle_stun = 0.8
 drumroll_radius = 1.6
 encounter_weaver_price = 30
 encounter_tree_heal = 0.5
+pact_bonus = Dictionary[StringName, float]({
+&"fragile": 0.3,
+&"hard_hits": 0.25,
+&"stingy": 0.2,
+&"thick_skin": 0.25
+})
+pact_muet_health = 0.4
+pact_hard_hits = 0.3
+pact_fragile = 0.3
+calibration_taps = 8
+calibration_max = 0.25

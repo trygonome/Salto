@@ -64,7 +64,7 @@ var bloom: float = 0.0
 
 
 ## Forces pour le profil `profile` et, en expédition, les dons pris `boons` (don → rang).
-static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[StringName, int] = {}) -> HeroStats:
+static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[StringName, int] = {}, pacts: Array[StringName] = []) -> HeroStats:
 	var stats := HeroStats.new()
 	var items: Array[ItemData] = profile.equipped_items()
 	var gear: Dictionary[StringName, float] = ItemMath.total_effects(items)
@@ -99,6 +99,11 @@ static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[Stri
 	stats.perfect_heal = tuning.legendary_heart_heal if legendaries.has(&"heart") else 0.0
 	stats.rainbow_damage = tuning.legendary_storm_damage if legendaries.has(&"storm") else 1.0
 	stats._apply_boons(boons, tuning)
+	# Pactes (version 2.9) : cœur fragile, coups rudes.
+	if pacts.has(Pacts.FRAGILE):
+		stats.max_health = roundf(stats.max_health * (1.0 - tuning.pact_fragile))
+	if pacts.has(Pacts.HARD_HITS):
+		stats.damage_taken *= 1.0 + tuning.pact_hard_hits
 	return stats
 
 

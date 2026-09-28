@@ -1617,3 +1617,14 @@ func weapon(weapon_id: StringName) -> WeaponData:
 		if item.id == weapon_id:
 			return item
 	return weapons[0] if not weapons.is_empty() else null
+
+@export_group("Confort mobile")
+## Pactes : plumes d'or en plus de chacun (part), PV des Muets en plus (peaux épaisses), dégâts reçus
+## en plus (coups rudes), PV du héros en moins (cœur fragile).
+@export var pact_bonus: Dictionary[StringName, float]
+@export var pact_muet_health: float
+@export var pact_hard_hits: float
+@export var pact_fragile: float
+## Calibration du son : appuis à mesurer, décalage maximal (s).
+@export var calibration_taps: int
+@export var calibration_max: float

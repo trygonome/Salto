@@ -598,7 +598,9 @@ const VILLAGE_PLOTS: Dictionary[StringName, Vector2] = {
 }
 const VILLAGE_CHIEF := Vector2(0.0, -6.0)
 ## Râtelier des instruments (version 2.8), près du passage du nord.
-const VILLAGE_RACK := Vector2(-7.0, -18.0)
+const VILLAGE_RACK := Vector2(-8.0, -23.0)
+## Pierre des pactes (version 2.9), de l'autre côté du passage.
+const VILLAGE_PACTS := Vector2(8.0, -23.0)
 const VILLAGE_FIRE_CLEAR := 3.0
 ## Couleurs codées du village rebâti (mode 2 : fixes, vives) et des chantiers (mode 4 : bues par le
 ## silence).
@@ -632,6 +634,7 @@ func _room_village(radius: float, gaps: PackedFloat32Array) -> void:
 			&"stage":
 				_village_stage(p)
 	_village_rack(VILLAGE_RACK)
+	_pact_stone(VILLAGE_PACTS)
 	_room_place(_palm, ROOM_PALMS, radius, gaps, 3.0)
 	_room_place(_fern, ROOM_FERNS, radius, gaps, 2.0)
 
@@ -650,6 +653,18 @@ func _village_rack(p: Vector2) -> void:
 			_sv(x, 4.2 - y * 0.8, p.y + 0.2, 0.6, colors[i].x, colors[i].y, colors[i].z + (0.1 if y == 2 else 0.0))
 	_add_solid(p.x, p.y, 1.2, 2.0)
 	_shadow(p.x, p.y, 3.5, 0.2)
+
+
+## Pierre des pactes : un monolithe sombre aux runes violettes.
+func _pact_stone(p: Vector2) -> void:
+	for y: int in 7:
+		var w: int = 1 if y < 5 else 0
+		for x: int in range(-w, w + 1):
+			for z: int in range(-1, 2):
+				var rune: bool = z == 1 and posmod(x + y, 3) == 0
+				_sv(p.x + x, y + 0.5, p.y + z, 1.0, 2.78 if rune else V_RUIN_STONE.x, 0.8 if rune else 0.1, 0.6 if rune else 0.25)
+	_add_solid(p.x, p.y, 1.8, 3.0)
+	_shadow(p.x, p.y, 3.0, 0.25)
 
 
 ## Chantier : quatre piquets, une pile de planches, des pierres renversées.

@@ -218,3 +218,9 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   30 %, Éclaboussure 0,6 de groove, Halo 12 %, Éblouissement 8 % (0,8 s) ; dons doubles : Feu de joie 40 %/s,
   Roulement 50 % (1,6 m), Bosquet sacré 6 PV, Floraison 15 % des PV.
 - Tisseuse : 30 plumes d'or. Arbre muet : +50 % des PV.
+
+## Confort mobile (version 2.9)
+- Pactes : peaux épaisses +40 % de PV des Muets (+25 % de plumes), coups rudes +30 % de dégâts reçus (+25 %),
+  cœur fragile −30 % de PV (+30 %), jungle avare sans soin ni repos (+20 %) ; les bonus s'additionnent.
+- Calibration : 8 appuis, médiane, bornée à ±250 ms.
+- Première expédition : vagues d'apprentissage sur les clairières 1 à 3 (1 puis 2 Muets), pas d'élite.

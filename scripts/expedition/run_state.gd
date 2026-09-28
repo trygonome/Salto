@@ -44,6 +44,10 @@ var extra_encounters: int = 0
 ## restants du gardien quand on tombe devant lui (part ; négatif : pas de gardien).
 var fallen_to: StringName = &""
 var boss_left: float = -1.0
+## Pactes de difficulté de l'expédition (version 2.9 ; voir Pacts) ; première expédition (les
+## vagues apprennent sans texte).
+var pacts: Array[StringName] = []
+var tutorial: bool = false
 var rng := RandomNumberGenerator.new()
 
 
@@ -118,6 +122,10 @@ func exit_rewards(count: int) -> Array[StringName]:
 	if room + 1 >= room_count - 1:
 		return [BOSS] as Array[StringName]
 	var pool: Array[StringName] = REWARDS.duplicate()
+	# Jungle avare (pacte) : ni soin ni repos.
+	if pacts.has(Pacts.STINGY):
+		pool.erase(HEAL)
+		pool.erase(REST)
 	for i: int in extra_encounters:
 		pool.append(ENCOUNTER)
 	var picks: Array[StringName] = []
@@ -147,3 +155,46 @@ func boon_ranks() -> int:
 	for id: StringName in boons:
 		total += boons[id]
 	return total
+
+
+## État à sauvegarder pour reprendre l'expédition plus tard (à l'entrée d'une clairière).
+func to_dict() -> Dictionary:
+	var saved_boons: Dictionary = {}
+	for id: StringName in boons:
+		saved_boons[String(id)] = boons[id]
+	return {
+		"seed": seed_value, "region": String(region), "rooms": room_count, "room": room, "reward": String(reward),
+		"boons": saved_boons, "feathers": feathers, "muets": muets_freed, "elapsed": elapsed,
+		"encounters_seen": Array(encounters_seen).map(func(id: StringName) -> String: return String(id)),
+		"elite_done": elite_done, "weapon": String(weapon), "extra_encounters": extra_encounters,
+		"pacts": Array(pacts).map(func(id: StringName) -> String: return String(id)), "tutorial": tutorial,
+		"rng_state": rng.state,
+	}
+
+
+## Expédition relue d'une sauvegarde (voir to_dict) ; null si elle est abîmée.
+static func from_dict(data: Dictionary) -> RunState:
+	if not data.has("seed") or not data.has("room"):
+		return null
+	var run := RunState.new(int(data["seed"]), maxi(2, int(data.get("rooms", 7))), StringName(str(data.get("region", Regions.UNDERGROWTH))))
+	run.room = clampi(int(data["room"]), 0, run.room_count - 1)
+	run.reward = StringName(str(data.get("reward", BOON)))
+	var saved_boons: Variant = data.get("boons", {})
+	if saved_boons is Dictionary:
+		for id: Variant in saved_boons:
+			run.boons[StringName(str(id))] = int(saved_boons[id])
+	run.feathers = int(data.get("feathers", 0))
+	run.muets_freed = int(data.get("muets", 0))
+	run.elapsed = float(data.get("elapsed", 0.0))
+	for id: Variant in data.get("encounters_seen", []):
+		run.encounters_seen.append(StringName(str(id)))
+	run.elite_done = bool(data.get("elite_done", false))
+	run.weapon = StringName(str(data.get("weapon", "rainstick")))
+	run.extra_encounters = int(data.get("extra_encounters", 0))
+	for id: Variant in data.get("pacts", []):
+		if Pacts.IDS.has(StringName(str(id))):
+			run.pacts.append(StringName(str(id)))
+	run.tutorial = bool(data.get("tutorial", false))
+	if data.has("rng_state"):
+		run.rng.state = int(data["rng_state"])
+	return run

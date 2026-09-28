@@ -108,6 +108,8 @@ func refresh() -> void:
 		_chapter.text = GameTexts.EXPEDITION_TITLE
 		_chapter_small.text = GameTexts.EXPEDITION_INFO % [profile.feathers, profile.best_room] if profile.best_room > 0 else GameTexts.EXPEDITION_PITCH
 		_play.text = GameTexts.EXPEDITION_START
+		if Game.has_saved_run():
+			_play.text = GameTexts.EXPEDITION_RESUME % [int(profile.saved_run.get("room", 0)) + 1, int(profile.saved_run.get("rooms", 7))]
 		_show_region()
 	_new_game.visible = profile.started
 	_reset_armed = false
@@ -165,6 +167,11 @@ func _step_weapon(step: int) -> void:
 
 func _on_play() -> void:
 	close()
+	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
+	# Une expédition interrompue se reprend là où elle s'était arrêtée.
+	if level and level.is_expedition() and Game.has_saved_run():
+		get_tree().call_group(&"night_level", &"resume_sortie")
+		return
 	get_tree().call_group(&"night_level", &"start_sortie")
 
 

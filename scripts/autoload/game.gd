@@ -188,6 +188,10 @@ func start_run(seed_number: int, rooms: int, region: StringName = &"") -> void:
 	run = RunState.new(seed_number, rooms, region if region != &"" else profile.region)
 	run.extra_encounters = Village.extra_encounters(profile)
 	run.weapon = Tuning.data.weapon(profile.weapon).id
+	run.pacts = profile.pacts.duplicate()
+	run.tutorial = profile.expeditions == 0
+	profile.expeditions += 1
+	profile.saved_run = {}
 	playing = true
 	at_village = false
 	refresh_stats()
@@ -211,7 +215,9 @@ func end_run(kind: StringName) -> Dictionary:
 	var reached: int = run.room + 1
 	var record: bool = reached > profile.best_room
 	profile.best_room = maxi(profile.best_room, reached)
-	profile.feathers += run.feathers
+	var brought: int = roundi(run.feathers * Pacts.feather_multiplier(run.pacts, Tuning.data))
+	profile.feathers += brought
+	profile.saved_run = {}
 	var unlocked: StringName = &""
 	if kind == &"won":
 		profile.runs_won += 1
@@ -220,7 +226,8 @@ func end_run(kind: StringName) -> Dictionary:
 			unlocked = Regions.next(run.region)
 	var summary: Dictionary = {
 		&"kind": kind, &"room": reached, &"rooms": run.room_count, &"muets": run.muets_freed,
-		&"boons": run.boon_ranks(), &"feathers": run.feathers, &"level": profile.level, &"time": run.elapsed,
+		&"boons": run.boon_ranks(), &"feathers": brought, &"level": profile.level, &"time": run.elapsed,
+		&"pacts": run.pacts.size(),
 		&"record": record, &"region": run.region, &"unlocked": unlocked,
 		&"fallen_to": run.fallen_to, &"boss_left": run.boss_left,
 	}
@@ -284,7 +291,10 @@ func refresh_stats() -> void:
 	var boons: Dictionary[StringName, int] = {}
 	if run:
 		boons = run.boons
-	stats = HeroStats.compute(profile, Tuning.data, boons)
+	var pacts: Array[StringName] = []
+	if run:
+		pacts = run.pacts
+	stats = HeroStats.compute(profile, Tuning.data, boons, pacts)
 
 
 ## Fin de la sortie : `kind` vaut &"night" (nuit accomplie), &"faint" (évanoui) ou &"quit" (rentré
@@ -355,6 +365,43 @@ func set_muted(muted: bool) -> void:
 
 func save() -> void:
 	Save.save_profile(profile)
+
+
+## Garde l'expédition en cours pour la reprendre si l'application se ferme (version 2.9) : à
+## l'entrée de chaque clairière, avec les PV du héros.
+func snapshot_run(health: float) -> void:
+	if run == null:
+		return
+	profile.saved_run = run.to_dict()
+	profile.saved_run["health"] = health
+	save()
+
+
+## Vrai si une expédition interrompue attend d'être reprise.
+func has_saved_run() -> bool:
+	return not profile.saved_run.is_empty() and profile.saved_run.has("seed")
+
+
+## Reprend l'expédition interrompue ; renvoie les PV du héros à rendre (négatif : impossible).
+func resume_run() -> float:
+	var saved: RunState = RunState.from_dict(profile.saved_run)
+	if saved == null:
+		profile.saved_run = {}
+		return -1.0
+	start_night(profile.night)
+	run = saved
+	playing = true
+	at_village = false
+	refresh_stats()
+	stats_changed.emit()
+	return float(profile.saved_run.get("health", stats.max_health))
+
+
+## Le téléphone met l'application de côté (appel, écran éteint) ou la ferme : on sauvegarde.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if profile:
+			save()
 
 
 func music_layers() -> int:

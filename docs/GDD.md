@@ -87,6 +87,22 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   - *la scène* (110) : la troupe accompagne l'expédition et la musique part avec une couche de plus.
   La musique du village gagne une couche par case rebâtie. Le passage du nord part en expédition ; la pause
   ramène à l'écran titre.
+- **Confort mobile** (version 2.9) :
+  - *Reprendre* : l'expédition se sauvegarde à l'entrée de chaque clairière (dons, plumes, PV, instrument,
+    pactes, tirages) ; si l'application se ferme (appel, écran éteint, fermeture), l'écran titre propose
+    « Reprendre · clairière N/7 », au début de cette clairière. Rentrer depuis la pause ou tomber l'efface.
+  - *Première expédition qui apprend sans texte* : une espèce à la fois — un sautillant, puis deux ; un
+    porte-bouclier seul (passer derrière), puis avec un sautillant ; un cornu (esquiver sa charge), puis un
+    volant et un sautillant ; pas d'élite avant la 4e clairière. Des conseils près du bon bouton, comme la nuit :
+    courir, frapper, esquiver, le coup de grâce, le coup chargé, et la réponse qu'attend chaque espèce la
+    première fois qu'on la croise (les neuf espèces). Le 4e coup des maracas, le 2e du tambour-marteau et la
+    3e fléchette répondent aussi au sautillant.
+  - *Calibrer le son* (pause) : on touche un grand tambour sur chaque temps ; après 8 appuis, le décalage médian
+    corrige le jugement du rythme (le tambour bat sur le temps corrigé). Remise à zéro possible.
+  - *Pactes* (la pierre des pactes, au village, à droite du passage) : peaux épaisses (+40 % de PV pour les
+    Muets, +25 % de plumes), coups rudes (les Muets frappent 30 % plus fort, +25 %), cœur fragile (30 % de PV en
+    moins, +30 %), jungle avare (ni soin ni repos en chemin, pas de soin dans les jarres, +20 %). Le bonus
+    s'affiche dans l'objectif du village ; le résumé compte les pactes.
 Le reste du document décrit la nuit dans le monde voxel (mode d'origine), dont l'expédition reprend le
 combat, les Muets et le monde.
 

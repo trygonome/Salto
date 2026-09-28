@@ -13,6 +13,8 @@ var hero: Hero
 func before_each() -> void:
 	Save.path = "user://test_expedition.json"
 	Game.profile = Profile.create()
+	# (Pas la première expédition : celle-là apprend avec ses propres vagues, voir test_comfort.)
+	Game.profile.expeditions = 1
 	Game.start_on_load = false
 	Game.run = null
 

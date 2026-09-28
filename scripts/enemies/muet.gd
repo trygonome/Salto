@@ -279,7 +279,9 @@ func max_health() -> float:
 	var tuning: TuningData = Tuning.data
 	var per_tier: float = tuning.boss_health_per_tier if is_boss() else tuning.muet_health_per_tier
 	var base: float = EnemyMath.scaled(stat(&"health"), per_tier, tier, tuning.muet_health_per_night, Game.night)
-	return roundf(base * (tuning.king_health_factor if king else 1.0) * (tuning.elite_health if elite != &"" else 1.0))
+	# Peaux épaisses (pacte, version 2.9) : plus de PV pendant l'expédition.
+	var pact: float = 1.0 + tuning.pact_muet_health if Game.run and Game.run.pacts.has(Pacts.THICK_SKIN) else 1.0
+	return roundf(base * (tuning.king_health_factor if king else 1.0) * (tuning.elite_health if elite != &"" else 1.0) * pact)
 
 
 ## Rayon de la frappe au sol (plus large pour le Roi Muet).

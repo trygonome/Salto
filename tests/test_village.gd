@@ -163,3 +163,17 @@ func test_la_pause_s_ouvre_au_village() -> void:
 	assert_true(pause.call(&"is_open"), "on peut ouvrir la pause au village")
 	assert_eq((pause.get_node("%Quit") as Button).text, GameTexts.QUIT_TO_TITLE)
 	pause.call(&"close")
+
+
+func test_les_endroits_du_village_ne_se_chevauchent_pas() -> void:
+	var places: Array[Vector2] = [WorldGen.VILLAGE_RACK, WorldGen.VILLAGE_PACTS, WorldGen.VILLAGE_CHIEF]
+	for id: StringName in WorldGen.VILLAGE_PLOTS:
+		places.append(WorldGen.VILLAGE_PLOTS[id])
+	# Dans la zone de l'un (Tuning.village_plot_radius), jamais dans celle d'un autre.
+	var apart: float = 2.0 * tuning.village_plot_radius / tuning.voxel_unit
+	for i: int in places.size():
+		assert_lt(places[i].length(), tuning.room_radius - 3.0, "dans la clairière")
+		for j: int in range(i + 1, places.size()):
+			if i == 2 or j == 2:
+				continue
+			assert_gt(places[i].distance_to(places[j]), apart, "deux endroits trop proches (%d, %d)" % [i, j])

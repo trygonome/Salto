@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3]
+[gd_scene load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -45,6 +45,7 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/drum_model.tscn" id="63_drum_model"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/drum_return.wav" id="64_drum_sound"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/chest.tscn" id="65_chest"]
+[ext_resource type="PackedScene" path="res://scenes/ui/calibration_screen.tscn" id="99_calibration"]
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_night")
@@ -133,3 +134,5 @@ autoplay = true
 [node name="DebugOverlay" parent="." instance=ExtResource("23_debug")]
 
 [node name="Effects" parent="." instance=ExtResource("90_effects")]
+
+[node name="CalibrationScreen" parent="." instance=ExtResource("99_calibration")]

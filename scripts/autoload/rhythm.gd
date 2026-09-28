@@ -133,8 +133,14 @@ static func band_volume_db(amount: float, tuning: TuningData) -> float:
 	return maxf(tuning.music_silent_db, tuning.music_volume_db + linear_to_db(amount))
 
 
-## Temps écoulé dans la musique depuis son début (s), tel qu'on l'entend.
+## Temps écoulé dans la musique depuis son début (s), tel qu'on l'entend : corrigé du décalage
+## mesuré par la calibration (version 2.9 ; Profile.audio_offset).
 func song_time() -> float:
+	return raw_song_time() - (Game.profile.audio_offset if Game.profile else 0.0)
+
+
+## Temps de la musique sans la calibration (pour la mesurer).
+func raw_song_time() -> float:
 	_follow_loops()
 	var position: float = _player.get_playback_position() + AudioServer.get_time_since_last_mix() - AudioServer.get_output_latency()
 	return _loops * _loop_length + position

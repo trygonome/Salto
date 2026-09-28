@@ -123,7 +123,8 @@ func _on_hurt(hit: HitData) -> void:
 ## Ce qu'une jarre contient : des plumes d'or le plus souvent, sinon un peu de soin.
 func _drop(hero: Hero, fx: Effects) -> void:
 	var tuning: TuningData = Tuning.data
-	if rng.randf() < tuning.jar_heal_chance:
+	var stingy: bool = Game.run != null and Game.run.pacts.has(Pacts.STINGY)
+	if not stingy and rng.randf() < tuning.jar_heal_chance:
 		var amount: float = hero.health.maximum * tuning.jar_heal
 		hero.health.heal(amount)
 		if fx:

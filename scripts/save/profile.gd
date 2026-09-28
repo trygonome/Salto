@@ -38,6 +38,12 @@ var region: StringName = Regions.UNDERGROWTH
 var village: Dictionary[StringName, int] = {}
 ## Instrument-arme choisi pour partir (version 2.8).
 var weapon: StringName = &"rainstick"
+## Version 2.9 : expéditions commencées, pactes choisis pour partir, expédition en cours à reprendre
+## (vide : aucune ; voir RunState.to_dict, plus les PV du héros), décalage audio mesuré (s).
+var expeditions: int = 0
+var pacts: Array[StringName] = []
+var saved_run: Dictionary = {}
+var audio_offset: float = 0.0
 ## Sorties cette nuit, et en tout.
 var sortie: int = 0
 var total_sorties: int = 0
@@ -223,12 +229,13 @@ func to_dict() -> Dictionary:
 		"finished": finished, "banked": banked.duplicate(), "band": saved_band,
 		"feathers": feathers, "best_room": best_room, "runs_won": runs_won,
 		"regions_won": Array(regions_won).map(func(r: StringName) -> String: return String(r)), "region": String(region),
-		"village": _saved_village(), "weapon": String(weapon),
+		"village": _saved_village(), "weapon": String(weapon), "expeditions": expeditions,
+		"pacts": Array(pacts).map(func(id: StringName) -> String: return String(id)), "saved_run": saved_run.duplicate(true),
 		"sortie": sortie, "total_sorties": total_sorties,
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
 		"pages": pages.duplicate(), "hints_done": saved_hints,
-		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted, "vibration": vibration},
+		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted, "vibration": vibration, "audio_offset": audio_offset},
 	}
 
 
@@ -271,6 +278,13 @@ static func from_dict(data: Dictionary) -> Profile:
 			if Village.IDS.has(StringName(str(id))):
 				profile.village[StringName(str(id))] = maxi(0, int(saved_village[id]))
 	profile.weapon = StringName(str(data.get("weapon", "rainstick")))
+	profile.expeditions = int(data.get("expeditions", 0))
+	for id: Variant in data.get("pacts", []):
+		if Pacts.IDS.has(StringName(str(id))):
+			profile.pacts.append(StringName(str(id)))
+	var saved_run: Variant = data.get("saved_run", {})
+	if saved_run is Dictionary:
+		profile.saved_run = saved_run
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))
@@ -308,4 +322,5 @@ static func from_dict(data: Dictionary) -> Profile:
 		profile.debug_info = bool(settings.get("debug_info", profile.debug_info))
 		profile.muted = bool(settings.get("muted", profile.muted))
 		profile.vibration = bool(settings.get("vibration", profile.vibration))
+		profile.audio_offset = clampf(float(settings.get("audio_offset", 0.0)), -Tuning.data.calibration_max, Tuning.data.calibration_max)
 	return profile

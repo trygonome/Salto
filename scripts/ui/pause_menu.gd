@@ -21,6 +21,7 @@ var _quit_armed: bool = false
 @onready var _vibration: Button = %Vibration
 @onready var _debug: Button = %DebugInfo
 @onready var _quit: Button = %Quit
+@onready var _calibrate: Button = %Calibrate
 
 
 func _ready() -> void:
@@ -47,6 +48,8 @@ func _ready() -> void:
 		_refresh())
 	_debug.visible = DebugOverlay.available()
 	_quit.pressed.connect(_on_quit)
+	_calibrate.text = GameTexts.CALIBRATE_BUTTON
+	_calibrate.pressed.connect(func() -> void: _open_sub(&"calibration_screen"))
 
 
 ## Met le jeu en pause et ouvre le menu (pendant une sortie seulement).
@@ -105,6 +108,11 @@ func _notification(what: int) -> void:
 func _refresh() -> void:
 	var profile: Profile = Game.profile
 	_info.text = GameTexts.NIGHT_CHAPTER % [Game.night, GameTexts.night_name(Game.night)]
+	var level: Level = get_tree().get_first_node_in_group(&"night_level") as Level
+	if level and level.is_expedition():
+		# En expédition : la région (au village : le village).
+		var region: StringName = Game.run.region if Game.run else profile.region
+		_info.text = GameTexts.VILLAGE_TITLE if bool(level.get(&"in_village")) else GameTexts.PAUSE_EXPEDITION % GameTexts.REGION_NAMES.get(region, "")
 	var home: bool = Game.at_village or not Game.playing
 	_bag.disabled = not home
 	_talents.disabled = not home

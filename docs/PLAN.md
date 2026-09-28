@@ -206,6 +206,10 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    - **Reprendre une expédition interrompue** (appel, fermeture de l'application).
    - Première expédition qui **apprend sans texte** (un seul sautillant, puis un porte-bouclier…).
    - Réglage du **décalage audio** (calibration) ; **pactes** de difficulté contre plus de plumes.
+   **Fait** (version 2.9) : reprise de l'expédition interrompue (sauvegarde à chaque clairière), première
+   expédition qui apprend une espèce à la fois, conseils de réponse des neuf espèces près des boutons (portés de
+   la nuit vers l'expédition), coup de grâce et coup chargé conseillés, calibration du son dans la pause, pierre
+   des pactes au village (quatre pactes, jusqu'à +100 % de plumes).
 
 Écarté du rapport de recherche : pénalité des coups à contretemps (le rythme récompense, ne punit
 pas) ; couche audio native Oboe/AAudio (chantier moteur ; la calibration suffit) ; masque qui cache les

@@ -59,3 +59,21 @@ static func compose(room: int, count: int, rng: RandomNumberGenerator, avoid: St
 ## Vrai si l'espèce se tient en retrait.
 static func back_row(species: StringName) -> bool:
 	return BACK_ROW.has(species)
+
+
+## Première expédition (version 2.9) : des vagues qui apprennent sans texte, une espèce à la fois —
+## un sautillant, puis deux ; un porte-bouclier seul (passer derrière), puis avec un sautillant ;
+## un cornu (esquiver sa charge), puis un volant et un sautillant. Vide : vague composée.
+const TUTORIAL: Array = [
+	[[&"hopper"], [&"hopper", &"hopper"]],
+	[[&"shielder"], [&"shielder", &"hopper"]],
+	[[&"charger"], [&"flyer", &"hopper"]],
+]
+
+
+## Vague `wave` de la clairière `room` de la première expédition (vide : au-delà).
+static func tutorial(room: int, wave: int) -> Array[StringName]:
+	var foes: Array[StringName] = []
+	if room < TUTORIAL.size() and wave < (TUTORIAL[room] as Array).size():
+		foes.assign(TUTORIAL[room][wave])
+	return foes

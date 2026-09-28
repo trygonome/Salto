@@ -133,7 +133,7 @@ func _ready() -> void:
 	visual.trail.inner_reach = tuning.trail_inner_reach
 	visual.trail.outer_reach = tuning.trail_outer_reach
 	level = tuning.hero_start_level
-	stats = HeroStats.compute(Game.profile, tuning, _run_boons())
+	stats = HeroStats.compute(Game.profile, tuning, _run_boons(), _run_pacts())
 	combo = ComboCounter.new(tuning.combo_timeout)
 	groove = GrooveGauge.new(tuning.groove_max)
 	rng.randomize()
@@ -246,6 +246,14 @@ func _run_boons() -> Dictionary[StringName, int]:
 	if Game.run:
 		boons = Game.run.boons
 	return boons
+
+
+## Pactes de l'expédition en cours (aucun hors expédition).
+func _run_pacts() -> Array[StringName]:
+	var pacts: Array[StringName] = []
+	if Game.run:
+		pacts = Game.run.pacts
+	return pacts
 
 
 ## Enchaînement de l'instrument en main.
@@ -884,7 +892,7 @@ func _on_stats_changed() -> void:
 	var before: float = health.maximum
 	# Les dons de l'expédition en cours comptent aussi (ils changeaient les forces calculées par
 	# Game, pas celles du héros : corrigé en 2.8).
-	stats = HeroStats.compute(Game.profile, tuning, _run_boons())
+	stats = HeroStats.compute(Game.profile, tuning, _run_boons(), _run_pacts())
 	hurtbox.damage_taken_multiplier = stats.damage_taken
 	health.set_maximum(stats.max_health)
 	if stats.max_health > before:
