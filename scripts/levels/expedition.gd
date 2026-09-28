@@ -80,6 +80,11 @@ const MUTE_TREE_BARK := Vector3(4.6, 0.05, 0.45)
 const MUTE_TREE_LEAF := Vector3(2.3, 0.8, 0.5)
 ## Village : cercle des danseurs autour du feu (u, au-delà du feu).
 const VILLAGE_DANCE_RING := 3.0
+## Habitants des cases (u) : à côté de leur case, et près du feu (distance au centre) ; leurs couleurs
+## (après celles des danseurs).
+const RESIDENT_SIDE := 9.0
+const RESIDENT_FIRE := 8.0
+const RESIDENT_STYLE := 10
 ## Le râtelier des instruments, parmi les endroits du village qui parlent.
 const RACK := &"rack"
 const PACT_STONE := &"pacts"
@@ -117,6 +122,11 @@ var _chief_lines := PackedStringArray()
 var _line_left: float = 0.0
 var _plot_near: StringName = &""
 var _plot_marks: Dictionary[StringName, Node3D] = {}
+## Habitants des cases rebâties (version 3.7), s'ils ont déjà parlé au héros qui passe, et l'humeur
+## du village (comment s'est finie la dernière expédition).
+var _residents: Dictionary[StringName, Villager] = {}
+var _resident_spoken: Dictionary[StringName, bool] = {}
+var _village_mood: StringName = &""
 ## Conseils près des boutons (version 2.9).
 var _coach: ExpeditionCoach
 ## Musique qui suit le combat (version 3.1) : couches de la clairière, et si l'on se bat.
@@ -590,6 +600,8 @@ func _on_stele_awakened() -> void:
 	if not in_sortie or Game.run == null or boon_screen.is_open():
 		return
 	_stele_pending = true
+	if not Game.run.events.has(&"stele"):
+		Game.run.events.append(&"stele")
 	hero.input_move = Vector2.ZERO
 	boon_screen.open(Boons.deal(Game.run.rng, Game.run.boons, Tuning.data.stele_offer, Tuning.data), GameTexts.STELE_TITLE)
 
@@ -644,6 +656,8 @@ func _wake_hidden() -> void:
 func _on_hidden_freed(_muet: Muet) -> void:
 	if Game.run:
 		Game.run.muets_freed += 1
+		if not Game.run.events.has(&"hidden"):
+			Game.run.events.append(&"hidden")
 
 
 ## Le rocher fêlé cède : un passage secret s'ouvrira là (tout de suite si les passages sont ouverts).
@@ -1244,10 +1258,13 @@ func enter_village() -> void:
 	_populate_village()
 	_add_gate(&"depart", WorldGen.gap_point(0.0, _radius - tuning.room_exit_inset / _unit))
 	Rhythm.set_layers(mini(1 + Village.built_count(Game.profile), Rhythm.NIGHT_LAYERS.size()))
-	Rhythm.set_band(Village.band_floor(Game.profile, tuning))
+	Rhythm.set_band(Village.village_band(Game.profile, tuning))
 	_chief_lines = Village.chief_lines(Game.last_summary, Game.profile, tuning)
 	_line_left = 0.0
 	_plot_near = &""
+	_village_mood = Game.last_summary.get(&"kind", &"")
+	# Version 3.7 : chaque gardien libéré rend sa couche à la musique du village.
+	Rhythm.set_region_mix(Village.guardian_layers(Game.profile))
 	if Game.last_summary.get(&"kind", &"") == &"won":
 		mood.burst()
 	Game.last_summary = {}
@@ -1276,6 +1293,7 @@ func _populate_village() -> void:
 		dancer.position = Vector3(p.x, 0.0, p.y) * _unit
 		pickups.add_child(dancer)
 		dancer.setup(VoxelStyles.dancer(i), "village_dancer_%d" % i, 1.0, EnemyMath.yaw_of(Vector3(-p.x, 0.0, -p.y)), float(i) / count, tuning.village_party_flip * (1 + i) if won else INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
+	_place_residents()
 	var places: Dictionary[StringName, Vector2] = WorldGen.VILLAGE_PLOTS.duplicate()
 	places[RACK] = WorldGen.VILLAGE_RACK
 	places[PACT_STONE] = WorldGen.VILLAGE_PACTS
@@ -1286,6 +1304,68 @@ func _populate_village() -> void:
 		mark.position = Vector3(p.x, 0.0, p.y) * _unit
 		pickups.add_child(mark)
 		_plot_marks[id] = mark
+
+
+## Un habitant par case rebâtie (version 3.7) : il vit à côté de sa case et va danser au feu, puis
+## revient ; il parle au héros qui passe près de lui.
+func _place_residents() -> void:
+	var tuning: TuningData = Tuning.data
+	_residents.clear()
+	_resident_spoken.clear()
+	var index: int = 0
+	for id: StringName in WorldGen.VILLAGE_PLOTS:
+		index += 1
+		if Village.rank(Game.profile, id) <= 0:
+			continue
+		var plot: Vector2 = WorldGen.VILLAGE_PLOTS[id]
+		var out: Vector2 = plot.normalized()
+		var side: Vector2 = out.orthogonal()
+		var home: Vector2 = plot + side * RESIDENT_SIDE
+		var fire: Vector2 = out * RESIDENT_FIRE + side * RESIDENT_SIDE * 0.5
+		var resident := Villager.new()
+		pickups.add_child(resident)
+		resident.setup(VoxelStyles.dancer(RESIDENT_STYLE + index), "village_resident_%s" % id, 1.0, EnemyMath.yaw_of(Vector3(-out.x, 0.0, -out.y)), float(index) / WorldGen.VILLAGE_PLOTS.size(), INF, character_material, character_shadow_material, tuning.villager_shadow_radius)
+		resident.set_route(Vector3(home.x, 0.0, home.y) * _unit, Vector3(fire.x, 0.0, fire.y) * _unit)
+		_residents[id] = resident
+		_resident_spoken[id] = false
+
+
+## Ce que dit l'habitant de la case `id` : après une victoire ou une chute, il en parle ; sinon ses
+## répliques, à tour de rôle d'une expédition à l'autre.
+func _resident_line(id: StringName) -> String:
+	if _village_mood == &"won":
+		return GameTexts.RESIDENT_WON
+	if _village_mood == &"faint":
+		return GameTexts.RESIDENT_FAINT
+	# (.get : un dictionnaire typé de tableaux lu avec une clé variable rend un tableau vide.)
+	var lines: PackedStringArray = GameTexts.RESIDENT_LINES.get(id, PackedStringArray([""]))
+	return lines[Game.profile.total_sorties % lines.size()]
+
+
+## Les habitants parlent au héros qui passe près d'eux (une réplique par passage, jamais pendant que le
+## Chef parle : un message à la fois).
+func _talk_residents(at: Vector2) -> void:
+	var tuning: TuningData = Tuning.data
+	for id: StringName in _residents:
+		var resident: Villager = _residents[id]
+		if not is_instance_valid(resident):
+			continue
+		var d: float = at.distance_to(Vector2(resident.global_position.x, resident.global_position.z))
+		if d > tuning.villager_talk_radius + tuning.village_plot_leave:
+			_resident_spoken[id] = false
+		elif d < tuning.villager_talk_radius and not _resident_spoken[id] and _line_left <= 0.0 and _chief_lines.is_empty():
+			_resident_spoken[id] = true
+			hud.show_bubble(_resident_line(id), resident, tuning.villager_bubble_height, tuning.village_line_time)
+			resident.greet()
+			_line_left = tuning.village_line_time + tuning.message_fade_time
+
+
+## Le Chef réagit à l'instrument choisi (page de départ, au village).
+func on_weapon_chosen(id: StringName) -> void:
+	if not in_village or not GameTexts.CHIEF_WEAPON.has(id):
+		return
+	_chief_lines.insert(0, GameTexts.CHIEF_WEAPON[id])
+	_line_left = 0.0
 
 
 ## Au village : le Chef dit ses répliques l'une après l'autre ; une case parle quand on s'en approche.
@@ -1300,6 +1380,7 @@ func _process_village(delta: float) -> void:
 	if boon_screen.is_open():
 		return
 	var at := Vector2(hero.global_position.x, hero.global_position.z)
+	_talk_residents(at)
 	if _plot_near != &"":
 		var mark: Node3D = _plot_marks.get(_plot_near)
 		if mark == null or at.distance_to(Vector2(mark.global_position.x, mark.global_position.z)) > tuning.village_plot_radius + tuning.village_plot_leave:

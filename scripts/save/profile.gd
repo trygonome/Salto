@@ -60,6 +60,9 @@ var next_item_id: int = 1
 var pages: Array[int] = []
 ## Aides contextuelles déjà suivies : elles ne reviennent plus.
 var hints_done: Array[StringName] = []
+## Premières fois déjà vécues (version 3.7 : le village en parle une fois) ; chutes en expédition.
+var firsts: Array[StringName] = []
+var faints: int = 0
 ## Réglages : chiffres de dégâts, infos de mise au point (versions de test), son coupé.
 var damage_numbers: bool = true
 ## Vibrations du téléphone sur les coups, les blessures, le Salto arc-en-ciel, les tambours.
@@ -207,6 +210,14 @@ func is_hint_done(hint: StringName) -> bool:
 	return hints_done.has(hint)
 
 
+## Vrai la première fois que `event` arrive (il est retenu : la fois suivante, faux).
+func first_time(event: StringName) -> bool:
+	if firsts.has(event):
+		return false
+	firsts.append(event)
+	return true
+
+
 func to_dict() -> Dictionary:
 	var saved_items: Array = []
 	for item: ItemData in items:
@@ -235,6 +246,7 @@ func to_dict() -> Dictionary:
 		"level": level, "xp": xp, "talent_points": talent_points, "talents": saved_talents,
 		"items": saved_items, "equipped": saved_equipped, "next_item_id": next_item_id,
 		"pages": pages.duplicate(), "hints_done": saved_hints,
+		"firsts": Array(firsts).map(func(e: StringName) -> String: return String(e)), "faints": faints,
 		"settings": {"damage_numbers": damage_numbers, "debug_info": debug_info, "muted": muted, "vibration": vibration, "audio_offset": audio_offset},
 	}
 
@@ -287,6 +299,9 @@ static func from_dict(data: Dictionary) -> Profile:
 		profile.saved_run = saved_run
 	profile.sortie = int(data.get("sortie", 0))
 	profile.total_sorties = int(data.get("total_sorties", 0))
+	for event: Variant in data.get("firsts", []):
+		profile.firsts.append(StringName(str(event)))
+	profile.faints = int(data.get("faints", 0))
 	profile.level = maxi(1, int(data.get("level", 1)))
 	profile.xp = float(data.get("xp", 0.0))
 	profile.talent_points = int(data.get("talent_points", 0))

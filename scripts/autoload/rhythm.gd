@@ -33,6 +33,8 @@ var _last_beat: int = -1
 var _audible_layers: int = 0
 var _band: float = 0.0
 var _region: StringName = &""
+## Couches de région audibles (version 3.7 : au village, une par gardien libéré).
+var _regions: Array[StringName] = []
 
 
 func _ready() -> void:
@@ -53,7 +55,7 @@ func play(layers: int) -> void:
 	var index: int = NIGHT_LAYERS.size() + 1
 	for region: StringName in REGION_LAYERS:
 		_music.set_sync_stream(index, load(REGION_LAYERS[region]) as AudioStream)
-		_music.set_sync_stream_volume(index, tuning.music_volume_db if region == _region else tuning.music_silent_db)
+		_music.set_sync_stream_volume(index, tuning.music_volume_db if _regions.has(region) else tuning.music_silent_db)
 		index += 1
 	_loop_length = _music.get_sync_stream(0).get_length()
 	_audible_layers = layers
@@ -106,13 +108,30 @@ func set_band(amount: float) -> void:
 ## Fait entendre la couche de la région `region` (vide ou inconnue : aucune), en fondu.
 func set_region(region: StringName) -> void:
 	_region = region
+	var only: Array[StringName] = [region]
+	_mix_regions(only)
+
+
+## Fait entendre ensemble les couches de `regions` (version 3.7 : au village, les gardiens libérés).
+func set_region_mix(regions: Array[StringName]) -> void:
+	_region = &""
+	_mix_regions(regions)
+
+
+## Couches de région audibles.
+func region_mix() -> Array[StringName]:
+	return _regions.duplicate()
+
+
+func _mix_regions(regions: Array[StringName]) -> void:
+	_regions = regions.duplicate()
 	if _music == null:
 		return
 	var tuning: TuningData = Tuning.data
 	var index: int = NIGHT_LAYERS.size() + 1
 	for id: StringName in REGION_LAYERS:
 		var channel: int = index
-		var target: float = tuning.music_volume_db if id == region else tuning.music_silent_db
+		var target: float = tuning.music_volume_db if _regions.has(id) else tuning.music_silent_db
 		var set_volume: Callable = func(db: float) -> void: _music.set_sync_stream_volume(channel, db)
 		create_tween().tween_method(set_volume, _music.get_sync_stream_volume(channel), target, tuning.music_layer_fade_time)
 		index += 1

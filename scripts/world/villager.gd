@@ -19,6 +19,11 @@ const FLIP_ARMS := {&"sLz": -0.3, &"sRz": 0.3}
 
 ## Le Chef Taroum (sinon un danseur).
 var is_chief: bool = false
+## Habitant d'une case (version 3.7) : il va et vient entre deux points (m), en dansant, et s'arrête
+## un moment à chaque bout ; vide : il danse sur place.
+var route := PackedVector3Array()
+var _leg: int = 0
+var _rest: float = 0.0
 
 var _body: VoxelCharacter
 ## Orientation de repos (rad), décalage de la danse (temps), salto en cours (0 à 1 ; -1 : aucun).
@@ -66,9 +71,41 @@ static func dance_amount(drums: int, won: bool, tuning: TuningData) -> float:
 	return tuning.villager_dance_base + tuning.villager_dance_per_drum * drums
 
 
+## Donne à l'habitant son va-et-vient entre `a` et `b` (m) ; il part de `a`.
+func set_route(a: Vector3, b: Vector3) -> void:
+	route = PackedVector3Array([a, b])
+	position = a
+	_leg = 1
+	_rest = Tuning.data.villager_rest_time * _rng.randf()
+
+
+## Vrai s'il est en chemin (entre deux pauses).
+func is_walking() -> bool:
+	return route.size() == 2 and _rest <= 0.0
+
+
+func _walk(delta: float, tuning: TuningData) -> void:
+	if route.size() != 2:
+		return
+	if _rest > 0.0:
+		_rest -= delta
+		return
+	var target: Vector3 = route[_leg]
+	var to := Vector3(target.x - position.x, 0.0, target.z - position.z)
+	var step: float = tuning.villager_walk_speed * delta
+	if to.length() <= step:
+		position = Vector3(target.x, position.y, target.z)
+		_leg = 1 - _leg
+		_rest = tuning.villager_rest_time
+		return
+	position += to.normalized() * step
+	_base_yaw = EnemyMath.yaw_of(to)
+
+
 func _process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	_time += delta
+	_walk(delta, tuning)
 	# Loin du héros, hors de vue : pas besoin de danser.
 	if not is_instance_valid(_hero):
 		_hero = get_tree().get_first_node_in_group(&"hero") as Node3D

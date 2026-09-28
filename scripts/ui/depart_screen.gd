@@ -58,6 +58,7 @@ func _render() -> void:
 			profile.weapon = weapon.id
 			Game.save()
 			get_tree().call_group(&"hero", &"equip", weapon.id)
+			get_tree().call_group(&"night_level", &"on_weapon_chosen", weapon.id)
 			_render())
 		_weapons.add_child(card)
 	_clear(_pacts)

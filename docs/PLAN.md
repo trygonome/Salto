@@ -323,6 +323,14 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    dons pris, morts, gardiens, première fois de chaque chose) ; les villageois ont leur place et leur vie ;
    chaque gardien libéré rend une couche à la musique du village. *Test : on revient au village pour voir ce
    qu'ils vont dire.*
+   **Fait** (version 3.7) : le Chef ajoute à son bilan une réplique qui réagit — une première fois (Muet
+   doré caché, stèle, don double, pacte, nouvel instrument ; chacune n'est dite qu'une fois, retenue dans
+   la sauvegarde), les chutes qui s'accumulent (la 3e, puis toutes les 5), sinon la famille de dons qui a
+   porté le héros ; il commente aussi l'instrument choisi sur la page de départ. Chaque case rebâtie a son
+   habitant, qui vit à côté d'elle, va danser au feu et revient ; il parle au héros qui passe (ses
+   répliques à tour de rôle, ou la victoire, ou la chute), jamais en même temps que le Chef. Chaque gardien
+   libéré rend sa couche à la musique du village (Ruines, Canopée ; le Grand Muet du Sous-bois rend la voix
+   de la troupe).
 9. **3.8 — Polissage mobile.** Vibrations sur les actions majeures, profilage (60 images/s), ratios d'écran
    (19,5:9, 20:9, tablettes), export web. *Test : fluide et confortable sur plusieurs téléphones.*
 

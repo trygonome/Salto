@@ -111,6 +111,12 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   clairière continue) ou un Muet doré endormi qui s'éveille quand on entre (de l'or, pas de don d'élite ;
   jamais pendant la première expédition). Un fourré cache plus souvent une stèle ou un Muet doré ; des
   rochers à l'entrée, plus souvent des plumes. Rien n'oblige à y aller.
+- **Hub vivant** (version 3.7) : au retour, le Chef ajoute une réplique qui réagit à ce qui s'est passé (une
+  première fois — Muet doré, stèle, don double, pacte, nouvel instrument —, les chutes qui s'accumulent, la
+  famille de dons qui a porté le héros) et commente l'instrument choisi au départ. Chaque case rebâtie a son
+  habitant (gardienne de l'autel, tambourinaire, porteuse d'eau, musicien de la scène) qui vit près d'elle,
+  va danser au feu et revient, et parle au héros qui passe. Chaque gardien libéré rend une couche à la
+  musique du village.
 - **Première minute** (version 3.6) : la toute première clairière est grise et muette ; une pierre du silence
   se dresse sur le chemin, son glyphe respire à peine. La frapper : les couleurs reviennent en vague, avec un
   premier accord, puis la musique et le premier sautillant. Chaque clairière libérée lance aussi une vague

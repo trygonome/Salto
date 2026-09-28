@@ -341,6 +341,37 @@ const CHIEF_RECORD := "Clairière %d ! Jamais un tambourinaire n'était allé si
 const CHIEF_EARLY := "Déjà de retour ? La jungle ne pardonne pas les pas pressés."
 const CHIEF_FAINT := "Tu t'es relevé, c'est l'essentiel. Repose-toi et repars."
 const CHIEF_QUIT := "Sage de rentrer. La jungle attendra."
+## Répliques qui réagissent (version 3.7) : premières fois, chutes, famille de dons.
+const CHIEF_FIRSTS: Dictionary[StringName, String] = {
+	&"hidden": "Un Muet doré dormait dans un recoin ? Il y en a d'autres.",
+	&"stele": "Une stèle t'a parlé ? Elles ne parlent qu'aux curieux.",
+	&"duo": "Deux esprits dans un seul don ! Ça, c'est rare.",
+	&"pact": "Un pacte… Les esprits aiment ceux qui cherchent la difficulté.",
+}
+const CHIEF_FIRST_WEAPON := "%s te va bien. Chaque instrument a sa manière."
+const CHIEF_WEAPON: Dictionary[StringName, String] = {
+	&"rainstick": "Le bâton de pluie. Souple et patient, comme toi.",
+	&"maracas": "Les maracas ! Vite, toujours plus vite.",
+	&"hammer": "Le tambour-marteau ? Frappe fort, alors.",
+	&"blowpipe": "La sarbacane. Garde tes distances, et vise juste.",
+}
+const CHIEF_FALLS := "%d chutes déjà. Tu tombes, tu te relèves : c'est ça, un tambour."
+const CHIEF_FAMILY: Dictionary[StringName, String] = {
+	&"feu": "Tu sens encore la braise. Le Feu t'a choisi.",
+	&"eau": "L'Eau te suivait partout. Elle protège ceux qui dansent.",
+	&"seve": "La Sève t'a gardé debout. Elle aime les patients.",
+	&"vent": "Le Vent te portait. On t'entendait venir de loin.",
+}
+## Habitants des cases rebâties (version 3.7) : ce qu'ils disent quand on passe près d'eux (une
+## réplique par visite, à tour de rôle) ; après une victoire, après une chute.
+const RESIDENT_LINES: Dictionary[StringName, PackedStringArray] = {
+	&"altar": ["Les esprits t'écoutent mieux depuis que l'autel est debout.", "J'ai allumé une braise pour toi.", "Un don de plus au choix : c'est l'autel qui le murmure."],
+	&"drum_hut": ["Je joue plus fort quand tu es loin. Tu m'entends ?", "Le vieux tambourinaire des clairières ? Mon cousin.", "Écoute la jungle : elle garde le rythme pour toi."],
+	&"spring": ["Bois : l'eau de la source donne du souffle.", "La source chante un peu plus chaque jour.", "Reviens entier, d'accord ?"],
+	&"stage": ["La troupe te suit en pensée, et un peu en musique.", "Encore un gardien, et on joue toute la nuit !", "Tu entends la nouvelle voix ? C'est pour toi."],
+}
+const RESIDENT_WON := "Tu l'as fait ! Toute la case danse."
+const RESIDENT_FAINT := "On a eu peur pour toi. Repose-toi un peu."
 const CHIEF_BUILD := "Tu as %d plumes d'or : de quoi rebâtir une case !"
 ## Tombé face à une espèce : le Chef rappelle sa réponse.
 const CHIEF_FALLEN: Dictionary[StringName, String] = {

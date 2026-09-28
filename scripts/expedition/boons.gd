@@ -55,6 +55,30 @@ static func max_rank(id: StringName, tuning: TuningData) -> int:
 	return 1 if DUOS.has(id) else tuning.boon_max_rank
 
 
+## Famille qui a reçu le plus de rangs parmi `boons` (id → rang ; les dons doubles ne comptent pas) ;
+## vide si aucun don (version 3.7 : le Chef en parle).
+static func dominant_family(boons: Dictionary) -> StringName:
+	var best: StringName = &""
+	var best_ranks: int = 0
+	for fam: StringName in [FEU, EAU, SEVE, VENT]:
+		var ranks: int = 0
+		for id: StringName in boons:
+			if not DUOS.has(id) and family(id) == fam:
+				ranks += int(boons[id])
+		if ranks > best_ranks:
+			best = fam
+			best_ranks = ranks
+	return best
+
+
+## Vrai si `boons` contient un don double.
+static func has_duo(boons: Dictionary) -> bool:
+	for id: StringName in boons:
+		if DUOS.has(id) and int(boons[id]) > 0:
+			return true
+	return false
+
+
 ## Famille d'un don simple (vide pour un don double).
 static func family(id: StringName) -> StringName:
 	return FAMILY.get(id, &"")

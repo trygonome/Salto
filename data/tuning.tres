@@ -1424,3 +1424,7 @@ passage_veil_alpha = 0.9
 silence_saturation = 0.03
 awakening_wave_delay = 1.6
 cleared_pulse = 0.35
+villager_walk_speed = 0.9
+villager_rest_time = 4.0
+villager_talk_radius = 1.6
+village_guardian_band = 0.6

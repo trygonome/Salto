@@ -224,12 +224,26 @@ func end_run(kind: StringName) -> Dictionary:
 		if not profile.regions_won.has(run.region):
 			profile.regions_won.append(run.region)
 			unlocked = Regions.next(run.region)
+	# Premières fois (version 3.7) : ce que le village n'a encore jamais vu faire au héros.
+	var candidates: Array[StringName] = run.events.duplicate()
+	candidates.append(StringName("weapon_%s" % run.weapon))
+	if not run.pacts.is_empty():
+		candidates.append(&"pact")
+	if Boons.has_duo(run.boons):
+		candidates.append(&"duo")
+	if kind == &"faint":
+		profile.faints += 1
+	var firsts: Array[StringName] = []
+	for event: StringName in candidates:
+		if profile.first_time(event):
+			firsts.append(event)
 	var summary: Dictionary = {
 		&"kind": kind, &"room": reached, &"rooms": run.room_count, &"muets": run.muets_freed,
 		&"boons": run.boon_ranks(), &"feathers": brought, &"level": profile.level, &"time": run.elapsed,
 		&"pacts": run.pacts.size(),
 		&"record": record, &"region": run.region, &"unlocked": unlocked,
 		&"fallen_to": run.fallen_to, &"boss_left": run.boss_left,
+		&"firsts": firsts, &"weapon": run.weapon, &"family": Boons.dominant_family(run.boons), &"faints": profile.faints,
 	}
 	last_summary = summary
 	run = null

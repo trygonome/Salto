@@ -48,6 +48,8 @@ var boss_left: float = -1.0
 ## vagues apprennent sans texte).
 var pacts: Array[StringName] = []
 var tutorial: bool = false
+## Ce qui s'est passé pendant l'expédition (version 3.7 : stèle, Muet caché…), pour le village.
+var events: Array[StringName] = []
 var rng := RandomNumberGenerator.new()
 
 
@@ -168,6 +170,7 @@ func to_dict() -> Dictionary:
 		"encounters_seen": Array(encounters_seen).map(func(id: StringName) -> String: return String(id)),
 		"elite_done": elite_done, "weapon": String(weapon), "extra_encounters": extra_encounters,
 		"pacts": Array(pacts).map(func(id: StringName) -> String: return String(id)), "tutorial": tutorial,
+		"events": Array(events).map(func(e: StringName) -> String: return String(e)),
 		"rng_state": rng.state,
 	}
 
@@ -195,6 +198,8 @@ static func from_dict(data: Dictionary) -> RunState:
 		if Pacts.IDS.has(StringName(str(id))):
 			run.pacts.append(StringName(str(id)))
 	run.tutorial = bool(data.get("tutorial", false))
+	for event: Variant in data.get("events", []):
+		run.events.append(StringName(str(event)))
 	if data.has("rng_state"):
 		run.rng.state = int(data["rng_state"])
 	return run

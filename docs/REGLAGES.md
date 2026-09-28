@@ -241,3 +241,5 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Maquette (3.6) : occlusion jusqu'à −32 % de luminosité (9 voisins sondés), −6 % au pied de ce qui se dresse ;
   monde muet à 3 % de saturation ; la première vague 1,6 s après la pierre frappée ; éclat de +35 % de
   saturation quand une clairière est libérée.
+- Hub (3.7) : habitants à 0,9 m/s, 4 s de pause à chaque bout (à 9 u de leur case, près du feu à 8 u du
+  centre) ; ils parlent à 1,6 m ; troupe à 60 % au village une fois le Grand Muet libéré.

@@ -1680,3 +1680,11 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var awakening_wave_delay: float
 ## Éclat de couleurs quand une clairière est libérée (saturation en plus, qui retombe).
 @export var cleared_pulse: float
+
+@export_group("Refonte 3.7 : hub vivant")
+## Habitants des cases : vitesse de marche (m/s), pause à chaque bout de leur chemin (s), distance où
+## ils parlent au héros (m) ; voix de la troupe au village une fois le Grand Muet libéré (0 à 1).
+@export var villager_walk_speed: float
+@export var villager_rest_time: float
+@export var villager_talk_radius: float
+@export var village_guardian_band: float
