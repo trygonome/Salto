@@ -12,6 +12,11 @@ const NORMAL_TIME_SCALE := 1.0
 var _resume_at_usec: int = 0
 var _slow_until_usec: int = 0
 var _slow_scale: float = NORMAL_TIME_SCALE
+## Horloge du jeu au lieu du temps réel (le robot joueur, qui joue en accéléré) : l'arrêt sur image
+## et le ralenti se comptent en images (1 / physics_ticks_per_second chacune).
+var game_clock: bool = false
+var _frozen_left: float = 0.0
+var _slow_left: float = 0.0
 
 
 func _ready() -> void:
@@ -24,6 +29,7 @@ func hit_stop(duration: float) -> void:
 		return
 	var until: int = Time.get_ticks_usec() + roundi(duration * 1_000_000.0)
 	_resume_at_usec = maxi(_resume_at_usec, until)
+	_frozen_left = maxf(_frozen_left, duration)
 	Engine.time_scale = 0.0
 
 
@@ -34,12 +40,15 @@ func is_frozen() -> bool:
 ## Ralentit le jeu à `time_scale` pendant `duration` secondes réelles.
 func slow_motion(duration: float, time_scale: float) -> void:
 	_slow_until_usec = Time.get_ticks_usec() + roundi(duration * 1_000_000.0)
+	_slow_left = duration
 	_slow_scale = time_scale
 	if not is_frozen():
 		Engine.time_scale = time_scale
 
 
 func is_slowed() -> bool:
+	if game_clock:
+		return _slow_left > 0.0
 	return Time.get_ticks_usec() < _slow_until_usec
 
 
@@ -55,6 +64,15 @@ func vibrate(pulse: Vector2) -> void:
 
 
 func _process(_delta: float) -> void:
+	if game_clock:
+		var frame: float = 1.0 / float(Engine.physics_ticks_per_second)
+		if _frozen_left > 0.0:
+			_frozen_left -= frame
+			if _frozen_left > 0.0:
+				return
+		_slow_left = maxf(0.0, _slow_left - frame)
+		Engine.time_scale = _slow_scale if _slow_left > 0.0 else NORMAL_TIME_SCALE
+		return
 	var now: int = Time.get_ticks_usec()
 	if now < _resume_at_usec:
 		return

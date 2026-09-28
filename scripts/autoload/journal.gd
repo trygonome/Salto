@@ -14,7 +14,9 @@ var directory: String = "user://journal"
 var enabled: bool = true
 
 var _path: String = ""
-var _start_usec: int = 0
+## Temps de jeu de la séance (s), hors pauses : sur le téléphone comme pour le robot joueur, qui joue
+## en accéléré.
+var _time: float = 0.0
 var _lines := PackedStringArray()
 var _flush_left: float = 0.0
 ## Clairière en cours : ses données, ses compteurs, ses images.
@@ -57,8 +59,10 @@ func _process(delta: float) -> void:
 	var tuning: TuningData = Tuning.data
 	for error: Dictionary in _logger.take():
 		_on_error(error, tuning)
-	if not get_tree().paused and not _room.is_empty():
-		_add_frame(_perf, delta, tuning)
+	if not get_tree().paused:
+		_time += delta
+		if not _room.is_empty():
+			_add_frame(_perf, delta, tuning)
 	_flush_left -= delta
 	if _flush_left <= 0.0:
 		_flush_left = tuning.journal_flush_period
@@ -233,7 +237,7 @@ static func _new_perf() -> Dictionary:
 
 
 func _seconds() -> float:
-	return float(Time.get_ticks_usec() - _start_usec) / 1000000.0
+	return _time
 
 
 ## La séance commence au premier évènement : un fichier neuf, l'appareil et ses réglages.
@@ -244,7 +248,7 @@ func _ensure_session() -> void:
 	_prune()
 	var stamp: String = Time.get_datetime_string_from_system().replace(":", "-").replace("T", "_")
 	_path = directory.path_join("session-%s.jsonl" % stamp)
-	_start_usec = Time.get_ticks_usec()
+	_time = 0.0
 	var screen: Vector2i = DisplayServer.screen_get_size()
 	var profile: Profile = Game.profile
 	_lines.append(JSON.stringify({

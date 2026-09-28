@@ -52,6 +52,11 @@ Godot, les modèles d'export et le SDK Android dans `~/.cache/salto-tools` (doss
 - **Journal de jeu** (autoload `Journal`, version 4.2.1) : chaque séance est notée dans `user://journal/`
   (JSON, une ligne par évènement) ; Réglages > « Copier le journal » met un résumé lisible dans le
   presse-papiers (`JournalDigest`). Les tests le coupent (`tests/pre_run.gd`).
+- **Robot joueur** : `tools/robot.sh [--runs N] [--skill faible|moyen|fort] [--beyond N] [--seed N]` — enchaîne des
+  expéditions en accéléré (sans fenêtre ; musique et arrêts sur image au pas du jeu) : marche, combat, esquive,
+  danses, dons, portes, au-delà, progression entre les parties. Rapport dans `build/robot/rapport.md` (issues,
+  profondeur, difficulté par clairière, causes des chutes, coups, blocages, erreurs), journal dans
+  `build/robot/journal/`. Code dans `tests/bot/` (hors export).
 - **Exporter la version web** : `tools/export_web.sh` → `build/web/` (moteur Compatibility, sans threads :
   s'héberge partout, par exemple sur itch.io). L'essayer en local : `tools/serve_web.sh` puis
   http://localhost:8060. Sur le web, la musique ne démarre qu'après un premier toucher ou clic.

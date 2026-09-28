@@ -35,6 +35,10 @@ var _band: float = 0.0
 var _region: StringName = &""
 ## Couches de région audibles (version 3.7 : au village, une par gardien libéré).
 var _regions: Array[StringName] = []
+## Horloge du jeu au lieu de celle du son : le robot joueur joue en accéléré, la musique (et donc
+## les attaques des Sourdines sur les temps) doit avancer au même pas que le jeu.
+var game_clock: bool = false
+var _game_time: float = 0.0
 
 
 func _ready() -> void:
@@ -60,6 +64,7 @@ func play(layers: int) -> void:
 	_loop_length = _music.get_sync_stream(0).get_length()
 	_audible_layers = layers
 	_loops = 0
+	_game_time = 0.0
 	_last_position = 0.0
 	_last_beat = -1
 	_player.stream = _music
@@ -160,6 +165,8 @@ func song_time() -> float:
 
 ## Temps de la musique sans la calibration (pour la mesurer).
 func raw_song_time() -> float:
+	if game_clock:
+		return _game_time
 	_follow_loops()
 	var position: float = _player.get_playback_position() + AudioServer.get_time_since_last_mix() - AudioServer.get_output_latency()
 	return _loops * _loop_length + position
@@ -183,9 +190,11 @@ func judge_now(window: float = 1.0) -> RhythmMath.Judgement:
 	return RhythmMath.judge(RhythmMath.beat_offset(song_time(), beat_length()), Tuning.data, window)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not is_playing():
 		return
+	if game_clock:
+		_game_time += delta
 	var index: int = floori(song_time() / beat_length())
 	if get_tree().paused:
 		# La musique continue pendant la pause, mais le monde arrêté ne reçoit pas de temps.

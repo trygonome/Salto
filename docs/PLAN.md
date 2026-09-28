@@ -443,6 +443,12 @@ récit des ennemis ; un entretien de la forêt au village (pas de plantations : 
    accrocs, temps de génération), les choix (passages, dons proposés et pris, rencontres, cases,
    talents, niveaux) et les erreurs du moteur. Réglages > « Copier le journal » : un résumé lisible des
    dix dernières séances dans le presse-papiers, à coller dans la conversation. 40 séances gardées.
+   **Robot joueur** (outil, demande du joueur) : `tools/robot.sh` joue des expéditions en accéléré comme un
+   joueur moyen (suit les sentiers, frappe la pierre, combat, esquive, plonge par-dessus les boucliers,
+   danse, tente l'arc-en-ciel, choisit dons et portes, va au-delà) et progresse entre les parties (talents,
+   cases, instruments, régions). Il détecte les blocages (plus rien n'avance) et les soucis de marche, et
+   écrit un rapport. Il trouve les bugs et compare les forces (espèces, coups) ; il ne dit pas si c'est
+   difficile pour un humain (il voit tout, tout de suite) : ça, c'est le journal du téléphone.
 4. **4.3 — À deux : la coop en ligne.** (Demande du joueur.) Deux héros dans la même expédition, contre
    les Sourdines. Un téléphone héberge la partie (il décide de tout : Sourdines, dons, clairières), l'autre
    la rejoint avec un code de quatre lettres ; il envoie ses commandes et reçoit l'état du monde. Entre
