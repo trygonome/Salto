@@ -243,3 +243,5 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   saturation quand une clairière est libérée.
 - Hub (3.7) : habitants à 0,9 m/s, 4 s de pause à chaque bout (à 9 u de leur case, près du feu à 8 u du
   centre) ; ils parlent à 1,6 m ; troupe à 60 % au village une fois le Grand Muet libéré.
+- Polissage (3.8) : vibration d'un gardien libéré 0,3 s à pleine force ; base de l'interface 800 × 400 (étirée en
+  « expand » : 889 × 400 sur un 20:9, 800 × 600 sur une tablette 4:3).

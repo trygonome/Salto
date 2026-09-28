@@ -374,7 +374,13 @@ func test_un_long_titre_d_ecran_ne_se_coupe_pas_au_milieu_d_un_mot() -> void:
 	await _open_level()
 	var screen: BoonScreen = level.get_node("BoonScreen") as BoonScreen
 	screen.open_choices("Le vieux tambourinaire", "…", PackedStringArray(["A : b", "C : d"]), [true, true] as Array[bool])
-	assert_eq((screen.get_node("%Title") as Label).theme_type_variation, &"ScreenTitleSmall")
+	var title: Label = screen.get_node("%Title") as Label
+	var style: StringName = title.theme_type_variation
+	var font: Font = title.get_theme_font(&"font", style)
+	var size: int = title.get_theme_font_size(&"font_size", style)
+	var available: float = get_viewport().get_visible_rect().size.x - 2.0 * screen.side_margin
+	for word: String in title.text.split(" ", false):
+		assert_lte(font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x, available, "« %s » tient sur une ligne (%s)" % [word, style])
 	screen.hide_screen()
 	get_tree().paused = false
 

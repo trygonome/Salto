@@ -18,6 +18,8 @@ extends Node3D
 
 ## Les murs du bord se chevauchent un peu pour ne laisser aucune fente.
 const BORDER_OVERLAP := 1.2
+## Nombres par cube dans le tampon d'un MultiMesh : transformation (3 × 4), couleur codée (4).
+const INSTANCE_FLOATS := 16
 
 var gen: WorldGen
 
@@ -97,11 +99,24 @@ func _build_voxels() -> void:
 		multimesh.use_custom_data = true
 		multimesh.mesh = cube
 		multimesh.instance_count = offsets.size()
+		# Version 3.8 : tout le paquet d'un coup (transformation puis couleur codée, 16 nombres par cube),
+		# bien plus rapide qu'un appel par cube.
+		var buffer := PackedFloat32Array()
+		buffer.resize(offsets.size() * INSTANCE_FLOATS)
 		for k: int in offsets.size():
 			var o: int = offsets[k]
 			var size: float = data[o + 6] * _unit
-			multimesh.set_instance_transform(k, Transform3D(Basis.from_scale(Vector3.ONE * size), Vector3(data[o], data[o + 1], data[o + 2]) * _unit))
-			multimesh.set_instance_custom_data(k, Color(data[o + 3], data[o + 4], data[o + 5], 0.0))
+			var b: int = k * INSTANCE_FLOATS
+			buffer[b] = size
+			buffer[b + 3] = data[o] * _unit
+			buffer[b + 5] = size
+			buffer[b + 7] = data[o + 1] * _unit
+			buffer[b + 10] = size
+			buffer[b + 11] = data[o + 2] * _unit
+			buffer[b + 12] = data[o + 3]
+			buffer[b + 13] = data[o + 4]
+			buffer[b + 14] = data[o + 5]
+		multimesh.buffer = buffer
 		var instance := MultiMeshInstance3D.new()
 		instance.name = "Voxels_%d_%d" % [cell.x, cell.y]
 		instance.multimesh = multimesh
@@ -157,19 +172,15 @@ func _build_solids() -> void:
 	body.name = "Solids"
 	body.collision_layer = 1
 	body.collision_mask = 0
-	add_child(body)
 	var floor_shape := CollisionShape3D.new()
 	floor_shape.shape = WorldBoundaryShape3D.new()
 	body.add_child(floor_shape)
+	# Version 3.8 : des formes posées directement sur le corps (sans nœud par obstacle), partagées
+	# entre obstacles de même taille — bien plus rapide à construire.
+	var shapes: Dictionary[Vector2, CylinderShape3D] = {}
 	for s: WorldGen.Solid in gen.solids:
 		var height: float = tuning.world_wall_height if s.h >= WorldGen.WALL else s.h * _unit
-		var cylinder := CylinderShape3D.new()
-		cylinder.radius = s.r * _unit
-		cylinder.height = height
-		var shape := CollisionShape3D.new()
-		shape.shape = cylinder
-		shape.position = Vector3(s.x * _unit, height / 2.0, s.z * _unit)
-		body.add_child(shape)
+		_add_cylinder(body, shapes, s.r * _unit, height, Vector3(s.x * _unit, height / 2.0, s.z * _unit))
 		if s.kind == WorldGen.BOUNCE:
 			_add_bounce_pad(s)
 	# Estrades, plateformes et passerelles : des boîtes pleines depuis le sol.
@@ -183,6 +194,23 @@ func _build_solids() -> void:
 		var center: Vector2 = rect.get_center() * _unit
 		shape.position = Vector3(center.x, height / 2.0, center.y)
 		body.add_child(shape)
+	# (Ajouté au monde une fois toutes ses formes posées : plus rapide.)
+	add_child(body)
+
+
+## Un cylindre (rayon, hauteur en m) posé en `at` sur `body`, par un propriétaire de forme (pas de
+## nœud) ; la forme est partagée avec les cylindres de même taille (`shapes`).
+func _add_cylinder(body: StaticBody3D, shapes: Dictionary[Vector2, CylinderShape3D], radius: float, height: float, at: Vector3) -> void:
+	var size := Vector2(radius, height)
+	var cylinder: CylinderShape3D = shapes.get(size)
+	if cylinder == null:
+		cylinder = CylinderShape3D.new()
+		cylinder.radius = radius
+		cylinder.height = height
+		shapes[size] = cylinder
+	var owner_id: int = body.create_shape_owner(body)
+	body.shape_owner_add_shape(owner_id, cylinder)
+	body.shape_owner_set_transform(owner_id, Transform3D(Basis.IDENTITY, at))
 
 
 func _add_bounce_pad(s: WorldGen.Solid) -> void:
@@ -201,17 +229,13 @@ func _build_border() -> void:
 	body.name = "Border"
 	body.collision_layer = 1
 	body.collision_mask = 0
-	add_child(body)
 	if not gen.fence.is_empty():
+		var shapes: Dictionary[Vector2, CylinderShape3D] = {}
 		for p: Vector2 in gen.fence:
-			var post := CylinderShape3D.new()
-			post.radius = WorldGen.FENCE_R * _unit
-			post.height = tuning.world_wall_height
-			var shape := CollisionShape3D.new()
-			shape.shape = post
-			shape.position = Vector3(p.x * _unit, tuning.world_wall_height / 2.0, p.y * _unit)
-			body.add_child(shape)
+			_add_cylinder(body, shapes, WorldGen.FENCE_R * _unit, tuning.world_wall_height, Vector3(p.x * _unit, tuning.world_wall_height / 2.0, p.y * _unit))
+		add_child(body)
 		return
+	add_child(body)
 	var radius: float = gen.border_radius * _unit + tuning.world_border_thickness / 2.0
 	var count: int = tuning.world_border_segments
 	var width: float = TAU * radius / count * BORDER_OVERLAP

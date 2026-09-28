@@ -333,6 +333,14 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    de la troupe).
 9. **3.8 — Polissage mobile.** Vibrations sur les actions majeures, profilage (60 images/s), ratios d'écran
    (19,5:9, 20:9, tablettes), export web. *Test : fluide et confortable sur plusieurs téléphones.*
+   **Fait** (version 3.8) : vibrations en plus sur les grands moments (passage, pierre du silence, stèle,
+   clairière libérée, gardien libéré). Écrans : base de l'interface à 800 × 400 — les téléphones (19,5:9,
+   20:9) gardent exactement la même mise en page, les tablettes (16:10, 4:3) gagnent de la hauteur au lieu
+   de perdre de la largeur (plus rien ne déborde). Profilage de la construction d'une clairière (derrière
+   le voile du passage) : de ~140 ms à ~60 ms sur PC — occlusion par clés voisines (48 → 20 ms), cubes
+   envoyés d'un bloc à la carte graphique, formes de collision posées sans nœuds et le corps ajouté au
+   monde une fois rempli (55 → 18 ms). Export web reconstruit (Compatibility). Reste à mesurer sur le
+   téléphone : les images/s en jeu (« Infos techniques » dans les Réglages).
 
 Retours sur la version 2.9 intégrés à ces jalons :
 - **Bug** : le bouton jaune « Partir en expédition » de l'écran titre ne répondait pas (il a fallu passer

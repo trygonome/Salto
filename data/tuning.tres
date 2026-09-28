@@ -1428,3 +1428,4 @@ villager_walk_speed = 0.9
 villager_rest_time = 4.0
 villager_talk_radius = 1.6
 village_guardian_band = 0.6
+vibration_guardian = Vector2(0.3, 1)

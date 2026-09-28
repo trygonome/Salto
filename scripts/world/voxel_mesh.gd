@@ -22,10 +22,23 @@ static func create(cells: PackedFloat32Array, material: Material) -> MultiMeshIn
 	multimesh.use_custom_data = true
 	multimesh.mesh = cube()
 	multimesh.instance_count = count
+	# Tout le paquet d'un coup (transformation puis couleur codée, 16 nombres par cube).
+	var buffer := PackedFloat32Array()
+	buffer.resize(count * WorldBuilder.INSTANCE_FLOATS)
 	for i: int in count:
 		var o: int = i * WorldGen.STRIDE
-		multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ONE * cells[o + 6]), Vector3(cells[o], cells[o + 1], cells[o + 2])))
-		multimesh.set_instance_custom_data(i, Color(cells[o + 3], cells[o + 4], cells[o + 5], 0.0))
+		var b: int = i * WorldBuilder.INSTANCE_FLOATS
+		buffer[b] = cells[o + 6]
+		buffer[b + 3] = cells[o]
+		buffer[b + 5] = cells[o + 6]
+		buffer[b + 7] = cells[o + 1]
+		buffer[b + 10] = cells[o + 6]
+		buffer[b + 11] = cells[o + 2]
+		buffer[b + 12] = cells[o + 3]
+		buffer[b + 13] = cells[o + 4]
+		buffer[b + 14] = cells[o + 5]
+	if count > 0:
+		multimesh.buffer = buffer
 	var instance := MultiMeshInstance3D.new()
 	instance.multimesh = multimesh
 	instance.material_override = material

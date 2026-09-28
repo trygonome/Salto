@@ -600,6 +600,7 @@ func _on_stele_awakened() -> void:
 	if not in_sortie or Game.run == null or boon_screen.is_open():
 		return
 	_stele_pending = true
+	Feedback.vibrate(Tuning.data.vibration_strong)
 	if not Game.run.events.has(&"stele"):
 		Game.run.events.append(&"stele")
 	hero.input_move = Vector2.ZERO
@@ -624,6 +625,7 @@ func _awaken() -> void:
 	if not in_sortie or _stone == null:
 		return
 	var at: Vector3 = _stone.global_position
+	Feedback.vibrate(tuning.vibration_rainbow)
 	mood.silence(false)
 	mood.wave(at, false)
 	mood.pulse(tuning.cleared_pulse)
@@ -872,6 +874,7 @@ func _room_cleared() -> void:
 	# Version 3.6 : la clairière libérée, une vague de couleur part du héros sur le sol.
 	mood.wave(hero.global_position, false)
 	mood.pulse(tuning.cleared_pulse)
+	Feedback.vibrate(tuning.vibration_strong)
 	var fx: Effects = Effects.of(self)
 	# Repousse (don) : chaque clairière nettoyée soigne un peu.
 	if hero.stats.regrowth > 0.0:
@@ -961,6 +964,7 @@ func _on_gate_chosen(reward: StringName) -> void:
 	var veil: Color = _gate_color(reward)
 	_fade.color = Color(veil.r, veil.g, veil.b, 0.0)
 	Rhythm.set_layers(1)
+	Feedback.vibrate(tuning.vibration_drum)
 	if _passage_player.stream:
 		_passage_player.play()
 	var tween: Tween = create_tween()
@@ -1210,6 +1214,7 @@ func _on_boss_freed(_muet: Muet) -> void:
 	_ending = true
 	mood.set_progress(1.0, false)
 	get_tree().call_group(&"world_mood", &"burst")
+	Feedback.vibrate(tuning.vibration_guardian)
 	hud.show_banner(GameTexts.GUARDIAN_NAMES.get(Game.run.region, GameTexts.ROOM_BOSS_TITLE) if Game.run else GameTexts.ROOM_BOSS_TITLE, GameTexts.RUN_WON, "")
 	get_tree().create_timer(tuning.night_summary_delay, false).timeout.connect(end_sortie.bind(&"won"))
 

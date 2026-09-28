@@ -213,7 +213,7 @@ func _refresh_deck() -> void:
 			var rank: int = Game.run.boons[id]
 			if rank <= 0:
 				continue
-			var color: Color = VoxelIcons.family_color(Boons.family(id), true)
+			var color: Color = VoxelIcons.family_color(Boons.family(id), false)
 			_add_card(VoxelIcons.boon(id), GameTexts.boon_name(id), GameTexts.MENU_RANK % rank, GameTexts.boon_text(id, rank, Tuning.data), color)
 	_scroll.scroll_vertical = 0
 

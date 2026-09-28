@@ -1688,3 +1688,7 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var villager_rest_time: float
 @export var villager_talk_radius: float
 @export var village_guardian_band: float
+
+@export_group("Refonte 3.8 : polissage mobile")
+## Vibration d'un gardien libéré (durée s, force 0 à 1).
+@export var vibration_guardian: Vector2
