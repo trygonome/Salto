@@ -254,6 +254,10 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    étourdissement), Sève verte (soin, PV, racines), Vent jaune (vitesse, groove, Salto arc-en-ciel) ; les
    dons « rythme » deviennent autre chose ; dons doubles recomposés. Passe de « game feel » sur les impacts.
    *Test : sans y penser, frapper est agréable ; le groove monte en se battant bien.*
+   **Fait** (version 3.1) : plus de jugement ni d'anneau ni de calibration ; groove gagné en frappant, plus
+   avec le combo ; note qui monte avec le combo à chaque coup qui touche ; pulsation du monde réduite à une
+   respiration (30 %) ; musique qui s'étoffe pendant les combats ; dons en quatre familles (Feu, Eau, Sève,
+   Vent), trois dons d'Eau nouveaux (Brume, Ressac, Givre), Geyser à la place de Roulement.
 3. **3.2 — Langage visuel : icônes voxel et couleurs.** Chaque don, objet, instrument, case du village et
    récompense a sa petite icône voxel animée (elle tourne, respire) ; le cadre, la gemme de rareté et les
    mots-clés portent la couleur de la famille ; un effet se comprend à l'image avant le texte (deux lignes

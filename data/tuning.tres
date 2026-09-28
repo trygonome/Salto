@@ -672,7 +672,6 @@ fx_spawn_ring = 0.8
 fx_spawn_ring_time = 0.5
 fx_heal_hue = 0.93
 boon_values = Dictionary[StringName, float]({
-&"accent": 0.2,
 &"anchor": 0.25,
 &"bark": 0.08,
 &"blaze": 0.25,
@@ -680,16 +679,17 @@ boon_values = Dictionary[StringName, float]({
 &"cinders": 0.3,
 &"counterpoint": 0.4,
 &"dazzle": 0.08,
-&"drumroll": 0.5,
 &"echo": 0.5,
 &"ember": 0.35,
 &"forge": 0.3,
+&"frost": 0.12,
 &"fury": 0.12,
+&"geyser": 0.8,
 &"halo": 0.12,
 &"hawk": 0.1,
 &"heart": 25.0,
 &"meteor": 0.35,
-&"metronome": 0.3,
+&"mist": 0.1,
 &"prism": 0.3,
 &"rainbow": 0.3,
 &"regrowth": 8.0,
@@ -697,9 +697,9 @@ boon_values = Dictionary[StringName, float]({
 &"sap": 4.0,
 &"splash": 0.6,
 &"swift": 0.12,
-&"syncopation": 0.3,
 &"tempo": 0.1,
 &"thorns": 0.8,
+&"tide": 0.5,
 &"wildfire": 0.4
 })
 boon_max_rank = 3
@@ -1400,3 +1400,11 @@ calibration_taps = 8
 calibration_max = 0.25
 trap_sound_db = -14.0
 trap_sound_distance = 7.0
+groove_hit = 0.35
+groove_combo_step = 0.08
+groove_combo_cap = 12.0
+frost_time = 2.0
+frost_max = 0.6
+talent_metro_speed = 0.06
+world_beat_amount = 0.3
+music_fight_layers = 1

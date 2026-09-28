@@ -29,7 +29,7 @@ func physics_update(delta: float) -> void:
 	var tuning: TuningData = hero.tuning
 	_elapsed += delta
 	var fraction: float = _elapsed / tuning.roll_duration
-	hero.invulnerable = HeroMotion.is_roll_invulnerable(fraction, tuning)
+	hero.invulnerable = HeroMotion.is_roll_invulnerable(fraction, tuning, hero.stats.roll_invuln)
 	if hero.consume_press(&"attack"):
 		machine.transition_to(&"Attack")
 		return

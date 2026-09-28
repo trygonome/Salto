@@ -1,6 +1,7 @@
 extends "res://tests/hero_test_base.gd"
-## Le rythme au combat : un appui jugé Parfait ou Bien frappe plus fort, remplit la jauge
-## (une fois par coup) ; jauge pleine, Frappe en l'air lance le Salto arc-en-ciel.
+## La jauge de groove au combat (version 3.1 : combat libre) : un coup qui touche la remplit (une
+## fois par coup, plus avec le combo), qu'il soit en rythme ou non ; un jugement imposé (tests)
+## ajoute encore son bonus. Jauge pleine, Frappe en l'air lance le Salto arc-en-ciel.
 
 var landed: Array[HitData] = []
 var judgements: Array[RhythmMath.Judgement] = []
@@ -41,7 +42,7 @@ func test_un_coup_parfait_frappe_plus_fort_et_remplit_la_jauge() -> void:
 	var base: float = CombatMath.hero_attack(tuning.hero_start_level, tuning) * tuning.combo_attacks[0].damage_multiplier
 	assert_almost_eq(_without_critical(landed[0]), base * tuning.perfect_multiplier, 0.001)
 	assert_eq(landed[0].judgement, RhythmMath.Judgement.PERFECT)
-	assert_eq(hero.groove.value, tuning.groove_perfect)
+	assert_almost_eq(hero.groove.value, tuning.groove_hit + tuning.groove_perfect, 0.001)
 
 
 func test_un_coup_bien_frappe_un_peu_plus_fort() -> void:
@@ -51,16 +52,18 @@ func test_un_coup_bien_frappe_un_peu_plus_fort() -> void:
 	await _wait_until_idle()
 	var base: float = CombatMath.hero_attack(tuning.hero_start_level, tuning) * tuning.combo_attacks[0].damage_multiplier
 	assert_almost_eq(_without_critical(landed[0]), base * tuning.good_multiplier, 0.001)
-	assert_eq(hero.groove.value, tuning.groove_good)
+	assert_almost_eq(hero.groove.value, tuning.groove_hit + tuning.groove_good, 0.001)
 
 
-func test_a_contretemps_le_coup_marche_quand_meme() -> void:
-	await _spawn_judged(RhythmMath.Judgement.MISS)
+func test_sans_rythme_le_coup_remplit_aussi_la_jauge() -> void:
+	await _spawn_on_flat_ground()
+	hero.hit_landed.connect(func(hit: HitData) -> void: landed.append(hit))
 	_add_dummy(Vector3(0.0, 0.0, -1.0))
 	hero.press(&"attack")
 	await _wait_until_idle()
 	assert_eq(landed.size(), 1)
-	assert_eq(hero.groove.value, 0.0)
+	assert_eq(landed[0].judgement, RhythmMath.Judgement.MISS, "plus de jugement : chaque coup vaut pareil")
+	assert_almost_eq(hero.groove.value, tuning.groove_hit, 0.001, "le coup qui touche remplit la jauge")
 
 
 func test_un_coup_qui_touche_plusieurs_cibles_ne_compte_qu_une_fois() -> void:
@@ -72,7 +75,10 @@ func test_un_coup_qui_touche_plusieurs_cibles_ne_compte_qu_une_fois() -> void:
 		await _step(12)
 	await _wait_until_idle()
 	assert_gt(landed.size(), tuning.combo_attacks.size(), "l'armada touche plusieurs mannequins")
-	assert_eq(hero.groove.value, tuning.groove_perfect * tuning.combo_attacks.size(), "une fois par coup")
+	var expected: float = 0.0
+	for i: int in tuning.combo_attacks.size():
+		expected += tuning.groove_hit * (1.0 + minf(float(i), tuning.groove_combo_cap) * tuning.groove_combo_step) + tuning.groove_perfect
+	assert_almost_eq(hero.groove.value, expected, 0.01, "une fois par coup, un peu plus avec le combo")
 
 
 func test_un_coup_dans_le_vide_ne_remplit_pas_la_jauge() -> void:

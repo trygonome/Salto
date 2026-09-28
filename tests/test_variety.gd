@@ -81,7 +81,7 @@ func test_vingt_cinq_dons_en_quatre_familles_et_des_dons_doubles() -> void:
 	var owned: Dictionary[StringName, int] = {&"ember": 1}
 	assert_true(Boons.eligible_duos(owned).is_empty(), "une seule famille : pas de don double")
 	owned[&"hawk"] = 1
-	assert_eq(Boons.eligible_duos(owned), [&"wildfire"] as Array[StringName], "braise + couleur : Feu de joie")
+	assert_eq(Boons.eligible_duos(owned), [&"wildfire"] as Array[StringName], "feu + vent : Feu de joie")
 	assert_eq(Boons.max_rank(&"wildfire", tuning), 1)
 
 
@@ -102,9 +102,9 @@ func test_la_rarete_donne_plusieurs_rangs() -> void:
 	assert_gt(counts.get(Boons.RARE, 0), counts.get(Boons.EPIC, 0), "les épiques sont rares")
 	for card: Dictionary in Boons.deal(rng, {} as Dictionary[StringName, int], 3, tuning, Boons.RARE):
 		assert_ne(card[&"rarity"], Boons.COMMON, "le don de l'élite : au moins rare")
-	for card: Dictionary in Boons.deal(rng, {} as Dictionary[StringName, int], 3, tuning, Boons.RARE, Boons.RACINES):
-		assert_eq(Boons.family(card[&"id"]), Boons.RACINES, "l'Arbre muet : les racines")
-	var mixed: Dictionary[StringName, int] = {&"heart": 1, &"tempo": 1}
+	for card: Dictionary in Boons.deal(rng, {} as Dictionary[StringName, int], 3, tuning, Boons.RARE, Boons.SEVE):
+		assert_eq(Boons.family(card[&"id"]), Boons.SEVE, "l'Arbre muet : la Sève")
+	var mixed: Dictionary[StringName, int] = {&"heart": 1, &"bark": 1}
 	var duos: Array[Dictionary] = Boons.deal(rng, mixed, 3, tuning, Boons.COMMON, &"", true)
 	assert_eq(duos.size(), 1, "l'Écho : les dons doubles possibles")
 	assert_eq(duos[0][&"id"], &"sacred_grove")
@@ -116,13 +116,13 @@ func test_la_rarete_donne_plusieurs_rangs() -> void:
 func test_les_nouveaux_dons_changent_les_forces() -> void:
 	var profile := Profile.new()
 	var base: HeroStats = HeroStats.compute(profile, tuning)
-	var boons: Dictionary[StringName, int] = {&"bark": 1, &"tempo": 1, &"halo": 1, &"rainbow": 1, &"accent": 1, &"blaze": 1, &"regrowth": 2}
+	var boons: Dictionary[StringName, int] = {&"bark": 1, &"tempo": 1, &"halo": 1, &"rainbow": 1, &"mist": 1, &"blaze": 1, &"regrowth": 2}
 	var stats: HeroStats = HeroStats.compute(profile, tuning, boons)
 	assert_almost_eq(stats.damage_taken, base.damage_taken * (1.0 - tuning.boon_values[&"bark"]), 0.001)
 	assert_almost_eq(stats.attack_speed, base.attack_speed + tuning.boon_values[&"tempo"], 0.001)
 	assert_almost_eq(stats.groove, base.groove * (1.0 + tuning.boon_values[&"halo"]), 0.001)
 	assert_gt(stats.rainbow_damage, base.rainbow_damage)
-	assert_gt(stats.perfect_damage, base.perfect_damage)
+	assert_gt(stats.roll_invuln, base.roll_invuln, "Brume : roulade invulnérable plus longtemps")
 	assert_eq(stats.blaze, tuning.boon_values[&"blaze"])
 	assert_eq(stats.regrowth, 2.0 * tuning.boon_values[&"regrowth"])
 
@@ -156,3 +156,19 @@ func test_les_nouvelles_rencontres() -> void:
 	assert_true(Encounters.can_choose(&"weaver_lady", 0, tuning.encounter_weaver_price, tuning))
 	assert_false(Encounters.can_choose(&"echo_spirit", 0, 0, tuning, true, false), "pas de don double possible")
 	assert_true(Encounters.can_choose(&"echo_spirit", 1, 0, tuning, true, false))
+
+
+func test_les_dons_d_eau_protegent_et_ralentissent() -> void:
+	assert_false(HeroMotion.is_roll_invulnerable(tuning.roll_invuln_end + 0.05, tuning), "sans Brume")
+	assert_true(HeroMotion.is_roll_invulnerable(tuning.roll_invuln_end + 0.05, tuning, tuning.boon_values[&"mist"]), "avec Brume : plus longtemps")
+	await _spawn_on_flat_ground()
+	var muet: Muet = await _add_muet(hero.global_position + Vector3(0.0, 0.0, -3.0))
+	muet.chill(0.4, 1.0)
+	assert_true(muet.is_chilled(), "Givre : ralenti")
+	muet.chill(5.0, 1.0)
+	assert_true(muet.is_chilled())
+	muet.set_physics_process(true)
+	await _step(roundi(1.2 * Engine.physics_ticks_per_second))
+	assert_false(muet.is_chilled(), "puis ça passe")
+	for family: StringName in Boons.FAMILIES:
+		assert_true(GameTexts.BOON_FAMILY_NAMES.has(family))

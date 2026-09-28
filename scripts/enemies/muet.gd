@@ -173,6 +173,7 @@ func _physics_process(delta: float) -> void:
 	_ward_left = maxf(_ward_left - delta, 0.0)
 	_evade_left = maxf(_evade_left - delta, 0.0)
 	_update_burn(delta)
+	_chill_left = maxf(0.0, _chill_left - delta)
 	_update_poise(delta)
 	state_machine.physics_update(delta)
 	hitbox.update(delta)
@@ -189,6 +190,20 @@ func burn(dps: float, duration: float) -> void:
 
 func is_burning() -> bool:
 	return _burn_left > 0.0
+
+
+var _chill_left: float = 0.0
+var _chill_amount: float = 0.0
+
+
+## Givre (don, version 3.1) : ralenti de la part `amount` pendant `duration` s.
+func chill(amount: float, duration: float) -> void:
+	_chill_amount = maxf(_chill_amount if _chill_left > 0.0 else 0.0, clampf(amount, 0.0, Tuning.data.frost_max))
+	_chill_left = duration
+
+
+func is_chilled() -> bool:
+	return _chill_left > 0.0
 
 
 func _update_burn(delta: float) -> void:
@@ -454,7 +469,7 @@ func move(horizontal: Vector3, delta: float) -> void:
 		flat = _knockback
 	elif not flies:
 		# L'eau ralentit (voir Level.terrain_speed).
-		flat *= _terrain_speed()
+		flat *= _terrain_speed() * (1.0 - _chill_amount if _chill_left > 0.0 else 1.0)
 	velocity.x = flat.x
 	velocity.z = flat.z
 	var before: Vector3 = global_position

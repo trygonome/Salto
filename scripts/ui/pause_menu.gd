@@ -21,7 +21,6 @@ var _quit_armed: bool = false
 @onready var _vibration: Button = %Vibration
 @onready var _debug: Button = %DebugInfo
 @onready var _quit: Button = %Quit
-@onready var _calibrate: Button = %Calibrate
 
 
 func _ready() -> void:
@@ -48,8 +47,6 @@ func _ready() -> void:
 		_refresh())
 	_debug.visible = DebugOverlay.available()
 	_quit.pressed.connect(_on_quit)
-	_calibrate.text = GameTexts.CALIBRATE_BUTTON
-	_calibrate.pressed.connect(func() -> void: _open_sub(&"calibration_screen"))
 
 
 ## Met le jeu en pause et ouvre le menu (pendant une sortie seulement).

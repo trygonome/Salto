@@ -1,6 +1,6 @@
 extends GutTest
 ## Confort mobile 2.9 : reprendre une expédition interrompue, première expédition qui apprend sans
-## texte (et conseils de réponse près des boutons), calibration du son, pactes de difficulté.
+## texte (et conseils de réponse près des boutons), pactes de difficulté.
 
 const LevelScene: PackedScene = preload("res://scenes/levels/expedition.tscn")
 
@@ -146,20 +146,6 @@ func test_un_conseil_apprend_la_reponse_d_une_espece() -> void:
 	assert_true(Game.profile.is_hint_done(&"answer_hopper"), "appris : il ne revient plus")
 	for id: StringName in [&"answer_weaver", &"answer_totem", &"answer_dancer", &"answer_brute", &"grace", &"charge"]:
 		assert_true(GameTexts.HINTS.has(id), String(id))
-
-
-func test_la_calibration_mesure_le_decalage() -> void:
-	var taps := PackedFloat32Array([0.05, 0.06, 0.04, 0.3, 0.05, 0.055, 0.045, 0.05])
-	assert_almost_eq(CalibrationScreen.measured_offset(taps, tuning), 0.05, 0.006, "la médiane : un appui raté compte peu")
-	assert_eq(CalibrationScreen.measured_offset(PackedFloat32Array([0.9, 0.9]), tuning), tuning.calibration_max, "borné")
-	Game.profile.audio_offset = 0.05
-	Rhythm.play(1)
-	await get_tree().process_frame
-	assert_almost_eq(Rhythm.raw_song_time() - Rhythm.song_time(), 0.05, 0.001, "le rythme en tient compte")
-	Rhythm.stop()
-	Game.profile.audio_offset = 0.0
-	var saved: Profile = Profile.from_dict(JSON.parse_string(JSON.stringify(Game.profile.to_dict())))
-	assert_eq(saved.audio_offset, 0.0)
 
 
 func test_les_pactes_rendent_plus_rude_contre_plus_de_plumes() -> void:

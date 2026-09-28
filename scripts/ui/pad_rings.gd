@@ -1,7 +1,7 @@
 class_name PadRings
 extends Node2D
 ## Autour du bouton Frappe : la jauge de groove (anneau doré qui se remplit, arc-en-ciel qui tourne
-## quand elle est pleine) et l'anneau du battement (s'élargit et s'efface entre deux temps).
+## quand elle est pleine). (L'anneau du battement a disparu avec le combat libre, version 3.1.)
 ## Autour du bouton Esquive : l'attente avant la prochaine roulade (part assombrie).
 
 ## Rayons (px) : jauge, anneau du battement ; épaisseurs (px).
@@ -51,12 +51,6 @@ func _draw() -> void:
 		var fill: float = _hero.groove.fraction()
 		if fill > 0.0:
 			draw_arc(Vector2.ZERO, groove_radius, -PI / 2.0, -PI / 2.0 + TAU * fill, maxi(2, int(segments * fill)), groove_color, groove_width, true)
-	# Anneau du battement : il part du bouton sur le temps, grandit et s'efface.
-	var phase: float = Rhythm.beat_phase()
-	var grow: float = 1.0 - phase
-	var ring: Color = beat_color
-	ring.a *= 1.0 - grow * beat_fade
-	draw_arc(Vector2.ZERO, beat_radius * (1.0 + beat_grow * grow), 0.0, TAU, segments, ring, beat_width, true)
 	# Attente de l'esquive.
 	var wait: float = _hero.roll_cooldown_left / tuning.roll_cooldown if tuning.roll_cooldown > 0.0 else 0.0
 	if _hero.state_machine.current and _hero.state_machine.current.name == &"Roll":

@@ -1601,7 +1601,7 @@ extends Resource
 @export var boon_epic_chance: float
 @export var boon_duo_chance: float
 ## Cendres : rayon où un Muet libéré enflamme les autres (m). Éblouissement : étourdissement (s).
-## Roulement : rayon de l'onde d'un coup parfait (m).
+## Geyser (don double) : rayon de l'onde d'une esquive parfaite (m).
 @export var cinders_radius: float
 @export var dazzle_stun: float
 @export var drumroll_radius: float
@@ -1633,3 +1633,18 @@ func weapon(weapon_id: StringName) -> WeaponData:
 ## Son des pièges : volume (dB) et distance au-delà de laquelle on ne l'entend plus (m).
 @export var trap_sound_db: float
 @export var trap_sound_distance: float
+
+@export_group("Refonte 3.1 : combat libre")
+## Groove d'un coup qui touche (points), en plus par coup du combo (part), combo compté au plus.
+@export var groove_hit: float
+@export var groove_combo_step: float
+@export var groove_combo_cap: float
+## Givre : durée du ralentissement (s), ralentissement au plus (part).
+@export var frost_time: float
+@export var frost_max: float
+## Talent Métronome : vitesse des coups en plus par rang (part).
+@export var talent_metro_speed: float
+## Pulsation du monde sur les temps (part de l'éclat d'avant : subtile).
+@export var world_beat_amount: float
+## Couches de musique en plus pendant un combat.
+@export var music_fight_layers: int

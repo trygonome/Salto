@@ -140,12 +140,12 @@ const ENCOUNTER_TEXTS: Dictionary[StringName, String] = {
 const ENCOUNTER_CHOICES: Dictionary[StringName, PackedStringArray] = {
 	&"spring": ["Boire : tous tes PV reviennent", "Y plonger la main : un don, contre %d % de tes PV"],
 	&"merchant": ["Donner %d plumes d'or : un don", "Le saluer : un peu de soin"],
-	&"drummer": ["Apprendre son rythme : Métronome, un rang", "Écouter son histoire : une page du carnet, un peu de soin"],
+	&"drummer": ["Apprendre son rythme : Tempo, un rang", "Écouter son histoire : une page du carnet, un peu de soin"],
 	&"wounded": ["Le soigner (−%d PV) : il t'offre un objet", "Lui montrer le chemin : +%d plumes d'or"],
 	&"rest": ["Te reposer : +%d % de PV", "Affûter un don : un rang de plus"],
 	&"weaver_lady": ["Donner %d plumes d'or : un don rare ou mieux", "Lui offrir une couleur : ta jauge de groove se remplit"],
-	&"echo_spirit": ["Lui répondre : un don double", "L'écouter : Tempo, un rang"],
-	&"mute_tree": ["Frapper ses racines en rythme : un don des racines, rare", "Dormir à son ombre : +%d % de PV"],
+	&"echo_spirit": ["Lui répondre : un don double", "L'écouter : Écho du tambour, un rang"],
+	&"mute_tree": ["Frapper ses racines : un don de la Sève, rare", "Dormir à son ombre : +%d % de PV"],
 }
 const FEATHERS_FOUND := "+%d plumes d'or"
 const HEALED := "Soin : +%d PV"
@@ -156,50 +156,50 @@ const BOON_RANK := "Rang %d"
 const BOON_NEW := "Nouveau"
 const BOON_NAMES: Dictionary[StringName, String] = {
 	&"ember": "Pied de braise", &"meteor": "Plongeon météore", &"fury": "Furie", &"blaze": "Brasier",
-	&"cinders": "Cendres", &"forge": "Coup de forge",
-	&"metronome": "Métronome", &"echo": "Écho du tambour", &"swift": "Pieds légers", &"syncopation": "Syncope",
-	&"tempo": "Tempo", &"accent": "Accent", &"counterpoint": "Contrepoint",
-	&"heart": "Cœur de la jungle", &"thorns": "Roulade épineuse", &"sap": "Sève", &"bark": "Écorce",
-	&"anchor": "Ancrage", &"regrowth": "Repousse",
-	&"hawk": "Œil du faucon", &"prism": "Prisme", &"rainbow": "Arc-en-ciel", &"splash": "Éclaboussure",
-	&"halo": "Halo", &"dazzle": "Éblouissement",
-	&"wildfire": "Feu de joie", &"drumroll": "Roulement", &"sacred_grove": "Bosquet sacré", &"bloom": "Floraison",
+	&"cinders": "Cendres", &"forge": "Coup de forge", &"prism": "Prisme",
+	&"bark": "Écorce", &"counterpoint": "Contre-courant", &"dazzle": "Éblouissement", &"mist": "Brume",
+	&"tide": "Ressac", &"frost": "Givre",
+	&"heart": "Cœur de la jungle", &"thorns": "Roulade épineuse", &"sap": "Sève", &"regrowth": "Repousse",
+	&"anchor": "Ancrage",
+	&"swift": "Pieds légers", &"tempo": "Tempo", &"halo": "Halo", &"splash": "Éclaboussure",
+	&"rainbow": "Arc-en-ciel", &"echo": "Écho du tambour", &"hawk": "Œil du faucon",
+	&"wildfire": "Feu de joie", &"geyser": "Geyser", &"sacred_grove": "Bosquet sacré", &"bloom": "Floraison",
 }
 ## Effet d'un don au rang offert (%d : sa valeur).
 const BOON_TEXTS: Dictionary[StringName, String] = {
-	&"ember": "Tes coups brûlent : %d % de ton attaque par seconde, 3 s.",
+	&"ember": "Tes coups brûlent : %d % de ton attaque par seconde.",
 	&"meteor": "Plongeon : +%d % de dégâts, onde plus large.",
 	&"fury": "+%d % de dégâts et de vitesse des coups.",
 	&"blaze": "+%d % de dégâts aux Muets en feu.",
-	&"cinders": "Un Muet libéré enflamme ses voisins (%d % de ton attaque par seconde).",
+	&"cinders": "Un Muet libéré enflamme ses voisins.",
 	&"forge": "Coup chargé : +%d % de dégâts, et il brûle.",
-	&"metronome": "Coups parfaits : +%d % de dégâts, fenêtre plus large.",
-	&"echo": "Ton dernier coup de l'enchaînement libère une onde (+%d % de dégâts).",
-	&"swift": "+%d % de vitesse de course et de roulade.",
-	&"syncopation": "Coups parfaits : +%d % de groove.",
-	&"tempo": "+%d % de vitesse des coups.",
-	&"accent": "Coups parfaits : +%d % de dégâts.",
-	&"counterpoint": "Riposte : +%d % de dégâts.",
-	&"heart": "+%d PV max.",
-	&"thorns": "Ta roulade blesse les Muets traversés (%d % de ton attaque).",
-	&"sap": "+%d PV par Muet libéré.",
-	&"bark": "−%d % de dégâts reçus.",
-	&"anchor": "+%d % d'équilibre brisé par tes coups.",
-	&"regrowth": "+%d PV à chaque clairière nettoyée.",
-	&"hawk": "+%d % de chances de critique.",
 	&"prism": "Critiques : +%d % de dégâts.",
-	&"rainbow": "Salto arc-en-ciel : +%d % de dégâts.",
-	&"splash": "Chaque Muet libéré : +%d % de groove en plus.",
+	&"bark": "−%d % de dégâts reçus.",
+	&"counterpoint": "Riposte : +%d % de dégâts.",
+	&"dazzle": "%d % de chances d'étourdir le Muet touché.",
+	&"mist": "Roulade : invulnérable plus longtemps (+%d %).",
+	&"tide": "Ta roulade repousse les Muets traversés.",
+	&"frost": "Les Muets touchés sont ralentis (−%d %).",
+	&"heart": "+%d PV max.",
+	&"thorns": "Ta roulade blesse les Muets traversés.",
+	&"sap": "+%d PV par Muet libéré.",
+	&"regrowth": "+%d PV à chaque clairière nettoyée.",
+	&"anchor": "+%d % d'équilibre brisé par tes coups.",
+	&"swift": "+%d % de vitesse de course et de roulade.",
+	&"tempo": "+%d % de vitesse des coups.",
 	&"halo": "+%d % de groove gagné.",
-	&"dazzle": "%d % de chances d'éblouir : le Muet est étourdi.",
-	&"wildfire": "Un critique enflamme le Muet (%d % de ton attaque par seconde).",
-	&"drumroll": "Un coup parfait fait trembler le sol autour de toi (%d % de ton attaque).",
+	&"splash": "Chaque Muet libéré : +%d % de groove.",
+	&"rainbow": "Salto arc-en-ciel : +%d % de dégâts.",
+	&"echo": "Ton dernier coup de l'enchaînement libère une onde.",
+	&"hawk": "+%d % de chances de critique.",
+	&"wildfire": "Un critique enflamme le Muet.",
+	&"geyser": "Une esquive parfaite fait jaillir une onde brûlante.",
 	&"sacred_grove": "Chaque esquive parfaite rend %d PV.",
 	&"bloom": "Le Salto arc-en-ciel rend %d % de tes PV.",
 }
 ## Familles et raretés, sur les cartes.
 const BOON_FAMILY_NAMES: Dictionary[StringName, String] = {
-	&"braise": "Braise", &"rythme": "Rythme", &"racines": "Racines", &"couleur": "Couleur",
+	&"feu": "Feu", &"eau": "Eau", &"seve": "Sève", &"vent": "Vent",
 }
 const BOON_RARITY_NAMES: Dictionary[StringName, String] = {
 	&"common": "", &"rare": "Rare", &"epic": "Épique", &"duo": "Don double",
@@ -495,7 +495,7 @@ const LEGENDARY_EFFECTS: Dictionary[StringName, String] = {
 	&"finale": "Ton 3e coup libère une onde de choc.",
 	&"shadow": "Une esquive parfaite fait exploser le silence autour de toi.",
 	&"phoenix": "Une fois par sortie, tu te relèves avec la moitié de tes PV.",
-	&"heart": "Chaque coup parfait te soigne de 3 PV.",
+	&"heart": "Chaque coup critique te soigne de 3 PV.",
 	&"storm": "Le Salto arc-en-ciel se charge 30 % plus vite et frappe 50 % plus fort.",
 }
 const LEGENDARY_MARK := "Unique : %s"
@@ -534,9 +534,9 @@ const TALENT_EFFECTS: Dictionary[StringName, String] = {
 	&"triple": "Un saut de plus en l'air.",
 	&"dash2": "Deux élans aériens par saut.",
 	&"comet": "Plongeons +%d % et plus larges",
-	&"metro": "Fenêtre du Parfait +%d %",
+	&"metro": "Vitesse des coups +%d %",
 	&"drum": "+%d % de dégâts",
-	&"roll": "Parfaits : jauge +%d %",
+	&"roll": "Groove gagné +%d %",
 	&"finale": "Ton 3e coup libère une onde de choc.",
 	&"breath": "+%d PV max",
 	&"sap": "+%d PV par Muet libéré",
@@ -627,7 +627,7 @@ static func talent_effect(id: StringName, rank: int, tuning: TuningData) -> Stri
 		&"comet":
 			value = tuning.talent_comet_damage * 100.0 * r
 		&"metro":
-			value = tuning.talent_metro_window * 100.0 * r
+			value = tuning.talent_metro_speed * 100.0 * r
 		&"drum":
 			value = tuning.talent_drum_damage * 100.0 * r
 		&"roll":

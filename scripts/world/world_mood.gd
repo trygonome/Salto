@@ -134,7 +134,8 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set(&"salto_time", fmod(_time, 2000.0))
 	var beat: float = 0.0
 	if Rhythm.is_playing():
-		beat = exp(-fposmod(Rhythm.song_time() / Rhythm.beat_length(), 1.0) * tuning.world_beat_decay)
+		# Une respiration discrète sur les temps (version 3.1), pas un clignotement.
+		beat = exp(-fposmod(Rhythm.song_time() / Rhythm.beat_length(), 1.0) * tuning.world_beat_decay) * tuning.world_beat_amount
 	RenderingServer.global_shader_parameter_set(&"salto_beat", beat)
 	_pulse = maxf(0.0, _pulse - delta * tuning.world_saturation_pulse_decay)
 	var levels: PackedFloat32Array = tuning.world_saturation_levels

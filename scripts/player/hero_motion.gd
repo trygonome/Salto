@@ -19,8 +19,8 @@ static func roll_speed(fraction: float, tuning: TuningData) -> float:
 
 
 ## Vrai si le héros est invulnérable à la fraction `fraction` de la roulade.
-static func is_roll_invulnerable(fraction: float, tuning: TuningData) -> bool:
-	return fraction >= tuning.roll_invuln_start and fraction <= tuning.roll_invuln_end
+static func is_roll_invulnerable(fraction: float, tuning: TuningData, extra: float = 0.0) -> bool:
+	return fraction >= tuning.roll_invuln_start and fraction <= minf(1.0, tuning.roll_invuln_end + extra)
 
 
 ## Direction dans le monde pour une commande à l'écran (x à droite, y vers le bas) :

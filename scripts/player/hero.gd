@@ -157,6 +157,9 @@ func _ready() -> void:
 	add_to_group(&"debug_info")
 	add_to_group(&"hero")
 	_carried_drum.visible = false
+	# Combat libre (version 3.1) : plus d'anneau du battement au sol.
+	beat_ring.visible = false
+	beat_ring.set_process(false)
 	Game.drum_picked.connect(func() -> void: _carried_drum.visible = true)
 	Game.drum_dropped.connect(func() -> void: _carried_drum.visible = false)
 	Game.drum_returned.connect(func(_count: int) -> void: _carried_drum.visible = false)
@@ -486,9 +489,10 @@ func release_charge() -> void:
 
 ## Roulade épineuse (don) : les Muets traversés pendant la roulade sont blessés.
 func roll_strike() -> void:
-	if stats.roll_damage <= 0.0:
+	# Roulade épineuse (dégâts) et Ressac (elle repousse les Muets traversés).
+	if stats.roll_damage <= 0.0 and stats.tide <= 0.0:
 		return
-	var make_hit: Callable = _make_hit.bind(stats.roll_damage, &"thorns", RhythmMath.Judgement.MISS, 0.0, tuning.thorns_poise, 0.0)
+	var make_hit: Callable = _make_hit.bind(stats.roll_damage, &"thorns", RhythmMath.Judgement.MISS, 0.0, tuning.thorns_poise, stats.tide)
 	hitbox.activate(tuning.thorns_radius, CombatMath.FULL_CIRCLE_DEG, facing_direction(), tuning.roll_duration, make_hit)
 
 
@@ -511,11 +515,8 @@ func aim_direction() -> Vector3:
 ## pendant `active_time` secondes (par défaut attack_active_time). `power` multiplie ses dégâts,
 ## son coup à l'équilibre et sa projection (coup chargé).
 func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgement, active_time: float = -1.0, power: float = 1.0) -> void:
-	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
+	_pending_groove = action_groove(RhythmMath.groove_gain(judgement, tuning))
 	var make_hit: Callable = _make_hit.bind(attack.damage_multiplier * power, attack.id, judgement, 0.0, attack.poise * power, attack.launch * power)
-	# Roulement (don double) : un coup parfait fait trembler le sol autour.
-	if judgement == RhythmMath.Judgement.PERFECT and stats.drumroll > 0.0:
-		_drumroll()
 	if attack.projectiles > 0:
 		_shoot(attack, direction, make_hit)
 		return
@@ -523,16 +524,23 @@ func strike(attack: AttackData, direction: Vector3, judgement: RhythmMath.Judgem
 	hitbox.activate(attack.reach, attack.arc_deg, direction, duration, make_hit)
 
 
-## Roulement : les Muets autour du héros (Tuning.drumroll_radius) sont touchés d'un coup, sans
-## passer par la zone de coup (elle sert au coup lui-même).
-func _drumroll() -> void:
+## Groove gagné par un coup qui touche (version 3.1) : une part fixe, plus avec le combo (et le
+## bonus d'un jugement, si un test en impose un).
+func action_groove(judged_bonus: float) -> float:
+	return tuning.groove_hit * (1.0 + minf(float(combo.hits), tuning.groove_combo_cap) * tuning.groove_combo_step) + judged_bonus
+
+
+## Geyser (don double) : l'esquive parfaite fait jaillir une onde brûlante ; les Muets autour
+## (Tuning.drumroll_radius) sont touchés sans passer par la zone de coup.
+func _geyser() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"muets"):
 		var muet: Muet = node as Muet
 		if muet.is_freed() or muet.flat_distance_to(global_position) > tuning.drumroll_radius + muet.hurtbox.radius:
 			continue
-		var hit: HitData = _make_hit(muet.hurtbox, stats.drumroll, &"drumroll", RhythmMath.Judgement.MISS, 0.0, tuning.quake_poise, tuning.quake_launch)
+		var hit: HitData = _make_hit(muet.hurtbox, stats.geyser, &"geyser", RhythmMath.Judgement.MISS, 0.0, tuning.quake_poise, tuning.quake_launch)
 		if muet.hurtbox.receive(hit):
 			hitbox.landed.emit(hit, muet.hurtbox)
+			muet.burn(stats.attack * stats.geyser, tuning.burn_time)
 	var fx: Effects = Effects.of(self)
 	if fx:
 		fx.ring(global_position, tuning.drumroll_radius, fx.gold, tuning.fx_quake_ring_time)
@@ -558,7 +566,7 @@ func _shoot(attack: AttackData, direction: Vector3, make_hit: Callable) -> void:
 ## Onde à l'atterrissage d'un plongeon : touche tout autour dans `radius` mètres.
 ## `colors` : une onde par couleur, de plus en plus grande (une seule pour le plongeon normal).
 func shockwave(radius: float, multiplier: float, move: StringName, judgement: RhythmMath.Judgement, stun_time: float, colors: Array[Color]) -> void:
-	_pending_groove = RhythmMath.groove_gain(judgement, tuning)
+	_pending_groove = action_groove(RhythmMath.groove_gain(judgement, tuning))
 	var rainbow: bool = move == &"rainbow"
 	var poise: float = tuning.rainbow_poise if rainbow else tuning.dive_poise
 	var launch: float = tuning.rainbow_launch if rainbow else tuning.dive_launch
@@ -730,9 +738,16 @@ func _on_hit_landed(hit: HitData, _hurtbox: Hurtbox) -> void:
 	var perfect: bool = hit.judgement == RhythmMath.Judgement.PERFECT
 	if _pending_groove > 0.0:
 		groove.add(_pending_groove * stats.groove * (stats.perfect_groove if perfect else 1.0))
-		if perfect and stats.perfect_heal > 0.0:
-			health.heal(stats.perfect_heal)
+		_play_combo_note()
 	_pending_groove = 0.0
+	# Cœur Battant (légendaire, version 3.1) : un coup critique soigne.
+	if hit.critical and stats.perfect_heal > 0.0:
+		health.heal(stats.perfect_heal)
+	# Givre (don) : le Muet touché est ralenti.
+	if stats.frost > 0.0 and hit.target:
+		var chilled: Muet = hit.target.get_parent() as Muet
+		if chilled:
+			chilled.chill(stats.frost, tuning.frost_time)
 	Feedback.hit_stop(tuning.hit_stop_perfect if perfect else tuning.hit_stop_hit)
 	Feedback.vibrate(tuning.vibration_strong if perfect or hit.critical or hit.answer else tuning.vibration_hit)
 	Feedback.shake(tuning.shake_trauma_hit, hit.direction)
@@ -795,25 +810,27 @@ func _on_dodged(hit: HitData) -> void:
 		fx.word(GameTexts.WORD_PERFECT_DODGE, global_position + Vector3.UP * tuning.hero_height, fx.cyan, true)
 	_next_hit_critical = true
 	groove.add(tuning.groove_perfect_dodge * stats.groove)
-	# Bosquet sacré (don double) : l'esquive parfaite soigne.
+	# Bosquet sacré (don double) : l'esquive parfaite soigne ; Geyser : elle fait jaillir une onde.
 	if stats.sacred_grove > 0.0:
 		health.heal(stats.sacred_grove)
+	if stats.geyser > 0.0:
+		_geyser()
 	if stats.shadow:
 		quake(tuning.shadow_quake_radius, tuning.shadow_quake_damage, &"shadow")
-	beat_ring.flash(RhythmMath.Judgement.PERFECT)
 	_dodge_sound.play()
 
 
 ## Retour immédiat d'un appui jugé : carillon (qui monte avec le combo) et éclat de l'anneau.
 func _on_judged(judgement: RhythmMath.Judgement) -> void:
 	judged.emit(judgement)
-	beat_ring.flash(judgement)
-	if judgement == RhythmMath.Judgement.MISS:
-		return
+
+
+## Une note qui monte avec le combo, quand un coup touche (la musique récompense l'action).
+func _play_combo_note() -> void:
 	var notes: PackedFloat32Array = tuning.chime_scale_semitones
 	var semitones: float = notes[mini(combo.hits, notes.size() - 1)]
 	_chime.pitch_scale = pow(2.0, semitones / SEMITONES_PER_OCTAVE)
-	_chime.volume_db = 0.0 if judgement == RhythmMath.Judgement.PERFECT else tuning.good_chime_volume_db
+	_chime.volume_db = tuning.good_chime_volume_db
 	_chime.play()
 
 
@@ -862,8 +879,10 @@ func quake(radius: float, damage: float, move: StringName) -> void:
 		fx.burst(global_position + Vector3.UP * tuning.fx_double_height, tuning.fx_quake_cubes, tuning.fx_quake_speed, tuning.fx_quake_hue)
 
 
+## Combat libre (version 3.1) : plus de jugement des appuis ; chaque coup vaut pareil, quel que
+## soit l'instant. (Les tests peuvent encore remplacer `judge`.)
 func _judge_now() -> RhythmMath.Judgement:
-	return Rhythm.judge_now(stats.perfect_window if stats else 1.0)
+	return RhythmMath.Judgement.MISS
 
 
 ## PV à zéro : une fois par sortie, le second souffle le relève ; sinon il s'évanouit.

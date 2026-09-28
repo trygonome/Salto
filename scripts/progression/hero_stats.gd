@@ -58,7 +58,12 @@ var prism: float = 0.0
 var splash: float = 0.0
 var dazzle: float = 0.0
 var wildfire: float = 0.0
-var drumroll: float = 0.0
+var geyser: float = 0.0
+## Dons d'Eau (version 3.1) : invulnérabilité de la roulade en plus (part), projection des Muets
+## traversés en roulade, ralentissement des Muets touchés (part).
+var roll_invuln: float = 0.0
+var tide: float = 0.0
+var frost: float = 0.0
 var sacred_grove: float = 0.0
 var bloom: float = 0.0
 
@@ -88,8 +93,9 @@ static func compute(profile: Profile, tuning: TuningData, boons: Dictionary[Stri
 	stats.heal_per_muet = tuning.talent_sap_heal * profile.talent_rank(&"sap") + gear.get(&"heal_per_muet", 0.0)
 	stats.extra_jumps = profile.talent_rank(&"triple")
 	stats.air_dashes = 1 + profile.talent_rank(&"dash2")
-	stats.perfect_window = 1.0 + tuning.talent_metro_window * profile.talent_rank(&"metro")
-	stats.perfect_groove = 1.0 + tuning.talent_roll_groove * profile.talent_rank(&"roll")
+	# Combat libre (version 3.1) : Métronome donne de la vitesse de coups, Roulement du groove.
+	stats.attack_speed += tuning.talent_metro_speed * profile.talent_rank(&"metro")
+	stats.groove *= 1.0 + tuning.talent_roll_groove * profile.talent_rank(&"roll")
 	stats.finale = profile.talent_rank(&"finale") > 0 or legendaries.has(&"finale")
 	if legendaries.has(&"phoenix"):
 		stats.second_wind = tuning.legendary_phoenix_health
@@ -117,8 +123,6 @@ func _apply_boons(boons: Dictionary[StringName, int], tuning: TuningData) -> voi
 	dive_damage += v.call(&"meteor")
 	dive_radius += v.call(&"meteor") * tuning.boon_meteor_radius_share
 	max_health = roundf(max_health + v.call(&"heart"))
-	perfect_window += v.call(&"metronome")
-	perfect_damage += v.call(&"metronome")
 	heal_per_muet += v.call(&"sap")
 	attack *= 1.0 + v.call(&"fury")
 	attack_speed += v.call(&"fury")
@@ -128,9 +132,10 @@ func _apply_boons(boons: Dictionary[StringName, int], tuning: TuningData) -> voi
 	blaze = v.call(&"blaze")
 	cinders = v.call(&"cinders")
 	forge = v.call(&"forge")
-	perfect_groove += v.call(&"syncopation")
 	attack_speed += v.call(&"tempo")
-	perfect_damage += v.call(&"accent")
+	roll_invuln = v.call(&"mist")
+	tide = v.call(&"tide")
+	frost = v.call(&"frost")
 	counterpoint = v.call(&"counterpoint")
 	damage_taken *= 1.0 - v.call(&"bark")
 	anchor = v.call(&"anchor")
@@ -141,6 +146,6 @@ func _apply_boons(boons: Dictionary[StringName, int], tuning: TuningData) -> voi
 	groove *= 1.0 + v.call(&"halo")
 	dazzle = v.call(&"dazzle")
 	wildfire = v.call(&"wildfire")
-	drumroll = v.call(&"drumroll")
+	geyser = v.call(&"geyser")
 	sacred_grove = v.call(&"sacred_grove")
 	bloom = v.call(&"bloom")

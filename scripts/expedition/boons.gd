@@ -1,34 +1,35 @@
 class_name Boons
 ## Dons des esprits de la jungle (expédition) : chacun change un coup ou une force du héros, et
 ## monte de rang si on le reprend. Les valeurs vivent dans Tuning (boon_values : don → valeur par
-## rang). Version 2.8 : 25 dons en quatre familles (braise, rythme, racines, couleur), une rareté
+## rang). Version 2.8 : 25 dons en quatre familles (feu, eau, sève, vent depuis la 3.1), une rareté
 ## tirée pour chaque carte (commun : un rang, rare : deux, épique : trois, sans dépasser le rang
 ## maximal) et des dons doubles, qui demandent un don de chacune de leurs deux familles.
 
-const BRAISE := &"braise"
-const RYTHME := &"rythme"
-const RACINES := &"racines"
-const COULEUR := &"couleur"
-const FAMILIES: Array[StringName] = [BRAISE, RYTHME, RACINES, COULEUR]
+const FEU := &"feu"
+const EAU := &"eau"
+const SEVE := &"seve"
+const VENT := &"vent"
+const FAMILIES: Array[StringName] = [FEU, EAU, SEVE, VENT]
 
-## Dons simples, dans l'ordre du carnet de l'expédition, et leur famille.
+## Dons simples, dans l'ordre du carnet de l'expédition, et leur famille (version 3.1 : les quatre
+## esprits, chacun sa couleur — Feu rouge : dégâts ; Eau bleue : protection ; Sève verte : soin ;
+## Vent jaune : vitesse et groove).
 const IDS: Array[StringName] = [
-	&"ember", &"meteor", &"fury", &"blaze", &"cinders", &"forge",
-	&"metronome", &"echo", &"swift", &"syncopation", &"tempo", &"accent", &"counterpoint",
-	&"heart", &"thorns", &"sap", &"bark", &"anchor", &"regrowth",
-	&"hawk", &"prism", &"rainbow", &"splash", &"halo", &"dazzle",
+	&"ember", &"meteor", &"fury", &"blaze", &"cinders", &"forge", &"prism",
+	&"bark", &"counterpoint", &"dazzle", &"mist", &"tide", &"frost",
+	&"heart", &"thorns", &"sap", &"regrowth", &"anchor",
+	&"swift", &"tempo", &"halo", &"splash", &"rainbow", &"echo", &"hawk",
 ]
 const FAMILY: Dictionary[StringName, StringName] = {
-	&"ember": BRAISE, &"meteor": BRAISE, &"fury": BRAISE, &"blaze": BRAISE, &"cinders": BRAISE, &"forge": BRAISE,
-	&"metronome": RYTHME, &"echo": RYTHME, &"swift": RYTHME, &"syncopation": RYTHME, &"tempo": RYTHME,
-	&"accent": RYTHME, &"counterpoint": RYTHME,
-	&"heart": RACINES, &"thorns": RACINES, &"sap": RACINES, &"bark": RACINES, &"anchor": RACINES, &"regrowth": RACINES,
-	&"hawk": COULEUR, &"prism": COULEUR, &"rainbow": COULEUR, &"splash": COULEUR, &"halo": COULEUR, &"dazzle": COULEUR,
+	&"ember": FEU, &"meteor": FEU, &"fury": FEU, &"blaze": FEU, &"cinders": FEU, &"forge": FEU, &"prism": FEU,
+	&"bark": EAU, &"counterpoint": EAU, &"dazzle": EAU, &"mist": EAU, &"tide": EAU, &"frost": EAU,
+	&"heart": SEVE, &"thorns": SEVE, &"sap": SEVE, &"regrowth": SEVE, &"anchor": SEVE,
+	&"swift": VENT, &"tempo": VENT, &"halo": VENT, &"splash": VENT, &"rainbow": VENT, &"echo": VENT, &"hawk": VENT,
 }
 ## Dons doubles (un seul rang) et les deux familles qu'ils demandent.
 const DUOS: Dictionary[StringName, Array] = {
-	&"wildfire": [BRAISE, COULEUR], &"drumroll": [RYTHME, BRAISE],
-	&"sacred_grove": [RACINES, RYTHME], &"bloom": [RACINES, COULEUR],
+	&"wildfire": [FEU, VENT], &"geyser": [EAU, FEU],
+	&"sacred_grove": [SEVE, EAU], &"bloom": [SEVE, VENT],
 }
 
 ## Raretés d'une carte : rangs gagnés en la prenant.

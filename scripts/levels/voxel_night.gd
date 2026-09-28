@@ -46,7 +46,7 @@ const HINT_BUTTONS: Array[Array] = [
 	[&"move", TouchControls.MOVE], [&"attack", &"attack"], [&"jump", &"jump"], [&"salto", &"jump"],
 	[&"combo", &"attack"], [&"dodge", &"dodge"], [&"answer_flyer", &"jump"], [&"answer_shielder", &"jump"],
 	[&"answer_charger", &"dodge"], [&"answer_spitter", &"dodge"], [&"gongs", &"attack"], [&"dive", &"attack"],
-	[&"beat", &"attack"], [&"special", &"attack"],
+	[&"special", &"attack"],
 ]
 ## Préfixe des conseils de réponse (suivi de l'espèce).
 const ANSWER_HINT := "answer_"

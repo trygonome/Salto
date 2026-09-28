@@ -115,6 +115,9 @@ var _plot_near: StringName = &""
 var _plot_marks: Dictionary[StringName, Node3D] = {}
 ## Conseils près des boutons (version 2.9).
 var _coach: ExpeditionCoach
+## Musique qui suit le combat (version 3.1) : couches de la clairière, et si l'on se bat.
+var _music_layers: int = 1
+var _fighting: bool = false
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -176,6 +179,11 @@ func _process(delta: float) -> void:
 	if in_sortie:
 		var tuning: TuningData = Tuning.data
 		_coach.update(delta)
+		# Pendant un combat, la musique s'étoffe ; nettoyée, la clairière retrouve son calme.
+		var fighting: bool = _remaining > 0 and not _cleared
+		if fighting != _fighting:
+			_fighting = fighting
+			Rhythm.set_layers(mini(_music_layers + (tuning.music_fight_layers if fighting else 0), Rhythm.NIGHT_LAYERS.size()))
 		Rhythm.set_band(maxf(minf(float(hero.combo.hits) / tuning.combo_band_full, 1.0) * tuning.combo_band_max, Village.band_floor(Game.profile, tuning)))
 	# Une rencontre s'ouvre quand le héros s'approche du personnage.
 	if _encounter == &"" or _encounter_open or not in_sortie or _cleared:
@@ -412,7 +420,9 @@ func _enter_room() -> void:
 	if not run.is_boss_room() and run.reward != RunState.ENCOUNTER and run.reward != RunState.REST and run.reward != RunState.SECRET:
 		_place_room_props()
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
-	Rhythm.set_layers(mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size()))
+	_music_layers = mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size())
+	_fighting = false
+	Rhythm.set_layers(_music_layers)
 	_place_hero()
 	if run.is_boss_room():
 		hud.show_banner(GameTexts.ROOM_TITLE % [run.room + 1, run.room_count], GameTexts.GUARDIAN_NAMES.get(run.region, GameTexts.ROOM_BOSS_TITLE), "")
@@ -934,7 +944,7 @@ func _on_choice_made(index: int) -> void:
 		[&"merchant", 1]:
 			hero.health.heal(hero.health.maximum * tuning.encounter_merchant_heal)
 		[&"drummer", 0]:
-			Game.take_boon(&"metronome")
+			Game.take_boon(&"tempo")
 		[&"drummer", 1]:
 			var page: int = _next_page()
 			if page > 0:
@@ -965,9 +975,9 @@ func _on_choice_made(index: int) -> void:
 			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.COMMON, &"", true), GameTexts.ENCOUNTER_NAMES[_encounter])
 			return
 		[&"echo_spirit", 1]:
-			Game.take_boon(&"tempo")
+			Game.take_boon(&"echo")
 		[&"mute_tree", 0]:
-			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.RARE, Boons.RACINES), GameTexts.ENCOUNTER_NAMES[_encounter])
+			boon_screen.open(Boons.deal(run.rng, run.boons, _boon_offer(), tuning, Boons.RARE, Boons.SEVE), GameTexts.ENCOUNTER_NAMES[_encounter])
 			return
 		[&"mute_tree", 1]:
 			hero.health.heal(hero.health.maximum * tuning.encounter_tree_heal)

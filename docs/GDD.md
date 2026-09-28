@@ -275,3 +275,21 @@ Cinq nuits, nuits sans fin, cracheur, porte-bouclier, talents, carnet complet.
 10. Le Chef Taroum sait tout cela. Il n'en parle jamais, mais il danse plus fort chaque fois qu'un tambour revient.
 11. Quand les cinq nuits seront passées, le Silence ne partira pas. Il attendra, patient, qu'on oublie de jouer.
 12. Alors il faudra jouer encore, chaque nuit. C'est pour ça que les nuits sans fin existent.
+
+## Refonte (versions 3.0 et suivantes)
+- **Paysage exclusif** (3.0) : caméra à champ étroit, commandes aux pouces écartées de l'encoche, écran titre en
+  deux colonnes, sans défilement.
+- **Combat libre** (3.1) : plus de jugement des appuis (plus de Parfait ni de Bien, plus d'anneau au sol ni
+  de calibration) ; chaque coup vaut pareil. La jauge de groove se remplit en frappant (un peu plus à chaque
+  coup du combo), par les bonnes réponses, les coups de grâce, les esquives parfaites et les Muets libérés.
+  Chaque coup qui touche sonne une note qui monte avec le combo. La musique reste l'âme du monde : elle
+  s'étoffe pendant les combats et retrouve son calme une fois la clairière nettoyée ; les Muets et les pièges
+  s'annoncent encore sur les temps, et la jungle ne fait plus que respirer discrètement avec la musique.
+- **Quatre esprits, quatre couleurs** (3.1) : Feu rouge (dégâts, brûlure, critiques : Pied de braise,
+  Plongeon météore, Furie, Brasier, Cendres, Coup de forge, Prisme), Eau bleue (protection : Écorce,
+  Contre-courant, Éblouissement, Brume, Ressac, Givre), Sève verte (soin et racines : Cœur de la jungle,
+  Roulade épineuse, Sève, Repousse, Ancrage), Vent jaune (vitesse et groove : Pieds légers, Tempo, Halo,
+  Éclaboussure, Arc-en-ciel, Écho du tambour, Œil du faucon). Dons doubles : Feu de joie (feu + vent),
+  Geyser (eau + feu : l'esquive parfaite fait jaillir une onde brûlante), Bosquet sacré (sève + eau), Floraison
+  (sève + vent). Talents : Métronome donne de la vitesse de coups, Roulement du groove ; le Cœur Battant
+  soigne sur un critique.
