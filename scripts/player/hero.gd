@@ -387,12 +387,29 @@ func move(delta: float) -> void:
 		global_position = before
 		velocity = Vector3.ZERO
 		return
+	_slide_off_muets(delta)
 	if falling_speed > 0.0 and is_on_floor():
 		_on_landed(falling_speed)
 	if is_on_floor():
 		_air_peak = global_position.y
 	else:
 		_air_peak = maxf(_air_peak, global_position.y)
+
+
+## On ne tient pas debout sur une Sourdine (bug trouvé par le robot joueur, version 4.2.1) : posé
+## sur l'une d'elles, le héros glisse de côté ; sinon ses coups, portés à hauteur de buste,
+## passeraient au-dessus d'elle.
+func _slide_off_muets(delta: float) -> void:
+	for i: int in get_slide_collision_count():
+		var collision: KinematicCollision3D = get_slide_collision(i)
+		var muet: Muet = collision.get_collider() as Muet
+		if muet == null or collision.get_normal().y < tuning.hero_floor_normal_min:
+			continue
+		var away := Vector3(global_position.x - muet.global_position.x, 0.0, global_position.z - muet.global_position.z)
+		if away.is_zero_approx():
+			away = facing_direction()
+		global_position += away.normalized() * tuning.hero_slide_off_speed * delta
+		return
 
 
 ## Son d'un mouvement : « roll » (roulade), « swing » (coup dans le vide), « charge » (le coup

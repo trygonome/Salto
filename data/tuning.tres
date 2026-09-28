@@ -1484,3 +1484,5 @@ journal_error_cap = 30
 journal_digest_sessions = 10
 journal_digest_max_chars = 60000
 journal_copied_time = 3.0
+hero_slide_off_speed = 4.0
+hero_floor_normal_min = 0.6

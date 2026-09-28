@@ -1783,3 +1783,9 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var journal_digest_sessions: int
 @export var journal_digest_max_chars: int
 @export var journal_copied_time: float
+
+@export_group("Correctifs 4.2.1 (robot joueur)")
+## Le héros posé sur une Sourdine en glisse à tant (m/s) ; « posé dessus » : la normale du contact
+## monte au moins de tant.
+@export var hero_slide_off_speed: float
+@export var hero_floor_normal_min: float

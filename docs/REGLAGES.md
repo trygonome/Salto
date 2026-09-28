@@ -264,3 +264,4 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
 - Journal (4.2.1) : 40 séances gardées ; écrit au moins toutes les 30 s (et à chaque fin de clairière) ; image
   lente au-delà de 25 ms, accroc au-delà de 100 ms ; 30 erreurs différentes au plus ; le résumé copie les 10
   dernières séances en 60 000 caractères au plus.
+- Correctif 4.2.2 : le héros posé sur une Sourdine en glisse à 4 m/s (contact dont la normale monte d'au moins 0,6).
