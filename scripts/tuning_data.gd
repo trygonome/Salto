@@ -1673,3 +1673,10 @@ func weapon(weapon_id: StringName) -> WeaponData:
 @export var passage_music_delay: float
 ## Voile d'un passage : aux couleurs de la récompense, cette opacité au plus.
 @export var passage_veil_alpha: float
+
+@export_group("Refonte 3.6 : maquette miniature")
+## Première minute : saturation du monde muet ; délai entre la stèle frappée et la première vague (s).
+@export var silence_saturation: float
+@export var awakening_wave_delay: float
+## Éclat de couleurs quand une clairière est libérée (saturation en plus, qui retombe).
+@export var cleared_pulse: float

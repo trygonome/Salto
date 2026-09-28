@@ -46,9 +46,13 @@ func _muets() -> Array[Muet]:
 	return list
 
 
-## Le héros entre dans l'arène (les vagues l'y attendent, version 3.4), puis les Muets arrivent.
+## Le héros entre dans l'arène (les vagues l'y attendent, version 3.4 ; la première fois, il frappe la
+## pierre du silence, version 3.6), puis les Muets arrivent.
 func _wait_muets() -> void:
 	hero.global_position = Vector3(0.0, 0.0, tuning.room_radius_min * tuning.voxel_unit * 0.5)
+	for stone: Node in get_tree().get_nodes_in_group(&"silence_stones"):
+		if not (stone as SilenceStone).is_struck():
+			_strike(stone as Node3D)
 	for i: int in 200:
 		await get_tree().physics_frame
 		if not _muets().is_empty():
@@ -193,3 +197,45 @@ func test_la_pierre_des_pactes_au_village() -> void:
 	assert_false(screen.is_open(), "c'est décidé")
 	assert_false(get_tree().paused, "on reprend la marche au village")
 	assert_true(String(level.current_goal()[&"sub"]).contains(bonus), "le bonus s'affiche")
+
+
+func _strike(target: Node3D) -> void:
+	var hit := HitData.new()
+	hit.damage = 1.0
+	hit.attacker = hero
+	hit.direction = Vector3.FORWARD
+	(target.get_node("Hurtbox") as Hurtbox).receive(hit)
+
+
+func test_la_premiere_minute_une_clairiere_muette_et_une_pierre_a_frapper() -> void:
+	await _open_level()
+	level.start_sortie()
+	hero.reads_player_input = false
+	assert_true(Game.run.tutorial)
+	var stones: Array[Node] = get_tree().get_nodes_in_group(&"silence_stones")
+	assert_eq(stones.size(), 1, "une pierre du silence sur le chemin")
+	assert_true(level.mood.is_silenced(), "le monde a perdu ses couleurs")
+	assert_eq(Rhythm.audible_layers(), 0, "et sa musique")
+	assert_eq(level.current_goal()[&"point"], (stones[0] as Node3D).global_position, "le repère montre la pierre")
+	hero.global_position = Vector3(0.0, 0.0, tuning.room_radius_min * tuning.voxel_unit * 0.5)
+	await get_tree().create_timer(tuning.room_wave_delay * 2.0).timeout
+	assert_true(_muets().is_empty(), "rien ne bouge tant que la pierre se tait")
+	_strike(stones[0] as Node3D)
+	assert_false(level.mood.is_silenced(), "frappée : les couleurs reviennent")
+	assert_true(level.mood.is_waving(), "en vague")
+	assert_gt(Rhythm.audible_layers(), 0, "et le premier accord, la musique")
+	for i: int in 200:
+		await get_tree().physics_frame
+		if not _muets().is_empty():
+			break
+	assert_eq(_muets().size(), 1, "puis le premier sautillant")
+	get_tree().paused = false
+
+
+func test_une_expedition_suivante_n_a_pas_de_pierre() -> void:
+	Game.profile.expeditions = 1
+	await _open_level()
+	level.start_sortie()
+	assert_false(Game.run.tutorial)
+	assert_true(get_tree().get_nodes_in_group(&"silence_stones").is_empty())
+	assert_false(level.mood.is_silenced())

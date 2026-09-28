@@ -238,3 +238,6 @@ Portées à ajouter au rayon de l'ennemi. Dégâts = attaque × multiplicateur.
   2 dons au choix, s'éveille à 1,4 m ; 3 jarres. Clôture : poteaux de rayon 1,1 tous les 1,5, à 1 du bord.
 - Passages (3.5) : vague à 9 m/s jusqu'à 26 m, anneau de 2,6 m ; brume 3,5 fois plus épaisse au départ, normale
   aux quatre cinquièmes de la course ; voile à 90 % ; la musique reprend ses couches 1,15 s après (deux temps).
+- Maquette (3.6) : occlusion jusqu'à −32 % de luminosité (9 voisins sondés), −6 % au pied de ce qui se dresse ;
+  monde muet à 3 % de saturation ; la première vague 1,6 s après la pierre frappée ; éclat de +35 % de
+  saturation quand une clairière est libérée.

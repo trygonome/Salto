@@ -313,6 +313,12 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    assombris), lumière chaude plus douce, brume de profondeur, vague de couleur qui se propage au sol quand
    une zone est libérée (Gris) ; première minute mise en scène : une clairière sombre et muette, frapper la
    stèle, la couleur et un premier accord reviennent. *Test : une capture d'écran paraît finie.*
+   **Fait** (version 3.6) : occlusion calculée à la génération (chaque cube entouré d'autres s'assombrit :
+   creux des couronnes, coins, pieds de ce qui se dresse) ; soleil plus chaud, ombres plus douces ; une
+   clairière libérée lance une vague arc-en-ciel sur le sol et un éclat de couleurs. Première minute : la
+   toute première clairière de la première expédition est grise et muette, une pierre du silence se dresse
+   sur le chemin (le repère la montre) ; la frapper rend les couleurs en vague et le premier accord, la
+   musique revient, puis le premier sautillant arrive. La brume de profondeur est celle des passages (3.5).
 8. **3.7 — Hub vivant et récit réactif.** Le Chef et les villageois réagissent à tout (instrument choisi,
    dons pris, morts, gardiens, première fois de chaque chose) ; les villageois ont leur place et leur vie ;
    chaque gardien libéré rend une couche à la musique du village. *Test : on revient au village pour voir ce

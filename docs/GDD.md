@@ -111,6 +111,10 @@ Action-RPG procédural au combat manuel, pour des parties de 8 à 12 minutes :
   clairière continue) ou un Muet doré endormi qui s'éveille quand on entre (de l'or, pas de don d'élite ;
   jamais pendant la première expédition). Un fourré cache plus souvent une stèle ou un Muet doré ; des
   rochers à l'entrée, plus souvent des plumes. Rien n'oblige à y aller.
+- **Première minute** (version 3.6) : la toute première clairière est grise et muette ; une pierre du silence
+  se dresse sur le chemin, son glyphe respire à peine. La frapper : les couleurs reviennent en vague, avec un
+  premier accord, puis la musique et le premier sautillant. Chaque clairière libérée lance aussi une vague
+  de couleur sur le sol.
 - **Passages rituels** (version 3.5) : chaque sortie est une porte-totem au bout de son sentier, deux mâts
   sculptés aux couleurs de la récompense et son icône voxel qui tourne entre eux. La franchir : un voile de
   sa couleur, un roulement de toms, la musique réduite à sa base ; la clairière suivante apparaît dans la
@@ -239,6 +243,8 @@ pour entendre « ce qu'il y avait après la musique ». Le **Chef Taroum** le sa
 - **Lumière** : lune froide, lanternes chaudes au village, brouillard léger, bloom sur les éléments émissifs uniquement.
 - **Animation** : squelettique (packs ou Mixamo), anticipation et relâché sur les coups ; les Muets ne bougent jamais tous en même temps.
 - Avant de produire : choisir ensemble 3 ou 4 références (jeux ou images) et le pack d'assets principal.
+- **Maquette miniature** (version 3.6) : l'occlusion est calculée à la génération (un cube entouré d'autres
+  s'assombrit : creux des couronnes, coins, pieds de mur) ; soleil plus chaud, ombres plus douces.
 - **Monde** (version 2.5) : lumière chaude côté soleil, froide côté ombre, arêtes des cubes un peu assombries
   (relief des voxels), contre-jour sur le héros et les Muets pour qu'ils se détachent. Sol sans quadrillage :
   grandes plaques d'herbe, taches de terre, petits carrés un rien différents ; touffes d'herbe haute, cailloux,

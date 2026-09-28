@@ -1,8 +1,9 @@
 // Lumière des cubes (version 2.5) : côté soleil chaud, côté ombre froid, arêtes des cubes un peu
-// assombries (relief des voxels), contre-jour léger.
+// assombries (relief des voxels), contre-jour léger. Version 3.6 (« maquette miniature ») : un soleil
+// plus chaud, des ombres plus douces (l'occlusion calculée à la génération creuse le relief).
 const vec3 SALTO_SUN_DIR = vec3(0.35, 1.0, 0.55);
-const vec3 SALTO_SUN = vec3(1.2, 1.12, 0.97);
-const vec3 SALTO_SHADE = vec3(0.6, 0.64, 0.82);
+const vec3 SALTO_SUN = vec3(1.17, 1.08, 0.9);
+const vec3 SALTO_SHADE = vec3(0.7, 0.7, 0.86);
 const vec3 SALTO_AMBIENT = vec3(0.035, 0.02, 0.06);
 const float SALTO_EDGE_DARK = 0.16;
 

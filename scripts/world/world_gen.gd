@@ -100,6 +100,12 @@ const TRAIL_PALM_SHARE := 0.6
 const TRAIL_TREE_SCALE := 1.3
 const TRAIL_TREE_RADIUS := 2
 ## Repère de la clairière (u) : au-delà des sorties, visible de loin.
+## Occlusion (version 3.6) : cubes qui en cachent d'autres (taille au moins), voisins sondés (au-
+## dessus, sur les côtés, en u), assombrissement au plus, et au pied de ce qui se dresse.
+const OCCLUDER_SIZE := 0.7
+const OCCLUSION_PROBES: Array[Vector3] = [Vector3(0, 1, 0), Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1), Vector3(1, 1, 0), Vector3(-1, 1, 0), Vector3(0, 1, 1), Vector3(0, 1, -1)]
+const OCCLUSION_STRENGTH := 0.32
+const OCCLUSION_FOOT := 0.06
 const LANDMARK_DEPTH := 20.0
 const LANDMARK_CLEAR := 7.0
 ## Terre battue au sol (u, part de la largeur, force) : le tracé principal (du sentier d'entrée à
@@ -363,6 +369,7 @@ func generate_room(seed_value: int, radius: float, gaps: PackedFloat32Array, kin
 		_trail_dressing(kind)
 	if kind != &"arena" and kind != &"village":
 		_room_props(radius, gaps, kind)
+	bake_occlusion()
 
 
 ## Où l'on marche : l'arène, le sentier d'entrée qui serpente du sud, un sentier par sortie, les
@@ -1204,6 +1211,34 @@ func _room_place(builder: Callable, count: int, radius: float, gaps: PackedFloat
 			continue
 		builder.call(p.x, p.y)
 		placed += 1
+
+
+## Occlusion calculée à la génération (version 3.6, « maquette miniature ») : un cube entouré d'autres
+## cubes (au-dessus, sur les côtés) s'assombrit un peu — creux des couronnes, pieds de mur, coins —,
+## comme la lumière qui y entre moins. Les fleurs et herbes (petits cubes) n'en projettent pas.
+func bake_occlusion() -> void:
+	var cells: Dictionary[int, bool] = {}
+	var count: int = voxel_count()
+	for i: int in count:
+		var o: int = i * STRIDE
+		if voxels[o + 6] >= OCCLUDER_SIZE:
+			cells[_cell_key(voxels[o], voxels[o + 1], voxels[o + 2])] = true
+	for i: int in count:
+		var o: int = i * STRIDE
+		var x: float = voxels[o]
+		var y: float = voxels[o + 1]
+		var z: float = voxels[o + 2]
+		var hidden: int = 0
+		for offset: Vector3 in OCCLUSION_PROBES:
+			if cells.has(_cell_key(x + offset.x, y + offset.y, z + offset.z)):
+				hidden += 1
+		# Près du sol, le pied de ce qui se dresse (un sol plat, lui, reste clair).
+		var foot: float = OCCLUSION_FOOT if y < 1.0 and hidden > 0 else 0.0
+		voxels[o + 5] *= 1.0 - OCCLUSION_STRENGTH * float(hidden) / OCCLUSION_PROBES.size() - foot
+
+
+static func _cell_key(x: float, y: float, z: float) -> int:
+	return (floori(x) + 4096) | ((floori(z) + 4096) << 13) | ((floori(y) + 256) << 26)
 
 
 func voxel_count() -> int:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3]
+[gd_scene load_steps=51 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/expedition.gd" id="1_night"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/hopper.tscn" id="2_hopper"]
@@ -49,6 +49,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="67_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/depart_screen.tscn" id="68_depart"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/passage.wav" id="69_passage"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/boss_freed.wav" id="70_awakening"]
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_night")
@@ -71,6 +72,7 @@ war_drum_sound = ExtResource("64_drum_sound")
 chest_scene = ExtResource("65_chest")
 trap_sound = ExtResource("66_trap_sound")
 passage_sound = ExtResource("69_passage")
+awakening_sound = ExtResource("70_awakening")
 plume_scene = ExtResource("30_plume")
 character_material = ExtResource("16_actor")
 character_shadow_material = ExtResource("26_actor_shadow")

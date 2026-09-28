@@ -30,6 +30,9 @@ var _fog_hue: float = -1.0
 var _wave_center := Vector3.ZERO
 var _wave_radius: float = -1.0
 var _fog_boost: float = 1.0
+var _wave_fog: bool = true
+## Première minute (version 3.6) : le monde muet, sans couleurs, jusqu'à la stèle frappée.
+var _silenced: bool = false
 
 const SANCTUARY_PARAMS: Array[StringName] = [&"salto_sanctuary_0", &"salto_sanctuary_1", &"salto_sanctuary_2"]
 
@@ -90,10 +93,21 @@ func burst() -> void:
 
 
 ## Passage (version 3.5) : la brume de la nouvelle clairière est épaisse, puis une vague de couleur
-## part de `center` (m) et la dissout en s'élargissant.
-func wave(center: Vector3) -> void:
+## part de `center` (m) et la dissout en s'élargissant. `fog` faux (version 3.6 : une clairière
+## libérée) : la vague seule, sans brume.
+func wave(center: Vector3, fog: bool = true) -> void:
 	_wave_center = center
 	_wave_radius = 0.0
+	_wave_fog = fog
+
+
+## Monde muet (première minute) : les couleurs se retirent ; faux : elles reviennent.
+func silence(on: bool) -> void:
+	_silenced = on
+
+
+func is_silenced() -> bool:
+	return _silenced
 
 
 func is_waving() -> bool:
@@ -169,11 +183,13 @@ func _process(delta: float) -> void:
 	_pulse = maxf(0.0, _pulse - delta * tuning.world_saturation_pulse_decay)
 	var levels: PackedFloat32Array = tuning.world_saturation_levels
 	var base: float = lerpf(levels[0], levels[levels.size() - 1], _progress) if _progress >= 0.0 else saturation_target(Game.progress.drums_returned, _won, tuning)
-	var target: float = base + _pulse
+	var target: float = (tuning.silence_saturation if _silenced else base) + _pulse
 	var rate: float = tuning.world_saturation_pulse_rate if _pulse > 0.0 else tuning.world_saturation_rate
 	_saturation += (target - _saturation) * Smoothing.weight(rate, delta)
 	RenderingServer.global_shader_parameter_set(&"salto_sat", _saturation)
 	var life: float = _progress * tuning.world_life_before_won if _progress >= 0.0 else life_target(Game.progress.drums_returned, Game.progress.drums_required, _won)
+	if _silenced:
+		life = 0.0
 	_life += (life - _life) * Smoothing.weight(tuning.world_saturation_rate, delta)
 	RenderingServer.global_shader_parameter_set(&"salto_life", _life)
 	for i: int in _sanctuaries.size():
@@ -192,6 +208,8 @@ func _process(delta: float) -> void:
 	if _wave_radius >= 0.0:
 		_wave_radius += tuning.passage_wave_speed * delta
 		var state: Vector2 = wave_state(_wave_radius, tuning)
+		if not _wave_fog:
+			state.y = 1.0
 		_fog_boost = state.y
 		RenderingServer.global_shader_parameter_set(&"salto_wave", Vector4(_wave_center.x, _wave_center.z, _wave_radius, state.x))
 		RenderingServer.global_shader_parameter_set(&"salto_fog_density", tuning.fog_density * state.y)

@@ -36,6 +36,8 @@ extends Level
 @export var trap_sound: AudioStream
 ## Passage rituel (version 3.5) : un roulement de toms et un carillon.
 @export var passage_sound: AudioStream
+## Premier accord (version 3.6) : la pierre du silence frappée rend sa voix au monde.
+@export var awakening_sound: AudioStream
 ## Plume arc-en-ciel des perchoirs ; personnages des rencontres (matériaux des villageois et des
 ## Muets, de leurs ombres, des petits assemblages) ; pages du carnet (le vieux tambourinaire).
 @export var plume_scene: PackedScene
@@ -131,6 +133,8 @@ var _hidden_at := Vector2.INF
 ## reprend ses couches un peu après.
 var _passage: bool = false
 var _passage_player: AudioStreamPlayer
+## Première minute (version 3.6) : la pierre du silence attend d'être frappée.
+var _stone: SilenceStone
 
 @onready var world: WorldBuilder = $World
 @onready var mood: WorldMood = $Mood
@@ -264,6 +268,10 @@ func current_goal() -> Dictionary:
 		var icon: StringName = RunState.REST if _encounter == &"rest" else RunState.ENCOUNTER
 		return {&"title": GameTexts.ENCOUNTER_NAMES[_encounter], &"sub": GameTexts.ROOM_ENCOUNTER, &"icon": icon, &"point": Vector3.ZERO}
 	var fight_goal: Dictionary = {&"title": title, &"sub": GameTexts.ROOM_FIGHT % GameTexts.REWARD_NAMES[run.reward], &"icon": run.reward}
+	if _stone and not _stone.is_struck():
+		# La première fois : le repère montre la pierre du silence.
+		fight_goal[&"point"] = _stone.global_position
+		return fight_goal
 	if _arena_waiting:
 		# Sur le sentier : le repère montre l'arène.
 		fight_goal[&"point"] = Vector3.ZERO
@@ -438,6 +446,7 @@ func _enter_room() -> void:
 	_stele_pending = false
 	_hidden_spawner = null
 	_hidden_at = Vector2.INF
+	_stone = null
 	_kind = run.room_kind()
 	_radius = run.room_radius(tuning.room_radius_min, tuning.room_radius_max)
 	_apply_region(run.region)
@@ -464,7 +473,14 @@ func _enter_room() -> void:
 	mood.set_progress(float(run.room) / maxf(1.0, run.room_count - 1), false)
 	_music_layers = mini(maxi(Village.music_layers(Game.profile), 1 + floori(float(run.room) * Rhythm.NIGHT_LAYERS.size() / run.room_count)), Rhythm.NIGHT_LAYERS.size())
 	_fighting = false
-	if _passage:
+	# Première minute de la toute première expédition : une clairière sombre et muette, une pierre à
+	# frapper au bord de l'arène (version 3.6).
+	if run.tutorial and run.room == 0 and fight:
+		_place_silence_stone()
+	if _stone:
+		_passage = false
+		Rhythm.set_layers(0)
+	elif _passage:
 		# Passage rituel : une vague de couleur dissout la brume ; la musique, réduite à sa base
 		# pendant le passage, reprend ses couches un peu après.
 		_passage = false
@@ -490,8 +506,9 @@ func _enter_room() -> void:
 		_cleared = true
 		_place_chest()
 		return
-	# Version 3.4 : les Muets attendent que le héros arrive dans l'arène par le sentier.
-	_arena_waiting = true
+	# Version 3.4 : les Muets attendent que le héros arrive dans l'arène par le sentier (et, la
+	# première fois, qu'il ait frappé la pierre du silence).
+	_arena_waiting = _stone == null
 
 
 ## Couleurs de la région : feuillage, sol, brume ; sa couche de musique.
@@ -575,6 +592,35 @@ func _on_stele_awakened() -> void:
 	_stele_pending = true
 	hero.input_move = Vector2.ZERO
 	boon_screen.open(Boons.deal(Game.run.rng, Game.run.boons, Tuning.data.stele_offer, Tuning.data), GameTexts.STELE_TITLE)
+
+
+## La pierre du silence, sur le chemin qui entre dans l'arène ; le monde se tait et perd ses couleurs.
+func _place_silence_stone() -> void:
+	_stone = SilenceStone.new()
+	_stone.material = prop_material
+	var p: Vector2 = WorldGen.gap_point(ENTRANCE, _radius * 0.45)
+	_stone.position = Vector3(p.x + WorldGen.TRAIL_HALF, 0.0, p.y) * _unit
+	pickups.add_child(_stone)
+	_stone.struck.connect(_awaken)
+	mood.silence(true)
+
+
+## La pierre frappée : les couleurs et le premier accord reviennent en vague, puis la première vague
+## de Muets arrive.
+func _awaken() -> void:
+	var tuning: TuningData = Tuning.data
+	if not in_sortie or _stone == null:
+		return
+	var at: Vector3 = _stone.global_position
+	mood.silence(false)
+	mood.wave(at, false)
+	mood.pulse(tuning.cleared_pulse)
+	Rhythm.set_layers(_music_layers)
+	if awakening_sound:
+		_passage_player.stream = awakening_sound
+		_passage_player.play()
+		_passage_player.finished.connect(func() -> void: _passage_player.stream = passage_sound, CONNECT_ONE_SHOT)
+	get_tree().create_timer(tuning.awakening_wave_delay, false).timeout.connect(_start_wave)
 
 
 ## Le héros entre dans le recoin du Muet doré : il s'éveille (hors des vagues, il garde son creux).
@@ -809,6 +855,9 @@ func _room_cleared() -> void:
 	var tuning: TuningData = Tuning.data
 	var run: RunState = Game.run
 	_cleared = true
+	# Version 3.6 : la clairière libérée, une vague de couleur part du héros sur le sol.
+	mood.wave(hero.global_position, false)
+	mood.pulse(tuning.cleared_pulse)
 	var fx: Effects = Effects.of(self)
 	# Repousse (don) : chaque clairière nettoyée soigne un peu.
 	if hero.stats.regrowth > 0.0:
