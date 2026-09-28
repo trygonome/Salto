@@ -236,9 +236,15 @@ téléphone). Retours sur la version 2.9, à y intégrer :
   sélection), son éclat doré et un carillon qui se confond avec le son des coups ; aucun mot
   « Parfait ! » ne s'affiche, le bonus de dégâts (×1,5) ne se voit pas, les Muets attaquent sur les
   temps sans que ça se remarque, et le conseil « Frappe quand l'anneau se referme » de la nuit n'a pas
-  été porté dans l'expédition. À repenser à la racine : rendre le temps visible et physique (monde,
-  personnages, interface qui battent), rendre la récompense évidente (coup parfait spectaculaire,
-  chiffres, son), l'apprendre dès la première minute sans texte.
+  été porté dans l'expédition. **La mécanique elle-même est remise en question** : le combat au
+  rythme est peu commun, et la recette d'un bon jeu n'est sans doute pas là. Constat qui va dans ce sens :
+  le testeur a aimé la direction du jeu sans jamais s'en servir ; le plaisir vient de l'action, des
+  dons, du village. Piste à trancher avec la recherche : garder la musique comme âme du monde (les
+  Muets, la couleur et la musique qui reviennent, la troupe, la musique qui s'étoffe) sans en faire
+  une contrainte de timing, ou n'en garder qu'une touche facultative. Ce qui en dépend dans le code : le
+  jugement des appuis (Parfait, Bien), l'anneau au sol, le groove gagné en rythme, la famille de dons
+  « rythme » (Métronome, Syncope, Accent, Contrepoint, Roulement), les Muets et pièges calés sur les
+  temps, la calibration du son.
 - **Son des pièges** : le son des épines est vraiment envahissant à la longue. Cause : chaque piège
   annonce sa frappe tous les 2 temps avec le même son d'alerte que les attaques des Muets (plusieurs
   pièges par clairière), ce qui brouille aussi cette alerte. À revoir : un son propre aux pièges, discret,
