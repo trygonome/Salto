@@ -262,6 +262,10 @@ Chaque jalon se termine jouable, avec quoi tester sur le téléphone.
    récompense a sa petite icône voxel animée (elle tourne, respire) ; le cadre, la gemme de rareté et les
    mots-clés portent la couleur de la famille ; un effet se comprend à l'image avant le texte (deux lignes
    au plus). Cartes de dons côte à côte, fixes. *Test : on choisit un don sans lire son nom.*
+   **Fait** (version 3.2) : catalogue d'icônes voxel (dessins 7 × 7 extrudés en cubes, relief sur les
+   teintes claires) pour les 29 dons, les récompenses, les objets, les cases, les pactes et les régions ;
+   icône vivante dans l'interface (petite scène à part, elle tourne doucement) ; cartes de dons côte à côte,
+   cadre et laçage à la couleur de la famille, effet écrit dans sa couleur, rareté en couleur.
 4. **3.3 — Navigation d'application, sans défilement.** Architecture des écrans en paysage : écran titre
    réduit (toucher pour jouer), hub par onglets (Expédition, Village, Sac, Talents, Carnet, Réglages), pages
    fixes, retour arrière cohérent, transitions ; pause en surimpression à onglets ; résumé en une page.

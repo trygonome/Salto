@@ -293,3 +293,7 @@ Cinq nuits, nuits sans fin, cracheur, porte-bouclier, talents, carnet complet.
   Geyser (eau + feu : l'esquive parfaite fait jaillir une onde brûlante), Bosquet sacré (sève + eau), Floraison
   (sève + vent). Talents : Métronome donne de la vitesse de coups, Roulement du groove ; le Cœur Battant
   soigne sur un critique.
+- **Langage visuel** (3.2) : chaque don, objet, instrument, récompense, case, pacte et région a sa petite icône
+  en voxels qui tourne doucement ; l'image d'abord, le nom ensuite. Les cartes de dons sont côte à côte, leur
+  cadre porte la couleur de la famille (Feu rouge, Eau bleue, Sève verte, Vent jaune), l'effet est écrit dans
+  cette couleur, la rareté aussi (rare bleu, épique violet, don double or).
